@@ -20,5 +20,10 @@
   "bugs": {
     "url": "https://github.com/JullianRD/GamingBox/issues"
   },
-  "homepage": "https://github.com/JullianRD/GamingBox#readme"
+  "homepage": "https://github.com/JullianRD/GamingBox#readme",
+  "dependencies": {
+    "connect-pg-simple": "^10.0.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1"
+  }
 }
