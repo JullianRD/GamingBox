@@ -17,9 +17,9 @@ CREATE TABLE IF NOT EXISTS reviews (
     review_date DECIMAL(15,2) NOT NULL,
     review_like BOOLEAN NOT NULL DEFAULT FALSE,
     review_platine BOOLEAN NOT NULL DEFAULT FALSE,
-    progression_status progression_status_enum NOT NULL,
+    progression_status progression_status_enum NOT NULL DEFAULT 'en cour',
     avis_review CITEXT,
-    game_platforme game_platforme_enum NOT NULL,
+    game_platforme game_platforme_enum NOT NULL DEFAULT 'autre',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ,
     CONSTRAINT unique_user_review_title UNIQUE (user_id, game_title), -- Un utilisateur ne peux pas créer deux reviews sur le même jeu
