@@ -34,3 +34,9 @@ import UserDTO from "../dto/UserDTO.js";
  }
 
  export default new UserController();
+
+
+
+//    static async getAll(userId) {
+//     return UserRepository.findAllAdmin(userId);
+//   }
