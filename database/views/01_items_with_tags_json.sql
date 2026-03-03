@@ -19,7 +19,7 @@ GROUP BY
 
 -- Cette vue :
 
--- joint items et tags
+-- joint review et tags
 -- transforme la relation many-to-many
 -- génère un JSON propre
 -- garantit un tableau vide au lieu de null

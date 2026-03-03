@@ -5,7 +5,7 @@
 SET CLIENT_ENCODING TO 'UTF8';
 
 CREATE TABLE IF NOT EXISTS reviews (
-    id_review UUID DEFAULT uuid_v7() PRIMARY KEY,
+    id_review UUID DEFAULT uuidv7() PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES users (id_user) ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games (id_game) ON DELETE CASCADE,
     review_title VARCHAR(100) NOT NULL, -- Titre de la review que l'utilisateur peut donner
@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS reviews (
     review_rate DECIMAL(15,2) NOT NULL,
     review_like BOOLEAN NOT NULL DEFAULT FALSE,
     review_platine BOOLEAN NOT NULL DEFAULT FALSE,
-    progression_status progression_status_enum NOT NULL DEFAULT 'en cour',
+    progression_status progression_status_enum NOT NULL DEFAULT 'En cour',
     avis_review CITEXT,
-    game_platforme game_platforme_enum NOT NULL DEFAULT 'autre',
+    game_platforme game_platforme_enum NOT NULL DEFAULT 'Autre',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ,
     CONSTRAINT unique_user_game_title UNIQUE (user_id, game_title), -- Un utilisateur ne peux pas créer deux reviews sur le même jeu

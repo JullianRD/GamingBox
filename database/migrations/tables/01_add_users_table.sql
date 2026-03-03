@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     id_user UUID DEFAULT uuidv7 () PRIMARY KEY,
     email CITEXT UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    pseudo CITEXT VARCHAR(50) UNIQUE NOT NULL,
+    pseudo CITEXT UNIQUE NOT NULL,
     biographie CITEXT,
     role_name role_enum NOT NULL DEFAULT 'visiteur',
     auth_provider auth_provider_enum NOT NULL DEFAULT 'local',

@@ -11,6 +11,6 @@
 
 -- Création de la base avec support UTF8 complet
 
-CREATE DATABASE gamingbox_db_dev WITH ENCODING = 'UTF8';
+CREATE DATABASE app_gamingbox_dev WITH ENCODING = 'UTF8';
 
-COMMENT ON DATABASE gamingbox_db_dev IS 'Base de données principale du projet GamingBox - Coffre-fort numérique';
+COMMENT ON DATABASE app_gamingbox_dev IS 'Base de données principale du projet GamingBox - Coffre-fort numérique';
