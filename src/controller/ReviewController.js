@@ -1,7 +1,7 @@
 "use strict"
 
 import ReviewService from "../services/ReviewService.js";
-import PgReviewService from "../repositories/PgReviewRepository.js";
+import PgReviewRepository from "../repositories/PgReviewRepository.js";
 
 /**
  * ItemController
@@ -18,15 +18,15 @@ class ReviewController {
         res.render("reviews/index", { reviews });
       }
 
-      // Détails d'une pépite 
+      // Détails d'une review
 
   async show(req, res) {
-    const item = await PgItemRepository.findBySlug(
+    const review = await PgReviewepository.findBySlug(
       req.params.slug,
       req.user.id,
     );
 
-    if (!item) {
+    if (!review) {
       return res.status(404).render("errors/404");
     }
 
@@ -42,7 +42,7 @@ class ReviewController {
   // Création (on stocke la review)
 
   async store(req, res) {
-    await ReviewService.create(req.user.id, req.body);
+    await ReviewService.create(req.user.id, req.body);  // Surement un ajout en parametre d'un IGDB ou Game id
     req.flash("Review enregistrée avec succés");
     res.redirect("/reviews/index")
   }
