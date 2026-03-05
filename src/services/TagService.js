@@ -16,6 +16,13 @@ class TagService {
         });
     }
 
+    async findByUserId(userId) {
+        if (!userId) {
+            throw new error("UserId requis")
+        }
+        return await PgTagRepository.findByUserId(userId)
+    }
+
     // renommer un tag 
     static async update(tagId, tagName) {
         return TagRepository.update(tagId, { tagName });

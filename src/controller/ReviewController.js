@@ -21,16 +21,14 @@ class ReviewController {
       // Détails d'une review
 
   async show(req, res) {
-    const review = await PgReviewepository.findBySlug(
-      req.params.slug,
-      req.user.id,
-    );
+      const review = await ReviewService.findById(req.params.id);
+      const tags = await ReviewService.getTags(req.params.id);
 
     if (!review) {
       return res.status(404).render("errors/404");
     }
 
-    res.render("reviews/show", { item });
+    res.render("reviews/show", { review, tags });
   }
 
   // Formulaire de création d'une review 
