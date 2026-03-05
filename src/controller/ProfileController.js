@@ -27,7 +27,7 @@ class ProfileController {
         try {
             const userId = req.session.userId;
 
-            await UserService.updateProfile(userId, req.body);
+            await UserService.updateProfil(userId, req.body);
             req.flash("success", "Profil mis à jour ✅");
             res.redirect("pages/profile");
         } catch (error) {

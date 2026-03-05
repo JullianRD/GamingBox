@@ -1,7 +1,6 @@
 "use strict"
 
-import Gameservice from "../services/GameService.js"
-import PgGameRepository from "../repositories/PgGameRepository.js"
+import GameService from "../services/GameService.js"
 
 // GameController 
 
@@ -11,14 +10,14 @@ import PgGameRepository from "../repositories/PgGameRepository.js"
 
 class GameController {
     async index(req, res) {
-        const games = await PgGameRepository.findAllByGameId(req.game.id)
+        const games = await GameService.findAllByGameId(req.game.id)
         res.render("games/index", { games });
     }
 
     // Détails d'un jeu
 
     async show(req, res) {
-        const games = await PgGameRepository.findById(req.game.id)
+        const games = await GameService.findById(req.game.id)
 
         if (!games) {
             return res.status(404).render("error/404");
@@ -29,7 +28,7 @@ class GameController {
     // Ouvre le formulaire d'édition du jeu en local
 
     async edit(req, res) {
-        const game = await PgGameRepository.findById(req.game.id);
+        const game = await GameService.findById(req.game.id);
 
         if (!game) {
             return res.status(404).render("error/404");
@@ -40,7 +39,7 @@ class GameController {
     // Mise à jour du jeu en local
 
     async update(req, res) {
-        await Gameservice.update(req.game.id, req.body);
+        await GameService.update(req.game.id, req.body);
         req.flash("Le jeu à été mis à jour");
         res.redirect("games/index");
     }

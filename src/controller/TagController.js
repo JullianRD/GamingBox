@@ -1,6 +1,5 @@
 "use strict";
 
-import TagRepository from "../repositories/PgTagRepository.js";
 import TagService from "../services/TagService.js";
 
 // TagController / Le rendu des tags sur les review se fait directement depuis le reviewController !

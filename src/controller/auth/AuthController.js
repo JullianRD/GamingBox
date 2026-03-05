@@ -10,7 +10,7 @@ class AuthController {
         if (req.sesion.userId) {
             return res.redirect("reviews"); // Envoie l'utilisateur connecté (session en cache) vers sa page de review
         }
-        res.render("pages.auth/register", {
+        res.render("pages/auth/register", {
             title: "Inscription à GamingBox",
             csrfToken: req.csrfToken(),
         });
