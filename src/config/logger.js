@@ -1,7 +1,7 @@
 "use strict";
 // src/config/logger.js
 import pino, { destination } from "pino";
-import PinoHttp, { pinoHttp } from "pino-http";
+import pinoHttp, { pinoHttp } from "pino-http";
 import fs from "fs";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -47,7 +47,7 @@ const transport = isDevelopment
   : undefined;
 
 /**
- * Crée et exporte le logger Pino principal
+ * Créer et exporte le logger Pino principal
  * @type {pino.Logger}
  */
 export const logger = pino(baseLoggerOptions, transport);

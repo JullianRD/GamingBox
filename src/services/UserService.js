@@ -32,3 +32,6 @@ class UserService {
 }
 
 export default UserService;
+
+
+// Faire userRepository.updateAvatar(userId, avatarPath) (et avatar dans la table utilisateur)
