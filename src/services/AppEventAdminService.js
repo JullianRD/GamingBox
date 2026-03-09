@@ -117,3 +117,5 @@ class AppEventAdminService {
 }
 
 export default AppEventAdminService;
+
+// Il manque bcp de méthode à créer dans le repo
