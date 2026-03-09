@@ -1,7 +1,6 @@
 "use strict";
 
 import ShareService from "../services/ShareService.js";
-import ShareRepository from "../repositories/PgShareRepository.js";
 
 /**
  * ShareController (explication des controllers)
@@ -14,23 +13,21 @@ import ShareRepository from "../repositories/PgShareRepository.js";
  * - délègue toute décision au service
  */
 
-
 class ShareController {
+  // Liste de tout les partages de l'utilisateur connecté (partage profil comme review)
 
-    // Liste de tout les partages de l'utilisateur connecté (partage profil comme review)
+  async index(req, res) {
+    const userId = req.user.id;
 
-    async index(req, res) {
-        const userId = req.user.id;
+    const shares = await ShareService.findByUserId(userId);
 
-        const shares = await ShareRepository.findByUserId(userId);
+    res.render("pages/shares/index", {
+      title: "Mes partages",
+      shares,
+    });
+  }
 
-        res.render("pages/shares/index", {
-            title: "Mes partages",
-            shares,
-        });
-    }
-
-     /**
+  /**
    * ➕ Formulaire de création d’un partage de profil utilisateur
    */
   async new(req, res) {
@@ -49,11 +46,11 @@ class ShareController {
     }
   }
 
-// Création du partage de profil
+  // Création du partage de profil
 
   async store(req, res) {
     try {
-        const {userId, recipientEmail, allow_download, expiration, maxViews} =
+      const { userId, recipientEmail, allow_download, expiration, maxViews } =
         req.body;
 
       const accessConfig = {
@@ -62,20 +59,20 @@ class ShareController {
         maxViews: maxViews ? Number(maxViews) : null,
       };
 
-              await ShareService.createShareForProfil({
-            userId,
-            recipientEmail,
-            accessConfig,
-        });
-        res.redirect("pages/shares/index");
+      await ShareService.createShareForProfil({
+        userId,
+        recipientEmail,
+        accessConfig,
+      });
+      res.redirect("pages/shares/index");
     } catch (error) {
-        res.status(404).render("pages/errors/404", error.message)
+      res.status(404).render("pages/errors/404", error.message);
     }
   }
 
   // Formulaire de création de partage pour une review
 
-    /**
+  /**
    * ➕ Formulaire de création d’un partage
    */
   async new(req, res) {
@@ -83,7 +80,7 @@ class ShareController {
     const { reviewId } = req.query;
 
     try {
-      // Le service valide l’accès à l’item
+      // Le service valide l’accès à l’review
       const review = await ShareService.prepareNew(reviewId, userId);
 
       res.render("pages/shares/new/review", {
@@ -95,7 +92,7 @@ class ShareController {
     }
   }
 
-    /**
+  /**
    * 💾 Création du partage de la review
    */
   async store(req, res) {
@@ -123,7 +120,7 @@ class ShareController {
     }
   }
 
-    /**
+  /**
    * ✏️ Édition des droits d’un partage peut importe le type de la ressource
    */
   async edit(req, res) {
@@ -141,7 +138,7 @@ class ShareController {
     });
   }
 
-    /**
+  /**
    * 🔄 Mise à jour des droits peut importe le type de la ressource
    */
   async update(req, res) {
@@ -170,9 +167,9 @@ class ShareController {
   async destroy(req, res) {
     const { id } = req.params;
 
-    await ShareService.deleteShare(id)
+    await ShareService.deleteShare(id);
 
-    res.redirect("pages/shares/index")
+    res.redirect("pages/shares/index");
   }
 
   // Accés public à la ressource via un token sécurisé
@@ -181,14 +178,14 @@ class ShareController {
     const { token } = req.params;
 
     try {
-        const share = await ShareService.acessByToken(token);
+      const share = await ShareService.acessByToken(token);
 
-        res.render("pages/shares/public", {
-            title: "Accés partagé à la ressource",
-            share
-        });
+      res.render("pages/shares/public", {
+        title: "Accés partagé à la ressource",
+        share,
+      });
     } catch (error) {
-        res.render(403).render("pages/error/403");
+      res.render(403).render("pages/error/403");
     }
   }
 }

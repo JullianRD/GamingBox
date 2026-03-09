@@ -4,7 +4,7 @@
  * @module models/Tag
  */
 
- class Tag {
+class Tag {
   constructor(data) {
     // Mapping SQL (snake_case) vers JS (camelCase)
     this.id = data.id_tag;
@@ -22,8 +22,8 @@
       };
     }
 
-    // Compteur d'items (si agrégation effectuée)
-    if (data.item_count !== undefined) {
+    // Compteur d'reviews (si agrégation effectuée)
+    if (data.review_count !== undefined) {
       this.reviewCount = parseInt(data.review_count, 10);
     }
   }

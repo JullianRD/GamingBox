@@ -23,7 +23,7 @@ class User {
 
     // Statistiques (si agrégation effectuée)
     if (data.reviews_count !== undefined) {
-      this.itemsCount = parseInt(data.reviews_count, 10);
+      this.reviewsCount = parseInt(data.reviews_count, 10);
     }
     if (data.tags_count !== undefined) {
       this.tagsCount = parseInt(data.tags_count, 10);
@@ -62,7 +62,9 @@ class User {
       updatedAt: this.updatedAt,
       // ❌ passwordHash exclu
       // ❌ gdprConsentDate exclu (donnée interne)
-      ...(this.reviewsCount !== undefined && { reviewsCount: this.reviewsCount }),
+      ...(this.reviewsCount !== undefined && {
+        reviewsCount: this.reviewsCount,
+      }),
       ...(this.tagsCount !== undefined && { tagsCount: this.tagsCount }),
     };
   }

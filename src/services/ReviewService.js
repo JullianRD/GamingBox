@@ -1,66 +1,66 @@
 "use strict";
 /**
- * Service métier Items
+ * Service métier reviews
  */
 import ReviewRepository from "../repositories/PgReviewRepository.js";
 import ReviewTagRepository from "../repositories/PgReviewTagRepository.js";
 import { generateSlug } from "../utils/generateSlug.js";
 
 class ReviewService {
+  // Créer une review avec ses tags associés
 
-    // Créer une review avec ses tags associés
+  static async create(userId, gameId, payload) {
+    // Payload = information envoyé par l'utilisateur
+    const slug = generateSlug(payload.title);
 
-    static async create(userId, gameId, payload) {         // Payload = information envoyé par l'utilisateur 
-        const slug = generateSlug(payload.title);
+    const review = await ReviewRepository.create({
+      userId,
+      gameId,
+      reviewTitle: payload.reviewTitle,
+      slug, // texte mis en forme
+      reviewRate: payload.reviewRate,
+      reviewLike: payload.reviewLike,
+      reviewPlatine: payload.reviewPlatine,
+      progressionStatus: payload.progressionStatus,
+      avisReview: payload.avisReview,
+      gamePlatforme: payload.gamePlatforme,
+    });
 
-        const review = await ReviewRepository.create({
-            userId,
-            gameId,
-            reviewTitle: payload.reviewTitle,
-            slug,   // texte mis en forme
-            reviewRate: payload.reviewRate,
-            reviewLike: payload.reviewLike,
-            reviewPlatine: payload.reviewPlatine,
-            progressionStatus: payload.progressionStatus,
-            avisReview: payload.avisReview,
-            gamePlatforme: payload.gamePlatforme
-        });
-
-        if (payload.tagIds?.length) {
-            for (const tagId of payload.tagIds) {
-                await ReviewTagRepository.add(item.id, tagId);
-            }
-        }
-
-        return review;
+    if (payload.tagIds?.length) {
+      for (const tagId of payload.tagIds) {
+        await ReviewTagRepository.add(review.id, tagId);
+      }
     }
 
-    // Modifier une pépite 
+    return review;
+  }
 
-    static async update(reviewId, payload) {
-        const data = { ...payload };
+  // Modifier une pépite
 
-            // Règle métier légère pour mettre en forme le texte du titre de la review
+  static async update(reviewId, payload) {
+    const data = { ...payload };
+
+    // Règle métier légère pour mettre en forme le texte du titre de la review
     if (payload.reviewTitle) {
-        data.slug = generateSlug(payload.reviewTitle);
+      data.slug = generateSlug(payload.reviewTitle);
     }
 
-    const item = await ReviewRepository.update(reviewId, data);
+    const review = await ReviewRepository.update(reviewId, data);
 
-        // modifier les tags associé aux reviews
+    // modifier les tags associé aux reviews
     if (payload.tagIds) {
-        await ReviewTagRepository.replaceForReview(reviewId, payload.tagIds);
+      await ReviewTagRepository.replaceForReview(reviewId, payload.tagIds);
     }
 
-    return item;
-    }
+    return review;
+  }
 
-    // Supprimer une review proprement 
+  // Supprimer une review proprement
 
-    static async delete(reviewId) {
-        await ReviewTagRepository.clearForReview(reviewId);
-        return ReviewRepository.delete(itemId);
-    }
+  static async delete(reviewId) {
+    await ReviewTagRepository.clearForReview(reviewId);
+    return ReviewRepository.delete(reviewId);
+  }
 }
 
 export default ReviewService;

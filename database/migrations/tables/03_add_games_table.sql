@@ -1,4 +1,4 @@
--- Relation Merise : reviews (1,1) --- (0,N) games (un item appartient à un utilisateur)
+-- Relation Merise : reviews (1,1) --- (0,N) games (un review appartient à un utilisateur)
 -- ============================================================================
 
 -- Forcer l'encodage client

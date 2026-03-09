@@ -1,33 +1,31 @@
 "use strict";
 import UserRepository from "../repositories/PgUserRepository.js";
-import ReviewRepository from "../repositories/PgItemRepository.js";
+import ReviewRepository from "../repositories/PgreviewRepository.js";
 import TagRepository from "../repositories/PgTagRepository.js";
 import ShareRepository from "../repositories/PgShareRepository.js";
 
 class UserExportService {
-    static async export(userId) {
-        const [user, reviews, tags, shares] = await Promise.all([
-        UserRepository.findById(userId),
-        ReviewRepository.findByUserId(userId),
-        TagRepository.findByUserId(userId),
-        ShareRepository.findByUserId(userId),
-        ]);
+  static async export(userId) {
+    const [user, reviews, tags, shares] = await Promise.all([
+      UserRepository.findById(userId),
+      ReviewRepository.findByUserId(userId),
+      TagRepository.findByUserId(userId),
+      ShareRepository.findByUserId(userId),
+    ]);
 
-        if (!user) return null;
+    if (!user) return null;
 
-        return {
-            user: user.toJSON(),
-            reviews,
-            tags,
-            shares,
-            exportDate: new Date().toISOString(),
-        };
-    }
+    return {
+      user: user.toJSON(),
+      reviews,
+      tags,
+      shares,
+      exportDate: new Date().toISOString(),
+    };
+  }
 }
 
 export default UserExportService;
-
-
 
 // Ce service sert à :
 // Rassembler toutes les données d’un utilisateur pour les exporter.

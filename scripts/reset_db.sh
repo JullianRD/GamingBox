@@ -68,7 +68,7 @@ execute_sql() {
     if [ -f "$file" ]; then
         echo -e "${RED}➜${NC} Executing $description"
         # On utilise || true pour ignorer les erreurs si les objets n'existent plus
-        psql -U "$DB_USER" -d "$DB_NAME" -f "$file" -q || echo -e "${BLUE}⚠️  Notice: Some items could not be dropped (already gone?)${NC}"
+        psql -U "$DB_USER" -d "$DB_NAME" -f "$file" -q || echo -e "${BLUE}⚠️  Notice: Some reviews could not be dropped (already gone?)${NC}"
     else
         echo -e "${YELLOW}⚠️  File not found: $file (Skipping)${NC}"
     fi

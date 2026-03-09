@@ -44,7 +44,7 @@ CREATE TYPE game_platforme_enum AS ENUM(
 COMMENT ON TYPE game_platforme_enum IS 'Platforme de jeu sur laquelle le joueur à joué pour le jeu de sa review';
 
 CREATE TYPE event_category_enum AS ENUM (
-    'analytics',   -- Événements métier (login, création item...)
+    'analytics',   -- Événements métier (login, création review...)
     'audit',       -- Audit trail (modification compte, suppression...)
     'monitoring',  -- Health checks, performance
     'gdpr'         -- Événements RGPD (export, suppression, consentement...)

@@ -13,10 +13,10 @@
  */
 class Review {
   constructor(data) {
-    this.id = data.id_item;
+    this.id = data.id_review;
     this.userId = data.user_id;
-    this.gameId = data.game_id
-    this.reviewTitle = data.review_title
+    this.gameId = data.game_id;
+    this.reviewTitle = data.review_title;
     this.gameTitle = data.game_title;
     this.slug = data.slug;
     this.releaseDate = data.release_date;
@@ -37,7 +37,7 @@ class Review {
    * Crée une entité depuis une ligne PostgreSQL
    */
   static fromDatabase(row) {
-    return row ? new Item(row) : null;
+    return row ? new review(row) : null;
   }
 
   /**
@@ -49,7 +49,7 @@ class Review {
 
   /**
    * Filtre les données sensibles pour l'exposition en API
-   * @returns {object} - Objet Item sans données sensibles
+   * @returns {object} - Objet review sans données sensibles
    */
   toJSON() {
     return {
@@ -75,8 +75,8 @@ class Review {
   }
 
   /**
-   * Convertit l'objet Item en chaîne de caractères JSON
-   * @returns {string} - Chaîne de caractères JSON représentant l'objet Item
+   * Convertit l'objet review en chaîne de caractères JSON
+   * @returns {string} - Chaîne de caractères JSON représentant l'objet review
    */
   toString() {
     return JSON.stringify(this.toJSON());

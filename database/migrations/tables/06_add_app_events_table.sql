@@ -30,14 +30,14 @@ CREATE INDEX idx_events_critical ON app_events (severity, created_at DESC) WHERE
 
 -- Documentation
 COMMENT ON TABLE app_events IS 'Table unifiée pour analytics, audit, monitoring et événements RGPD';
-COMMENT ON COLUMN app_events.event_type IS 'Type précis avec convention : [domaine].[action] (ex: user.login, item.created, gdpr.export)';
+COMMENT ON COLUMN app_events.event_type IS 'Type précis avec convention : [domaine].[action] (ex: user.login, review.created, gdpr.export)';
 COMMENT ON COLUMN app_events.severity IS 'Niveau de gravité (utile pour filtrer les alertes monitoring)';
 COMMENT ON COLUMN app_events.message IS 'Message lisible pour les humains (logs, dashboards)';
 COMMENT ON COLUMN app_events.metadata IS 'Contexte flexible en JSONB :
 {
   "ip": "192.168.1.1",
   "user_agent": "Mozilla/5.0...",
-  "item_id": "uuid...",
+  "review_id": "uuid...",
   "error_stack": "...",
   "duration_ms": 234
 }';

@@ -4,11 +4,11 @@
  * @module models/Share
  */
 
- class Share {
+class Share {
   constructor(data) {
     // Mapping SQL (snake_case) vers JS (camelCase)
     this.id = data.id_share;
-    this.userId = data.user_id
+    this.userId = data.user_id;
     this.reviewId = data.review_id;
     this.recipientEmail = data.recipient_email;
     this.shareToken = data.share_token;
@@ -21,15 +21,15 @@
       this.user = {
         id: data.user_id,
         pseudo: data.user_pseudo,
-        roleName: data.user_role_name
+        roleName: data.user_role_name,
       };
     }
     if (data.review_title) {
-        this.review = {
-            id: data.review_id,
-            reviewTitle: data.review_review_title,
-            gameTitle: data.review_game_title
-        }
+      this.review = {
+        id: data.review_id,
+        reviewTitle: data.review_review_title,
+        gameTitle: data.review_game_title,
+      };
     }
   }
   /**
@@ -60,7 +60,7 @@
       accessConfig: this.accessConfig,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
-      ...(this.item && { item: this.item }),
+      ...(this.review && { review: this.review }),
     };
   }
 
