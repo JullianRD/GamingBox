@@ -11,9 +11,24 @@ import UserRepository from "../repositories/PgUserRepository.js";
 
 class ShareService { 
 
+    // Trouver un partage de review par son id
+    static async findByReviewId(id) {
+        return ShareRepository.findByReviewId(id)
+    }
+
+    // Trouver un partage de profil par son id
+    static async findByProfilId(id) {
+        return ShareRepository.findByProfilId(id)
+    }
+
+    // Trouver tout les partages créée par un utilisateur (peut importe la ressource)
+    static async findByUserId(shareId) {
+        return ShareRepository.findByUserId(shareId)
+    }
+
     //Créer un partage vers un profil utilisateur
     static async createShareForProfil({ userId, recipientEmail, accessConfig }) {
-        const exists = await ShareRepository.existByUserAndEmail(
+        const exists = await ShareRepository.existByProfilAndEmail(
             userId,
             recipientEmail,
         );
@@ -31,7 +46,7 @@ class ShareService {
     }
 
     // Créer un partage vers une review d'un utilisateur
-    static async createShareForProfil({ reviewId, recipientEmail, accessConfig }) {
+    static async createShareForReview({ reviewId, recipientEmail, accessConfig }) {
         const exists = await ShareRepository.existByReviewAndEmail(
             reviewId,
             recipientEmail,
@@ -77,7 +92,7 @@ class ShareService {
 
     // Modifier les droits d'un partage pour une review
     static async prepareEditForReview(shareId,userId) {
-        const share = await ShareRepository.findById(shareId);
+        const share = await ShareRepository.findByReviewId(shareId);
         if (!share) throw new Error("SHARE_NOT_FOUND");
 
         const review = await ReviewRepository.findById(share.reviewId);
@@ -88,14 +103,14 @@ class ShareService {
 
     // Modifier les droits d'un partage pour un profil
     static async prepareEditForProfil(shareId) {
-        const share = await ShareRepository.findById(shareId);
+        const share = await ShareRepository.findByProfilId(shareId);
         if (!share) throw new Error("SHARE_NOT_FOUND");
 
         return share;
     }
 
-    // Modifier les droits d'un partage
-    static async updateAccess(id, accessConfig) {
+    // Modifier les droits d'un partage pour une review
+    static async updateAccessForReview(id, accessConfig) {
     if (accessConfig.expiresAt) {
     const expDate = new Date(accessConfig.expiresAt);
     if (expDate < new Date()) {
@@ -103,7 +118,19 @@ class ShareService {
     }
     }
 
-    return ShareRepository.updateAccessConfig(id, accessConfig);
+    return ShareRepository.updateAccessConfigReview(id, accessConfig);
+    }
+
+    // Modifier les droits d'un partage pour un profil
+    static async updateAccessForProfil(id, accessConfig) {
+    if (accessConfig.expiresAt) {
+    const expDate = new Date(accessConfig.expiresAt);
+    if (expDate < new Date()) {
+        throw new Error("INVALID_EXPIRATION_DATE");
+    }
+    }
+
+    return ShareRepository.updateAccessConfigProfil(id, accessConfig);
     }
 
     // Accès à la ressource via un token 
@@ -131,7 +158,7 @@ class ShareService {
 
     // Suppression en cascade pour un profil 
     static async deleteSharesByProfil(userId) {
-        return ShareRepository.deleteByUserId(userId);
+        return ShareRepository.deleteByProfilId(userId);
     }
 }
 
