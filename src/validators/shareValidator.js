@@ -9,7 +9,7 @@ import { z } from "zod";
  */
 export const schemas = {
   create: z.object({
-    item_id: z.string().uuid("Identifiant de pépite invalide"),
+    review_id: z.string().uuid("Identifiant de pépite invalide"),
     user_id: z.string().uuid("Identifiant de profil invalide"),
 
     email: z.email("Email du destinataire invalide"),

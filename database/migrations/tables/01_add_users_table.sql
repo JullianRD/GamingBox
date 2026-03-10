@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     pseudo CITEXT UNIQUE NOT NULL,
     biographie CITEXT,
+    avatar VARCHAR(255),
     role_name role_enum NOT NULL DEFAULT 'visiteur',
     auth_provider auth_provider_enum NOT NULL DEFAULT 'local',
     settings_user JSONB NOT NULL DEFAULT '{}',

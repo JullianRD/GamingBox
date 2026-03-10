@@ -9,7 +9,7 @@ import { logger } from "../config/logger.js";
  */
 
 /**
- * Supprime un fichier du dossier public (ex: suppression d'un item).
+ * Supprime un fichier du dossier public (ex: suppression d'une review).
  * @param {string} relativePath - Le chemin stocké en DB (ex: '/uploads/image123.jpg')
  */
 export const deleteFile = async (relativePath) => {

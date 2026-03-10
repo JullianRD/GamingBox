@@ -16,6 +16,11 @@ class GameService {
     return GameRepository.findById(gameId);
   }
 
+  // Créer un jeu en base local
+  static async create(gameId) {
+  return GameRepository.create(gameId)
+  }
+
   // Mis à jour d'un jeu
   static async update(gameId) {
     return GameRepository.update(gameId);

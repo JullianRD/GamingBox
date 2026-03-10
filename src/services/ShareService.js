@@ -54,7 +54,7 @@ class ShareService {
         const review = await ReviewRepository.findById(reviewId);
 
         if (!review) {
-            throw new Error("ITEM_NOT_FOUND");
+            throw new Error("REVIEW_NOT_FOUND");
         }
 
         if (review.userId !== userId) {
@@ -81,7 +81,7 @@ class ShareService {
         if (!share) throw new Error("SHARE_NOT_FOUND");
 
         const review = await ReviewRepository.findById(share.reviewId);
-        if (!item || item.userId !== userId) throw new Error("FORBIDDEN");
+        if (!review || review.userId !== userId) throw new Error("FORBIDDEN");
 
         return { share, review};
     }

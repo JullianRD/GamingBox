@@ -10,7 +10,7 @@ import { logger } from "../config/logger.js";
  * Log une action importante de l'utilisateur (Audit trail)
  * @param {string} action - Nom de l'action (ex: 'REVIEW_CREATE', 'AUTH_LOGIN')
  * @param {string} userId - L'id de l'utlisateur
- * @param {Object} details - Détails supplémentaires (ex: {itemId: a5d4z..., ip: '...' })
+ * @param {Object} details - Détails supplémentaires (ex: {reviewId: a5d4z..., ip: '...' })
  */
 
 export const logAppEvent = (action, userId, details = {}) => {

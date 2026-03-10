@@ -3,7 +3,7 @@ import { AppError } from "../utils/AppError";
 
 /**
  * Vérifie si l'utilisateur connecté est propriétaire de la resource.
- * @param {Object} repository - Le repository (ex: ItemRepository)
+ * @param {Object} repository - Le repository (ex: ReviewRepository)
  * @param {string} paramId - Le nom du paramètre dans l'URL (ex: 'id')
  */
 
