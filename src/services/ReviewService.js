@@ -19,7 +19,7 @@ class ReviewService {
       reviewTitle: payload.reviewTitle,
       slug, // texte mis en forme
       reviewRate: payload.reviewRate,
-      reviewLike: payload.reviewLike,
+      reviewLike: payload.reviewLike,     // Payload = information envoyé par l'utilisateur
       reviewPlatine: payload.reviewPlatine,
       progressionStatus: payload.progressionStatus,
       avisReview: payload.avisReview,

@@ -9,7 +9,7 @@
 
 /**
  * @class Review
- * @description Représente une "Pépite" (élément de connaissance) dans l'application
+ * @description Représente une review "un avis" laissé par l'utilisateur
  */
 class Review {
   constructor(data) {
@@ -17,12 +17,7 @@ class Review {
     this.userId = data.user_id;
     this.gameId = data.game_id;
     this.reviewTitle = data.review_title;
-    this.gameTitle = data.game_title;
     this.slug = data.slug;
-    this.releaseDate = data.release_date;
-    this.gameGenre = data.game_genre;
-    this.thumbnailUrl = data.thumbnail_url;
-    this.metadata = data.metadata;
     this.reviewRate = data.review_rate;
     this.reviewLike = data.review_like;
     this.reviewPlatine = data.review_platine;

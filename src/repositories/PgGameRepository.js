@@ -2,6 +2,7 @@
 
 import db from "../config/database.js"
 import Game from "../entities/Game.js"
+import Review from "../entities/Review.js"
 
 class GameRepository {
 
@@ -36,7 +37,23 @@ class GameRepository {
         `;
 
         const { rows } = await db.query(query, [id]);
-        return rows[0] ? new Game(rows[0]) : null;
+        return rows[0] ? new Game(rows[0]) : null;   // [0] car on récupère un seul résultat
+    }
+
+
+    // Afficher toutes les reviews d'un jeu
+    static async findReviewsByGameId(gameId) {
+        const query = /*SQL*/`
+        SELECT *
+        FROM v_reviews_with_game
+        WHERE game_id = $1
+        ORDER BY created_at DESC
+        `;
+
+        const values = [gameId]
+        const { rows } = await db.query(query, values);
+
+        return rows.map((row) => new Review(row)); // .map car on récupère plusieurs résulats
     }
 
     // Créer le jeu dans la base de données local

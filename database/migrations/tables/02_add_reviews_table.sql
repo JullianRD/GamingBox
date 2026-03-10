@@ -9,11 +9,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     user_id UUID NOT NULL REFERENCES users (id_user) ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games (id_game) ON DELETE CASCADE,
     review_title VARCHAR(100) NOT NULL, -- Titre de la review que l'utilisateur peut donner
-    game_title VARCHAR(100) NOT NULL,
     slug CITEXT NOT NULL,
-    release_date DATE NOT NULL,
-    game_genre VARCHAR(50) NOT NULL,
-    thumbnail_url VARCHAR(255) NOT NULL,
     metadata JSONB NOT NULL DEFAULT '{}', -- Recherche puissante ici
     review_rate DECIMAL(15,2) NOT NULL,
     review_like BOOLEAN NOT NULL DEFAULT FALSE,

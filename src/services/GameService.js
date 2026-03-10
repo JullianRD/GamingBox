@@ -16,6 +16,18 @@ class GameService {
     return GameRepository.findById(gameId);
   }
 
+  // Trouver toutes les reviews associé à un jeu
+  static async getGameWithReviews(gameId) {
+    const game = await GameRepository.findById(gameId)
+
+    if (!game) {
+      throw new Error("GAME_NOT_FOUND");
+    }
+
+    const reviews = await GameRepository.findReviewsByGameId(gameId);
+    return { game, reviews };
+  }
+
   // Créer un jeu en base local
   static async create(gameId) {
   return GameRepository.create(gameId)
