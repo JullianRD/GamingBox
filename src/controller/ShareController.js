@@ -48,7 +48,7 @@ class ShareController {
 
   // Création du partage de profil
 
-  async store(req, res) {
+  async storeForProfil(req, res) {
     try {
       const { userId, recipientEmail, allow_download, expiration, maxViews } =
         req.body;
@@ -92,7 +92,7 @@ class ShareController {
   /**
    * 💾 Création du partage de la review
    */
-  async store(req, res) {
+  async storeForReview(req, res) {
     try {
       const { reviewId, recipientEmail, allow_download, expiration, maxViews } =
         req.body;
@@ -195,7 +195,7 @@ class ShareController {
 
   // Accés public à la ressource via un token sécurisé
 
-  async acess(req, res) {
+  async access(req, res) {
     const { token } = req.params;
 
     try {

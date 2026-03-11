@@ -25,6 +25,13 @@ class GameController {
         res.render("games/show", { games })
     }
 
+    // Stocke le jeu dans la base de donnée
+    async store(req, res) {
+        await GameService.create(req.user.id, req.body.gameTitle);
+        req.flash("success", "jeu créer avec succés")
+        res.redirect("pages/games/index")
+    }
+
     // Ouvre le formulaire d'édition du jeu en local
 
     async edit(req, res) {

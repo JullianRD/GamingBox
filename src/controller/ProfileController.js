@@ -21,6 +21,20 @@ class ProfileController {
         });
     }
 
+    // Affiche le formulaire de modification du profil
+
+async edit(req, res) {
+    const userId = req.session.userId;
+    const user = await UserService.getById(userId);
+    if (!user) {
+        return res.status(404).render("pages/errors/404");
+    }
+    res.render("pages/auth/profil/edit", {
+        title: "Modifier mon profil",
+        user: UserDTO.fromEntity(user),
+    });
+}
+
     // Mettre à jour le profil de l'utilisateur
 
     async update(req, res) {
