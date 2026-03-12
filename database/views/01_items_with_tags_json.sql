@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW v_reviews_with_tags AS
-SELECT r.id_review, r.user_id, r.game_title, r.thumbnail_url, COALESCE(
+SELECT r.id_review, r.user_id, r.review_title, COALESCE(
         JSON_AGG(
             JSON_BUILD_OBJECT(
                 'id', t.id_tag, 'name', t.tag_name

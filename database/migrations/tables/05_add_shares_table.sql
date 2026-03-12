@@ -6,7 +6,7 @@
 SET CLIENT_ENCODING TO 'UTF8';
 
 CREATE TABLE IF NOT EXISTS shares (
-    id_share UUID DEFAULT uuid_v7() PRIMARY KEY,
+    id_share UUID DEFAULT uuidv7() PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES users (id_user) ON DELETE CASCADE,
     review_id UUID REFERENCES reviews (id_review) ON DELETE SET NULL, -- Null autorisé et ON DELETE SET NULL pour conserver un historique (audit de sécurité)
     recipient_email CITEXT NOT NULL,

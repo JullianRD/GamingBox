@@ -5,8 +5,8 @@
 SET CLIENT_ENCODING TO 'UTF8';
 
 CREATE TABLE IF NOT EXISTS tags (
-    id_tag UUID DEFAULT uuid_v7() PRIMARY KEY,
-    tag_name CITEXT VARCHAR(50) NOT NULL,
+    id_tag UUID DEFAULT uuidv7() PRIMARY KEY,
+    tag_name CITEXT NOT NULL, -- CITEXT et VARCHAR ne peuvent pas être ensemble (la taille du tag est défini dans validator)
     user_id UUID NOT NULL REFERENCES users (id_user) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NUll DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ,

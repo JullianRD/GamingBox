@@ -2,7 +2,7 @@ CREATE OR REPLACE VIEW v_shared_access AS
 -- Partages de reviews
 SELECT 
     u.email AS owner_email,
-    r.title AS review_title,
+    r.review_title AS review_title,
     s.recipient_email,
     'review' AS shared_type
 FROM shares AS s

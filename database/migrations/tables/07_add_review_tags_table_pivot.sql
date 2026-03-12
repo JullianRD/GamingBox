@@ -5,8 +5,8 @@
 SET CLIENT_ENCODING TO 'UTF8';
 
 CREATE TABLE IF NOT EXISTS review_tags (
-    id_tag UUID REFERENCES tags (id_tag) ON DELETE CASCADE,
-    id_review UUID REFERENCES reviews (id_review) ON DELETE CASCADE,
+    review_tag UUID REFERENCES tags (id_tag) ON DELETE CASCADE,
+    review_id UUID REFERENCES reviews (id_review) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id_tag, id_review) -- Clé primaire composite (une review ne peut avoir le même tag qu'une seule fois)
 );

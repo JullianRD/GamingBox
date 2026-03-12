@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW v_orphan_reviews AS
-SELECT r.game_title, u.pseudo AS owner_pseudo
+SELECT r.review_title, u.pseudo AS owner_pseudo
 FROM
     reviews AS r
     JOIN users AS u ON r.user_id = u.id_user

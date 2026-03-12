@@ -6,7 +6,7 @@
 SET CLIENT_ENCODING TO 'UTF8';
 
 CREATE TABLE IF NOT EXISTS app_events (
-    id_event UUID DEFAULT uuid_v7() PRIMARY KEY,
+    id_event UUID DEFAULT uuidv7() PRIMARY KEY,
     user_id UUID REFERENCES users(id_user) ON DELETE SET NULL,
     event_category event_category_enum NOT NULL,
     event_type VARCHAR(50) NOT NULL,

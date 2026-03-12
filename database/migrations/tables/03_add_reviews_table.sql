@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     game_platforme game_platforme_enum NOT NULL DEFAULT 'Autre',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ,
-    CONSTRAINT unique_user_game_title UNIQUE (user_id, game_title), -- Un utilisateur ne peux pas créer deux reviews sur le même jeu
+    CONSTRAINT unique_user_game UNIQUE (user_id, game_id), -- Un utilisateur ne peux pas créer deux reviews sur le même jeu
     CONSTRAINT unique_user_review_slug UNIQUE (user_id, slug)    -- Le slug doit être unique par utilisateur
 );
 
@@ -34,7 +34,6 @@ CREATE INDEX idx_reviews_user ON reviews (user_id);
 
 COMMENT ON TABLE reviews IS 'L utilisateur va pouvoir faire ses review de jeu ici';
 COMMENT ON COLUMN reviews.slug IS 'Version URL-friendly du titre pour le SEO et les routes';
-COMMENT ON COLUMN reviews.thumbnail_url IS 'URL de l image stockée sur service externe (Cloudinary/Supabase)';
 COMMENT ON COLUMN reviews.metadata IS 'Métadonnées flexibles en JSONB : {"isbn": "xxx", source_url": "xxx", "duration": "45min", "channel": "xxx", "coordinates": {...}}';
 
 
