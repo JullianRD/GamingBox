@@ -18,7 +18,7 @@ const router = Router();
  * 🏠 Page d'accueil
  * GET /
  */
-router.get("/", HomeController.home);
+router.get("/", HomeController.home);  // Amène à la page home lors de la connexion à l'app
 
 /**
  * ℹ️ À propos

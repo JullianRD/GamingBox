@@ -92,7 +92,7 @@ app.set("layout extractStyles", true);
 // ROUTES
 // ═══════════════════════════════════════════════════════════════
 
-app.use("/", routes);
+app.use("/", routes);  // Définit ou les utilisateur doivent spawn
 
 // ═══════════════════════════════════════════════════════════════
 // 404

@@ -11,6 +11,8 @@ class HomeController {
   /**
    * 🏠 Page d'accueil
    */
+
+  // La page d'accueil principale de l'app elle permet d'accéder au inscription et login et elle contients quelques explications sur GamingBox
   async home(req, res) {
     res.render("pages/home", {
       title: "Gamingbox",
