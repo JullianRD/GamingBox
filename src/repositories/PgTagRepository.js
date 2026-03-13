@@ -118,3 +118,5 @@ class TagRepository {
     return result.rowCount > 0;
   }
 }
+
+export default TagRepository;

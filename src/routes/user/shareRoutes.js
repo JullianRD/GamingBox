@@ -2,7 +2,7 @@
 
 import { Router } from "express";
 import ShareController from "../../controller/ShareController.js";
-import { requireAuth } from "../../middlewares/authMiddleware";
+import { requireAuth } from "../../middlewares/authMiddleware.js";
 import { validate } from "../../middlewares/validationMiddleware.js";
 import { schemas as shareSchemas } from "../../validators/shareValidator.js";
 

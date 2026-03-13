@@ -1,7 +1,7 @@
 "use strict";
 
 import { Router } from "express";
-import HomeController from "../../controllers/HomeController.js";
+import HomeController from "../../controller/HomeController.js";
 
 const router = Router();
 

@@ -6,8 +6,8 @@ SELECT
     r.review_title,
     r.slug,
     r.avis_review,
-    r.review_rating,
-    r.game_platform,
+    r.review_rate,
+    r.game_platforme,
     r.progression_status,
     r.review_like,
     r.review_platine,
@@ -16,8 +16,8 @@ SELECT
 
     -- Informations du jeu
     g.igdb_id,
-    g.title AS game_title,
-    g.gameGenre,
+    g.game_title AS game_title,
+    g.game_genre,
     g.thumbnail_url,
     g.release_date,
 
@@ -40,7 +40,7 @@ SELECT
             'id', s.id_share,
             'token', s.share_token,
             'createdAt', s.created_at,
-            'expiresAt', s.expires_at
+            'updatedAt', s.updated_at
         )) FILTER (WHERE s.id_share IS NOT NULL),
         '[]'::json
     ) AS shares
@@ -51,9 +51,9 @@ JOIN games g
 JOIN users u
     ON r.user_id = u.id_user
 LEFT JOIN review_tags rt
-    ON r.id_review = rt.review_id
+    ON r.id_review = rt.id_review
 LEFT JOIN tags t
-    ON rt.tag_id = t.id_tag
+    ON rt.id_tag = t.id_tag
 LEFT JOIN shares s
     ON r.id_review = s.review_id
 
@@ -64,17 +64,17 @@ GROUP BY
     r.review_title,
     r.slug,
     r.avis_review,
-    r.review_rating,
-    r.game_platform,
+    r.review_rate,
+    r.game_platforme,
     r.progression_status,
     r.review_like,
     r.review_platine,
     r.created_at,
     r.updated_at,
     g.igdb_id,
-    g.title,
-    g.genre,
-    g.cover_url,
+    g.game_title,
+    g.game_genre,
+    g.thumbnail_url,
     g.release_date,
     u.pseudo,
     u.avatar;

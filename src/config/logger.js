@@ -1,7 +1,7 @@
 "use strict";
 // src/config/logger.js
-import pino, { destination } from "pino";
-import pinoHttp, { pinoHttp } from "pino-http";
+import pino from "pino";
+import pinoHttp from "pino-http";
 import fs from "fs";
 
 const isDevelopment = process.env.NODE_ENV !== "production";

@@ -5,7 +5,7 @@ import { validate } from "../../middlewares/validationMiddleware.js";
 import { injectCsrfToken } from "../../middlewares/csrfMiddleware.js";
 
 import { schemas as authSchemas } from "../../validators/userValidator.js";
-import AuthController from "../../controllers/auth/AuthController.js";
+import AuthController from "../../controller/auth/AuthController.js";
 import { requireGuest, requireAuth } from "../../middlewares/authMiddleware.js";
 import { generateToken, doubleCsrfProtection } from "../../config/security.js";
 

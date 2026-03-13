@@ -1,22 +1,25 @@
+-- Forcer l'encodage client
+SET CLIENT_ENCODING TO 'UTF8';
+
 CREATE OR REPLACE VIEW v_share_public_profile AS
 SELECT
     s.id_share,
     s.share_token,
     s.access_config,
     s.created_at AS share_created_at,
-    s.expires_at,
+    s.updated_at,
 
     u.id_user,
     u.pseudo,
     u.avatar,
-    u.biography,
+    u.biographie,
     u.created_at AS user_created_at,
 
     -- Statistiques utilisateur
     COUNT(r.id_review) AS total_reviews,
 
     COUNT(*) FILTER (
-        WHERE r.progression_status = 'finished'
+        WHERE r.progression_status = 'Terminé'
     ) AS finished_games,
 
     COUNT(*) FILTER (
@@ -39,11 +42,11 @@ GROUP BY
     s.share_token,
     s.access_config,
     s.created_at,
-    s.expires_at,
+    s.updated_at,
     u.id_user,
     u.pseudo,
     u.avatar,
-    u.biography,
+    u.biographie,
     u.created_at;
 
     -- vue utile pour les partages de profil avec stast et infos complète

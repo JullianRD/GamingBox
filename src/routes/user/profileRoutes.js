@@ -26,13 +26,13 @@ router.use(requireAuth);
 router.get("/profile", ProfileController.show);
 
 // Affiche le formulaire d'édition du profil
-router.get("/profile")
+router.get("/profile", ProfileController.edit)
 
 /**
  * 🔄 Mise à jour du profil
  * POST /profile
  */
-router.post("/profile/;id/edit", ProfileController.edit);
+router.post("/profile/;id/edit", ProfileController.update);
 
 /**
  * 🗑️ Suppression du compte

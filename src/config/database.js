@@ -1,5 +1,7 @@
 "use strict";
 // src/config/database.js
+import dotenv from "dotenv";
+dotenv.config();
 import pg from "pg";
 import { logger } from "./logger.js";
 

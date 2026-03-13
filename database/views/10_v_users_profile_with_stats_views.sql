@@ -8,10 +8,10 @@ SELECT
     u.settings_user,
     u.gdpr_consent,
     u.created_at,
-    COUNT(DISTINCT i.id_review) AS reviews_count,
+    COUNT(DISTINCT r.id_review) AS reviews_count,
     COUNT(DISTINCT t.id_tag) AS tags_count
 FROM users u
-LEFT JOIN reviews r ON i.user_id = u.id_user
+LEFT JOIN reviews r ON r.user_id = u.id_user
 LEFT JOIN tags t ON t.user_id = u.id_user
 GROUP BY u.id_user;
 

@@ -3,13 +3,14 @@
  * @fileoverview Point d'entrée principal de l'application Memoria
  */
 import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import { fileURLToPath } from "url";
 import path from "path";
 import expressLayouts from "express-ejs-layouts";
 
 // Routes
-import routes from "./routes/index.js";
+import routes from "./src/routes/index.js";
 
 // Sécurité & session
 import {
@@ -17,20 +18,16 @@ import {
   corsConfig,
   globalLimiter,
   cookieParserMiddleware,
-} from "./config/security.js";
-import { sessionMiddleware } from "./config/session.js";
+} from "./src/config/security.js";
+import { sessionMiddleware } from "./src/config/session.js";
 
 // Middlewares métier
-import { flashMiddleware } from "./middlewares/flashMiddleware.js";
-import { injectUserToLocals } from "./middlewares/authMiddleware.js";
+import { flashMiddleware } from "./src/middlewares/flashMiddleware.js";
+import { injectUserToLocals } from "./src/middlewares/authMiddleware.js";
 import {
   notFoundHandler,
   globalErrorHandler,
-} from "./middlewares/errorMiddleware.js";
-
-dotenv.config({
-  path: process.env.NODE_ENV === "test" ? ".env.test" : ".env",
-});
+} from "./src/middlewares/errorMiddleware.js";
 
 // ═══════════════════════════════════════════════════════════════
 // CONFIGURATION ESM
@@ -84,7 +81,7 @@ app.use(injectUserToLocals);
 // ═══════════════════════════════════════════════════════════════
 
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.set("views", path.join(__dirname, "src", "views"));
 
 app.use(expressLayouts);
 app.set("layout", "layouts/main");

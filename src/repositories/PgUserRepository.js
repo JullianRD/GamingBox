@@ -1,7 +1,7 @@
 "use strict"
 
 import db from "../config/database.js";
-import User from "../entities/User.js";
+import User from "../entities/Users.js";
 
 /**
  * UserRepository

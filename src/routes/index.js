@@ -16,9 +16,9 @@ import shareRoutes from "./user/shareRoutes.js";
 import gameRoutes from "./user/gameRoutes.js";
 
 // Dashboard / pour les admins
-import dashboardRoutes from "./admin/dashBoardRoutes.js";
-import appEventRoutesRoutes from "./admin/appEventRoutesRoutes.js";
-import userRoutes from "./admin/userRoutes.js";
+// import dashboardRoutes from "./admin/dashBoardRoutes.js";
+// import appEventRoutesRoutes from "./admin/appEventRoutesRoutes.js";
+// import userRoutes from "./admin/userRoutes.js";
 
 
 // Router principal de l'application gamingbox

@@ -5,16 +5,16 @@ SELECT
     r.game_id,
     r.review_title,
     r.slug,
-    r.review_rating,
+    r.review_rate,
     r.progression_status,
     r.review_like,
     r.review_platine,
-    r.game_platform,
+    r.game_platforme,
     r.created_at,
 
-    g.title AS game_title,
-    g.cover_url,
-    g.genre,
+    g.game_title AS game_title,
+    g.thumbnail_url,
+    g.game_genre,
 
     COALESCE(
         JSON_AGG(
@@ -30,9 +30,9 @@ FROM reviews r
 JOIN games g
     ON g.id_game = r.game_id
 LEFT JOIN review_tags rt
-    ON rt.review_id = r.id_review
+    ON rt.id_review = r.id_review
 LEFT JOIN tags t
-    ON t.id_tag = rt.tag_id
+    ON t.id_tag = rt.id_tag
 
 GROUP BY
     r.id_review,
@@ -40,14 +40,14 @@ GROUP BY
     r.game_id,
     r.review_title,
     r.slug,
-    r.review_rating,
+    r.review_rate,
     r.progression_status,
     r.review_like,
     r.review_platine,
-    r.game_platform,
+    r.game_platforme,
     r.created_at,
-    g.title,
-    g.cover_url,
-    g.genre;
+    g.game_title,
+    g.thumbnail_url,
+    g.game_genre;
 
     -- Cette vue sert à afficher une version moins détaillé des review (review-index) à différencier avec review show ou il y aura tout les détails d'une review

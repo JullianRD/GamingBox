@@ -6,16 +6,16 @@ SELECT
     s.share_token,
     s.access_config,
     s.created_at,
-    s.expires_at,
+    s.updated_at,
 
     r.review_title,
     r.slug,
-    r.review_rating,
+    r.review_rate,
     r.progression_status,
 
     g.id_game,
-    g.title AS game_title,
-    g.cover_url,
+    g.game_title AS game_title,
+    g.thumbnail_url,
 
     u.id_user AS owner_id,
     u.pseudo AS owner_pseudo,

@@ -1,8 +1,8 @@
 "use strict"
 
 import { Router } from "express";
-import GameController from "../../controller/GameController";
-import { requireAuth, requireAdmin } from "../../middlewares/authMiddleware";
+import GameController from "../../controller/GameController.js";
+import { requireAuth, requireAdmin } from "../../middlewares/authMiddleware.js";
 
 
 

@@ -2,11 +2,12 @@
   "name": "gamingbox-light-mvc",
   "version": "1.0.0",
   "description": "- **GamingBox** est une application permettant de créer une liste de ses jeux terminé ou non et d'en poster des reviews qu'il est possible de partager à ses amis. L'application se veut être une alternative a des application comme Letterbox ou BacklogGD.",
-  "main": "index.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
+    "dev": "nodemon src/app.js",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,7 +17,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/JullianRD/GamingBox/issues"
   },
