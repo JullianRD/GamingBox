@@ -12,7 +12,7 @@ END
 $$;
 
 -- On donne les accès à ce rôle sur la base de données
-GRANT CONNECT ON DATABASE app_gamingbox_dev TO app_gamingbox;
+GRANT CONNECT ON DATABASE gamingbox_db_dev TO app_gamingbox;
 
 -- On se connecter à la base de données app_gamingbox_dev
 

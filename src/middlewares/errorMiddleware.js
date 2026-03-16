@@ -13,7 +13,7 @@ export const notFoundHandler = (req, res) => {
   logger.warn({ url: req.originalUrl, ip: req.ip }, "404 Page Not Found");
 
   res.status(404).render("pages/errors/404", {
-    title: "Page non trouvée - Memoria",
+    title: "Page non trouvée - GamingBox",
     message: `La page "${req.originalUrl}" n'existe pas.`,
     requestedUrl: req.originalUrl,
   });
@@ -43,7 +43,7 @@ export const globalErrorHandler = (err, req, res, next) => {
   const isProduction = process.env.NODE_ENV === "production";
 
   res.status(500).render("pages/errors/500", {
-    title: "Erreur serveur - Memoria",
+    title: "Erreur serveur - GamingBox",
     message: isProduction
       ? "Une erreur est survenue. Veuillez réessayer plus tard."
       : err.message,

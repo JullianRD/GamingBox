@@ -7,9 +7,6 @@ class AuthController {
     // Affiche la page d'inscription à l'App
 
     async showRegister(req, res) {
-        if (req.sesion.userId) {
-            return res.redirect("reviews"); // Envoie l'utilisateur connecté (session en cache) vers sa page de review
-        }
         res.render("pages/auth/register", {
             title: "Inscription à GamingBox",
             csrfToken: req.csrfToken(),
@@ -33,10 +30,6 @@ class AuthController {
     // Affiche la page de connexion à l'App
 
   async showLogin(req, res) {
-    if (req.session.userId) {
-      return res.redirect("/reviews");
-    }
-
     res.render("pages/auth/login", {
       title: "Connexion à l'APP GamingBox",
       csrfToken: req.csrfToken(),
