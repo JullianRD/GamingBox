@@ -7,6 +7,12 @@ import ReviewTagRepository from "../repositories/PgReviewTagRepository.js";
 import { generateSlug } from "../utils/generateSlug.js";
 
 class ReviewService {
+
+  // Trouver toutes les reviews d'un utilisateur et les afficher dans l'index review
+
+  static async findAllByUser(id) {
+    return ReviewRepository.findAllByUser(id)
+  }
   // Créer une review avec ses tags associés
 
   static async create(userId, gameId, payload) {

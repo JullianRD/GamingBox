@@ -132,7 +132,7 @@ app.listen(PORT, () => {
 // ═══════════════════════════════════════════════════════════════
 
 process.on("SIGINT", () => {
-  console.log("\n\n👋 Arrêt du serveur Memoria...");
+  console.log("\n\n👋 Arrêt du serveur GamingBox...");
   process.exit(0);
 });
 

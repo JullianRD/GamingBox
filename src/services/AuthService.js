@@ -23,7 +23,7 @@ class AuthService {
             email,
             passwordHash,
             pseudo,
-            gdprConsent,
+            gdprConsent: gdprConsent === "on",
             authProvider: "local",
         });
     }
@@ -36,7 +36,7 @@ class AuthService {
         throw new Error("Identifiants invalides.");
     }
 
-    const isValid = await verifyPassword(password, user.passwordHash);
+    const isValid = await verifyPassword(user.passwordHash, password);
 
     if (!isValid) {
         throw new Error("Identifiants invalides.");

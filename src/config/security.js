@@ -7,26 +7,11 @@ import cookieParser from "cookie-parser";
 import { doubleCsrf } from "csrf-csrf";
 import logger from "./logger.js";
 
-/**
- * Configuration sécurité globale de l'application
- *
- * @see https://cheatsheetseries.owasp.org/cheatsheets/Nodejs_Security_Cheat_Sheet.html
- * @see https://github.com/Psifi-Solutions/csrf-csrf
- */
-
 const isTestEnv = process.env.NODE_ENV === "test";
-
-// ═══════════════════════════════════════════════════════════════
-// FAIL FAST — CSRF SECRET OBLIGATOIRE (sauf en test)
-// ═══════════════════════════════════════════════════════════════
 
 if (!isTestEnv && !process.env.CSRF_SECRET) {
   throw new Error("❌ CSRF_SECRET manquant. Ajoute-le dans ton fichier .env");
 }
-
-// ═══════════════════════════════════════════════════════════════
-// HEADERS DE SÉCURITÉ (Helmet)
-// ═══════════════════════════════════════════════════════════════
 
 export const securityHeaders = helmet({
   contentSecurityPolicy: {
@@ -40,18 +25,10 @@ export const securityHeaders = helmet({
   },
 });
 
-// ═══════════════════════════════════════════════════════════════
-// CORS
-// ═══════════════════════════════════════════════════════════════
-
 export const corsConfig = cors({
   origin: process.env.APP_FRONTEND_URL || "http://localhost:3000",
   credentials: true,
 });
-
-// ═══════════════════════════════════════════════════════════════
-// RATE LIMITING
-// ═══════════════════════════════════════════════════════════════
 
 export const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -67,23 +44,16 @@ export const authLimiter = rateLimit({
   message: "Trop de tentatives de connexion. Réessayez plus tard.",
 });
 
-// ═══════════════════════════════════════════════════════════════
-// CSRF (Double Submit Cookie)
-// Désactivé en environnement test
-// ═══════════════════════════════════════════════════════════════
-
 let generateCsrfToken;
 let doubleCsrfProtection;
+let invalidCsrfTokenError;
 
 if (!isTestEnv) {
   const csrf = doubleCsrf({
     getSecret: () => process.env.CSRF_SECRET,
 
-    /**
-     * Identifiant de pseudo-session stable (SSR friendly)
-     * @see https://github.com/Psifi-Solutions/csrf-csrf#without-express-session
-     */
-    getSessionIdentifier: () => "dev-session",
+    // À remplacer plus tard par un vrai identifiant de session/utilisateur
+    getSessionIdentifier: (req) => req.ip || "dev-session",
 
     cookieName: process.env.NODE_ENV === "production" ? "__Host-csrf" : "csrf",
 
@@ -91,57 +61,32 @@ if (!isTestEnv) {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
+      path: "/",
     },
 
-    onError: (req, res) => {
-      logger.warn({ ip: req.ip, url: req.originalUrl }, "❌ CSRF détecté");
+    // IMPORTANT pour les formulaires SSR
+    getCsrfTokenFromRequest: (req) => req.body?._csrf,
 
-      return res.status(403).render("pages/errors/403", {
-        title: "Action non autorisée",
-        message: "Action non autorisée ou session expirée.",
-      });
+    errorConfig: {
+      statusCode: 403,
+      message: "invalid csrf token",
+      code: "EBADCSRFTOKEN",
     },
   });
 
   generateCsrfToken = csrf.generateCsrfToken;
   doubleCsrfProtection = csrf.doubleCsrfProtection;
+  invalidCsrfTokenError = csrf.invalidCsrfTokenError;
 } else {
-  // ✅ En test → bypass complet
   generateCsrfToken = () => "test-token";
   doubleCsrfProtection = (req, res, next) => next();
+  invalidCsrfTokenError = null;
 }
 
-/**
- * Génère un token CSRF pour les vues SSR
- *
- * @param {import("express").Request} req
- * @param {import("express").Response} res
- * @returns {string}
- */
 export function generateToken(req, res) {
   return generateCsrfToken(req, res);
 }
 
-export { doubleCsrfProtection };
-
-// ═══════════════════════════════════════════════════════════════
-// COOKIES
-// ═══════════════════════════════════════════════════════════════
+export { doubleCsrfProtection, invalidCsrfTokenError };
 
 export const cookieParserMiddleware = cookieParser();
-
-
-
-
-// Ce fichier configure toutes les protections majeures :
-
-// Protection     ->	            But
-// Helmet / CSP   ->	XSS, injection, clickjacking
-// CORS  ->  	        Contrôle les origines autorisées
-// Rate limit   ->  	Brute force / DDoS léger
-// Double CSRF  ->  	CSRF (Cross Site Request Forgery)
-// cookie-parser  -> 	Lire les cookies HTTP
-
-// ✅ Sécurité en prod adaptée
-// ✅ Dev et test friendly
-// ✅ Logs et erreurs contrôlées

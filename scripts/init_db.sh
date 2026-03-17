@@ -123,4 +123,4 @@ fi
 echo -e "\n${GREEN}📊 Phase 6: Views${NC}"
 execute_directory "database/views" "$DB_NAME" "$DB_SUPERUSER"
 
-echo -e "\n${GREEN}✅ Memoria database is ready!${NC}"
+echo -e "\n${GREEN}✅ Gamingbox database is ready!${NC}"

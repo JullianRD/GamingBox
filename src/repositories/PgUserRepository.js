@@ -115,48 +115,65 @@ class UserRepository {
 
     // Créer un nouvel utilisateur
 
-    static async create(data) {
-        const query = /*SQL*/ `
-        INSERT INTO users (
-            email,
-            password_hash,
-            pseudo,
-            biographie,
-            avatar,
-            auth_provider,
-            settings_user,
-            gdpr_consent
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING
-        id_user,
-        email,
-        pseudo,
-        biographie,
-        avatar,
-        role_name,
-        auth_provider,
-        settings_user,
-        gdpr_consent,
-        gdpr_consent_date,
-        created_at,
-        updated_at
-        `;
+static async create(data) {
+  const query = /*SQL*/ `
+    INSERT INTO users (
+      email,
+      password_hash,
+      pseudo,
+      biographie,
+      avatar,
+      auth_provider,
+      settings_user,
+      gdpr_consent
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING
+      id_user,
+      email,
+      pseudo,
+      biographie,
+      avatar,
+      role_name,
+      auth_provider,
+      settings_user,
+      gdpr_consent,
+      gdpr_consent_date,
+      created_at,
+      updated_at
+  `;
 
-        const values = [
-            data.email.toLowerCase().trim(),
-            data.passwordHash,
-            data.pseudo.trim(),
-            data.biographie ?? null,
-            data.avatar ?? null,
-            data.authProvider || "local",
-            JSON.stringify(data.settingsUser || {}),
-            data.gdprConsent,
-        ];
+  const values = [
+    data.email?.toLowerCase().trim(),
+    data.passwordHash,
+    data.pseudo?.trim(),
+    data.biographie ?? null,
+    data.avatar ?? null,
+    data.authProvider || "local",
+    JSON.stringify(data.settingsUser || {}),
+    data.gdprConsent,
+  ];
 
-        const { rows } = await db.query(query, values);
-        return new User(rows[0]);
+  console.log("=== USER CREATE START ===");
+  console.log("DATA:", data);
+  console.log("VALUES:", values);
+
+  try {
+    const { rows } = await db.query(query, values);
+    console.log("ROWS:", rows);
+    console.log("=== USER CREATE END ===");
+    return new User(rows[0]);
+  } catch (error) {
+    console.error("=== USER CREATE ERROR ===");
+    console.error(error);
+
+    if (error.code === "23505") {
+      throw new Error("Email ou pseudo déjà utilisé.");
     }
+
+    throw error;
+  }
+}
 
     // Met à jour un utilisateur
     static async update(id, data) {

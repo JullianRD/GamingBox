@@ -53,6 +53,10 @@ export const requireAuth = (req, res, next) => {
  */
 
 export const requireGuest = (req, res, next) => {
+  console.log("requireGuest hit", {
+    session: req.session,
+    userId: req.session?.userId
+  });
   if (req.session.userId) {
     return res.redirect("/login");
   }

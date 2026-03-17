@@ -8,7 +8,7 @@ class ReviewRepository {
     static async findAllByUser(userId) {
         const query = /*sql*/ `
         SELECT *
-        FROM v_user_reviews
+        FROM v_reviews_complete
         WHERE user_id = $1
         ORDER BY created_at DESC;
         `;

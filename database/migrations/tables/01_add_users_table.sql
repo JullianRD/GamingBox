@@ -17,10 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
     gdpr_consent BOOLEAN NOT NULL DEFAULT FALSE,
     gdpr_consent_date TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NUll DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ,
-    CONSTRAINT chk_email_is_valid CHECK ( -- Contraintes métier
-        email ~ '^[^@]+@[^@.]+\.[^@]+$'
-    )
+    updated_at TIMESTAMPTZ
 );
 
 -- Indexation JSONB (Recherche rapide dans les réglages utilisateur)

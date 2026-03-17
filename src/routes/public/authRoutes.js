@@ -7,7 +7,7 @@ import { injectCsrfToken } from "../../middlewares/csrfMiddleware.js";
 import { schemas as authSchemas } from "../../validators/userValidator.js";
 import AuthController from "../../controller/auth/AuthController.js";
 import { requireGuest, requireAuth } from "../../middlewares/authMiddleware.js";
-import { generateToken, doubleCsrfProtection } from "../../config/security.js";
+import { generateToken } from "../../config/security.js";
 
 const router = Router();
 
@@ -25,10 +25,8 @@ router.get(
 
 router.post(
     "/register",
-    requireGuest,
-    doubleCsrfProtection,
-    AuthController.handleRegister,
-);
+        AuthController.handleRegister
+    );
 
 
 // Connexion 
@@ -52,7 +50,6 @@ router.post(
 router.post(
     "/logout",
     requireAuth,
-    doubleCsrfProtection,
     AuthController.logout,
 );
 

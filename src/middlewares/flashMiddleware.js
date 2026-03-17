@@ -17,10 +17,12 @@ export const flashMiddleware = (req, res, next) => {
   // 1. Transférer les messages de la session vers la vue (res.locals)
   res.locals.flash = req.session.flash || {};
   res.locals.oldInput = req.session.oldInput || {}; // Pour ré-remplir les formulaires
+  res.locals.errors = req.session.errors || {};
 
   // 2. Nettoyer la session après transfert (Flash = une seule fois)
   delete req.session.flash;
   delete req.session.oldInput;
+  delete req.session.errors;
 
   /**
    * Helper pour ajouter un message flash

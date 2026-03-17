@@ -1,7 +1,6 @@
 "use strict";
 
 import ReviewService from "../services/ReviewService.js";
-import PgReviewRepository from "../repositories/PgReviewRepository.js";
 
 /**
  * reviewController
@@ -14,8 +13,8 @@ class ReviewController {
    */
 
   async index(req, res) {
-    const reviews = await PgReviewRepository.findAllByUser(req.user.id);
-    res.render("reviews/index", { reviews });
+    const reviews = await ReviewService.findAllByUser(req.session.userId);
+    res.render("pages/reviews/index", { reviews });
   }
 
   // Détails d'une review
