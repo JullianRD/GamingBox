@@ -48,6 +48,10 @@ async handleLogin(req, res) {
     console.log("LOGIN USER ID_USER:", user.id_user);
 
     req.session.userId = user.id;
+    req.session.email = user.email;
+    req.session.pseudo = user.pseudo;
+    req.session.roleName = user.roleName;
+    req.session.avatar = user.avatar;
 
     console.log("SESSION USER ID SET:", req.session.userId);
 

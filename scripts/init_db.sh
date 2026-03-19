@@ -29,7 +29,7 @@ export $(grep -v '^#' .env | xargs)
 
 DB_SUPERUSER=${DB_SUPERUSER:-postgres}
 DB_APP_USER=${DB_APP_USER:-app_gamingbox}
-DB_NAME=${DB_NAME:-app_gamingbox_dev}
+DB_NAME=${DB_NAME:-gamingbox_db_dev}
 
 # --------------------------------------------
 # Helpers

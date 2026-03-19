@@ -18,7 +18,7 @@ NC='\033[0m'
 if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
     DB_USER=${DB_USER:-postgres}
-    DB_NAME=${DB_NAME:-app_gamingbox_dev}
+    DB_NAME=${DB_NAME:-gamingbox_db_dev}
 else
     echo -e "${RED}❌ Error: .env file not found!${NC}"
     exit 1

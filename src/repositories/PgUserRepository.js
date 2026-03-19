@@ -23,6 +23,7 @@ class UserRepository {
         password_hash,
         pseudo,
         biographie,
+        avatar,
         role_name,
         auth_provider
         settings_user,
@@ -47,6 +48,8 @@ class UserRepository {
         email,
         password_hash,
         pseudo,
+        biographie,
+        avatar,
         role_name,
         auth_provider,
         settings_user,
@@ -176,11 +179,12 @@ static async create(data) {
 }
 
     // Met à jour un utilisateur
+    // Coalesce -> sert à chosir sois la nouvelle valeur entré ($1) sois la valeur existante en base
     static async update(id, data) {
         const query = /*SQL*/ `
         UPDATE users
         SET
-        email = COALESCE($1, email), // Coalesce -> sert à chosir sois la nouvelle valeur entré ($1) sois la valeur existante en base
+        email = COALESCE($1, email),
         password_hash = COALESCE($2, password_hash),
         pseudo = COALESCE($3, pseudo),
         biographie = COALESCE($4, biographie),
@@ -204,7 +208,7 @@ static async create(data) {
         `;
 
         const values = [
-        data.email?.toLowerCase().trim(),   // Texte en minuscule + supprime les espaces
+        data.email?.toLowerCase().trim(),  
         data.passwordHash,
         data.pseudo?.trim(),
         data.biographie ?? null,
@@ -216,6 +220,8 @@ static async create(data) {
     const { rows } = await db.query(query, values);
     return rows[0] ? new User(rows[0]) : null;
     }
+
+    // Texte en minuscule (tolowercase) + supprime les espaces (trim)
 
     // Met à jour les préférences de l'utilisateur 
 

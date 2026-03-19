@@ -2,53 +2,71 @@
 
 import UserService from "../services/UserService.js";
 import UserExportService from "../services/UserExportService.js";
+import { generateToken } from "../config/security.js";
 // import UserDTO from "../dto/UserDTO.js";
 
 // Gestion du profil de l'utilisateur connecté
 
 class ProfileController {
-    async show(req, res) {
-        const userId = req.session.userId;
 
-        const user = await UserService.getById(userId);
-        if (!user) {
-            return res.status(404).render("error/404");
-        }
+    // Permet d'afficher le profil de l'utilisateur
+  async index(req, res) {
+    try {
+      const user = await UserService.getProfileById(req.session.userId);
 
-        res.render("pages/auth/profile", {
-            title: "Mon profil - GamingBox",
-            user: UserDTO.fromEntity(user),
-        });
+      return res.render("pages/profile/index", {
+        title: "Mon profil - GamingBox",
+        user,
+      });
+    } catch (error) {
+      console.error("PROFILE INDEX ERROR:", error);
+      req.flash("error", error.message || "Impossible de charger le profil.");
+      return res.redirect("/reviews");
     }
+  }
 
     // Affiche le formulaire de modification du profil
 
 async edit(req, res) {
-    const userId = req.session.userId;
-    const user = await UserService.getById(userId);
-    if (!user) {
-        return res.status(404).render("pages/errors/404");
-    }
-    res.render("pages/auth/profil/edit", {
-        title: "Modifier mon profil",
-        user: UserDTO.fromEntity(user),
-    });
+  const user = await UserService.getProfileById(req.session.userId);
+
+  res.render("pages/profile/edit", {
+    title: "Modifier mon profil",
+    user,
+    csrfToken: generateToken(req, res),
+  });
 }
 
     // Mettre à jour le profil de l'utilisateur
 
-    async update(req, res) {
-        try {
-            const userId = req.session.userId;
+async update(req, res) {
+  try {
+    const userId = req.session.userId;
 
-            await UserService.updateProfil(userId, req.body);
-            req.flash("success", "Profil mis à jour ✅");
-            res.redirect("pages/profile");
-        } catch (error) {
-            req.flash("error", error.message);
-            res.redirect("page/profile");
-        }
-    }
+    const updatedUser = await UserService.updateProfile(userId, req.body);
+
+    req.session.email = updatedUser.email;
+    req.session.pseudo = updatedUser.pseudo;
+    req.session.roleName = updatedUser.roleName;
+    req.session.avatar = updatedUser.avatar;
+
+    req.flash("success", "Profil mis à jour ✅");
+
+    return req.session.save((err) => {
+      if (err) {
+        console.error("SESSION SAVE ERROR:", err);
+        req.flash("error", "Le profil a été modifié, mais la session n'a pas pu être mise à jour.");
+        return res.redirect("/profile");
+      }
+
+      return res.redirect("/profile");
+    });
+  } catch (error) {
+    console.error("PROFILE UPDATE ERROR:", error);
+    req.flash("error", error.message || "Impossible de mettre à jour le profil.");
+    return res.redirect("/profile/edit");
+  }
+}
 
     async destroy(req, res) {
         try {

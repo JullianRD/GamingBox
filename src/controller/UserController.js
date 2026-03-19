@@ -10,14 +10,14 @@ import UserDTO from "../dto/UserDTO.js";
     // Liste de tout les utilisateurs de l'app
 
     async index(req, res) {
-        const users = await UserService.getAll(); // Fonction à créer (el la pas fait :( )) -> Je la met en bas de ce fichier
+        const users = await UserService.getAllUserById(); // Fonction à créer (el la pas fait :( )) -> Je la met en bas de ce fichier
         res.render("pages/users/index", {
             title: "Utilisateurs",
             users: users.map(UserDTO.fromEntity),
         });
     }
 
-    // Détails utilisateur (admin)
+    // Détails utilisateur (admin) (an ne pas mettre dans profil car l'index profil sert déja à ça)
 
     async show(req, res) {
         const user = await UserService.getById(req.params.id);

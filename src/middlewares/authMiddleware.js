@@ -21,6 +21,7 @@ export const injectUserToLocals = (req, res, next) => {
         email: req.session.email,
         pseudo: req.session.pseudo,
         role: req.session.roleName,
+        avatar: req.session.avatar,
       }
     : null;
   next();
@@ -37,7 +38,7 @@ export const injectUserToLocals = (req, res, next) => {
 
 export const requireAuth = (req, res, next) => {
   if (!req.session.userId) {
-    return res.redirect("/login");
+    return res.redirect("/auth/login");
   }
   next();
 };
@@ -58,7 +59,7 @@ export const requireGuest = (req, res, next) => {
     userId: req.session?.userId
   });
   if (req.session.userId) {
-    return res.redirect("/login");
+    return res.redirect("/reviews");
   }
   next();
 };
@@ -74,7 +75,7 @@ export const requireGuest = (req, res, next) => {
 
 export const requireCustomer = (req, res, next) => {
   if (req.session.roleName !== "customer") {
-    return res.redirect("/login");
+    return res.redirect("auth/login");
   }
   next();
 };
@@ -90,7 +91,7 @@ export const requireCustomer = (req, res, next) => {
 
 export const requireAdmin = (req, res, next) => {
   if (req.session.roleName !== "admin") {
-    return res.redirect("/login");
+    return res.redirect("auth/login");
   }
   next();
 };
@@ -106,7 +107,7 @@ export const requireAdmin = (req, res, next) => {
 
 export const requireSuperAdmin = (req, res, next) => {
   if (req.session.roleName !== "super_admin") {
-    return res.redirect("/login");
+    return res.redirect("auth/login");
   }
   next();
 };

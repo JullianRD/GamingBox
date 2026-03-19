@@ -17,7 +17,7 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
     # Pour nuke, on a besoin du compte super-utilisateur (souvent postgres)
     DB_SUPERUSER=${POSTGRES_USER:-postgres}
-    DB_NAME=${POSTGRES_DB:-app_gamingbox_dev}
+    DB_NAME=${POSTGRES_DB:-gamingbox_db_dev}
     APP_ROLE="app_gamingbox"
 else
     echo -e "${RED}❌ .env file missing!${NC}"
