@@ -1,65 +1,80 @@
-"use strict"
+"use strict";
 
-import db from "../config/database.js"
+import db from "../config/database.js";
+import Tag from "../entities/Tags.js";
 
-// ReviewTagRepository : Table pivot pour gérer la relation many to many des reviews avec les tags
+// ReviewTagRepository : gestion de la table pivot reviews_tags
+// Permet d'associer, récupérer, remplacer et supprimer les tags liés à une review
 
 class ReviewTagRepository {
-    
-    // Ajouter un tag à une review 
+  // Chercher tous les tags associés à une review
+  static async findAllByReview(reviewId) {
+    const { rows } = await db.query(
+      /* SQL */ `
+        SELECT t.*
+        FROM review_tags rt
+        JOIN tags t ON t.id_tag = rt.id_tag
+        WHERE rt.id_review = $1
+        ORDER BY t.tag_name ASC
+      `,
+      [reviewId],
+    );
 
-    static async add(reviewId, tagId) {
-        const query = /*SQL*/ `
-        INSERT INTO review_tags (review_id, tag_id)
+    return rows.map((row) => new Tag(row));
+  }
+
+  // Ajouter un tag à une review
+  static async add(reviewId, tagId) {
+    const { rows } = await db.query(
+      /* SQL */ `
+        INSERT INTO review_tags (id_review, id_tag)
         VALUES ($1, $2)
-        ON CONFLICT (review_id, tag_id) DO NOTHING
-        RETURNING review_id, tag_id;
-        `;
+        ON CONFLICT (id_tag, id_review) DO NOTHING
+        RETURNING id_review, id_tag
+      `,
+      [reviewId, tagId],
+    );
 
-        const { rows } = await db.query(query, [reviewId, tagId]);
-        return rows[0] ? new ItemTagEntity(rows[0]) : null;
+    return rows[0] || null;
+  }
+
+  // Supprimer tous les tags d'une review
+  static async clearForReview(reviewId) {
+    const result = await db.query(
+      /* SQL */ `
+        DELETE FROM review_tags
+        WHERE id_review = $1
+      `,
+      [reviewId],
+    );
+
+    return result.rowCount >= 0;
+  }
+
+  // Remplacer tous les tags associés à une review
+  static async replaceForReview(reviewId, tagIds) {
+    // On vide d'abord les anciens tags liés à la review
+    await this.clearForReview(reviewId);
+
+    // Si aucun tag n'est fourni, on s'arrête ici
+    if (!tagIds || !tagIds.length) {
+      return [];
     }
 
-    // Supprimer un tag d'une review
+    // On s'assure d'avoir une liste propre sans doublons
+    const uniqueTagIds = [...new Set(Array.isArray(tagIds) ? tagIds : [tagIds])];
 
-    static async remove(reviewId, tagId) {
-        const result = await db.query(
-            /*SQL*/ `
-            DELETE FROM review_tags
-            WHERE review_id = $1 
-            AND tag_id = $2;
-            `,
-            [reviewId, tagId]
-        );
-        return result.rowCount > 0;
+    const inserted = [];
+
+    for (const tagId of uniqueTagIds) {
+      const relation = await this.add(reviewId, tagId);
+      if (relation) {
+        inserted.push(relation);
+      }
     }
 
-    // Remplace complétement les tags d'une review
-
-    static async sync(reviewId, tagIds = []) {
-        await db.query("BEGIN");
-
-    try {
-        await db.query(
-            /*SQL*/ `DELETE FROM item_tags 
-            WHERE item_id = $1;`, [itemId]);
-
-        if (tagIds.length > 0) {
-        const values = tagIds.map((_, i) => `($1, $${i + 2})`).join(", ");
-
-        await db.query(
-            /*SQL*/ `INSERT INTO item_tags (item_id, tag_id) 
-            VALUES ${values};`,
-            [itemId, ...tagIds],
-        );
-        }
-
-        await db.query("COMMIT");
-    } catch (error) {
-        await db.query("ROLLBACK");
-        throw error;
-    }
-    }
+    return inserted;
+  }
 }
 
 export default ReviewTagRepository;

@@ -1,12 +1,5 @@
 SET CLIENT_ENCODING TO 'UTF8';
 
-WITH igdb_candidates AS (
-    SELECT
-        id_igdb,
-        ROW_NUMBER() OVER (ORDER BY id_igdb) AS rn
-    FROM igdb
-    LIMIT 3
-)
 INSERT INTO games (
     id_game,
     igdb_id,
@@ -17,35 +10,35 @@ INSERT INTO games (
     created_at,
     updated_at
 )
-SELECT
-    CASE rn
-        WHEN 1 THEN 'aaaaaaaa-aaaa-7aaa-8aaa-aaaaaaaaaaa1'::uuid
-        WHEN 2 THEN 'bbbbbbbb-bbbb-7bbb-8bbb-bbbbbbbbbbb2'::uuid
-        ELSE 'cccccccc-cccc-7ccc-8ccc-ccccccccccc3'::uuid
-    END AS id_game,
-    id_igdb,
-    CASE rn
-        WHEN 1 THEN 'The Witcher 3: Wild Hunt'
-        WHEN 2 THEN 'Elden Ring'
-        ELSE 'Hades'
-    END AS game_title,
-    CASE rn
-        WHEN 1 THEN 'RPG'
-        WHEN 2 THEN 'Action-RPG'
-        ELSE 'Rogue-lite'
-    END AS game_genre,
-    CASE rn
-        WHEN 1 THEN DATE '2015-05-19'
-        WHEN 2 THEN DATE '2022-02-25'
-        ELSE DATE '2020-09-17'
-    END AS release_date,
-    CASE rn
-        WHEN 1 THEN 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg'
-        WHEN 2 THEN 'https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg'
-        ELSE 'https://images.igdb.com/igdb/image/upload/t_cover_big/co39vc.jpg'
-    END AS thumbnail_url,
+VALUES
+(
+    'aaaaaaaa-aaaa-7aaa-8aaa-aaaaaaaaaaa1'::uuid,
+    1942,
+    'The Witcher 3: Wild Hunt',
+    'RPG',
+    DATE '2015-05-19',
+    'https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg',
     NOW() - INTERVAL '15 days',
     NOW() - INTERVAL '1 day'
-FROM igdb_candidates
+),
+(
+    'bbbbbbbb-bbbb-7bbb-8bbb-bbbbbbbbbbb2'::uuid,
+    119133,
+    'Elden Ring',
+    'Action-RPG',
+    DATE '2022-02-25',
+    'https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg',
+    NOW() - INTERVAL '10 days',
+    NOW() - INTERVAL '1 day'
+),
+(
+    'cccccccc-cccc-7ccc-8ccc-ccccccccccc3'::uuid,
+    113112,
+    'Hades',
+    'Rogue-lite',
+    DATE '2020-09-17',
+    'https://images.igdb.com/igdb/image/upload/t_cover_big/co39vc.jpg',
+    NOW() - INTERVAL '5 days',
+    NOW() - INTERVAL '1 day'
+)
 ON CONFLICT (id_game) DO NOTHING;
-

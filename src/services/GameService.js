@@ -7,8 +7,9 @@ import GameRepository from "../repositories/PgGameRepository.js";
 
 class GameService {
   // Trouver tout les jeux présent en base
-  static async findAllByGameId(gameId) {
-    return GameRepository.findAllByGameId(gameId);
+  static async findAllByGameId() {
+    const games = await GameRepository.findAllByGameId();
+    return games || [];
   }
 
   // Trouver un jeu spécifique

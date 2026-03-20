@@ -1,6 +1,8 @@
 "use strict";
 
 import ReviewService from "../services/ReviewService.js";
+import GameService from "../services/GameService.js";
+import TagService from "../services/TagService.js";
 import { generateToken } from "../config/security.js";
 
 /**
@@ -35,17 +37,32 @@ class ReviewController {
 
   async show(req, res) {
     try {
-      const review = await ReviewService.findById(req.params.id);
-      const tags = await ReviewService.getTags(req.params.id);
+      console.log("=== REVIEW SHOW START ===");
+      console.log("REQ PARAMS:", req.params);
+      console.log("REQ PARAMS SLUG:", req.params.slug);
+      console.log("SESSION USER ID:", req.session.userId);
+
+      const review = await ReviewService.findBySlug(
+        req.params.slug,
+        req.session.userId,
+      );
+
+      console.log("REVIEW FOUND:", review);
 
       if (!review) {
+        console.log("REVIEW NOT FOUND FOR SLUG:", req.params.slug);
         return res.status(404).render("pages/errors/404");
       }
+
+      const tags = await ReviewService.getTagsByReviewId(review.id);
+
+      console.log("TAGS FOUND:", tags);
+      console.log("=== REVIEW SHOW END ===");
 
       return res.render("pages/reviews/show", {
         title: "Détail de la review - GamingBox",
         review,
-        tags,
+        tags: tags || [],
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},
       });
@@ -58,20 +75,65 @@ class ReviewController {
 
   // Formulaire de création d'une review
 
-  new(req, res) {
-    return res.render("pages/reviews/new", {
-      title: "Nouvelle review - GamingBox",
-      csrfToken: generateToken(req, res),
-      user: res.locals.currentUser || null,
-      flash: res.locals.flash || {},
-    });
+  async new(req, res) {
+    try {
+      const games = await GameService.findAllByGameId();
+      const tags = await TagService.findByUserId(req.session.userId);
+
+      console.log("=== REVIEW NEW ===");
+      console.log("GAMES RAW:", games);
+      console.log("GAMES IS ARRAY:", Array.isArray(games));
+      console.log("GAMES LENGTH:", games?.length);
+      console.log("TAGS RAW:", tags);
+
+      if (games?.length) {
+        console.log("FIRST GAME:", games[0]);
+        console.log("FIRST GAME JSON:", JSON.stringify(games[0], null, 2));
+      }
+
+      return res.render("pages/reviews/new", {
+        title: "Nouvelle review - GamingBox",
+        csrfToken: generateToken(req, res),
+        user: res.locals.currentUser || null,
+        flash: res.locals.flash || {},
+        games: games || [],
+        tags: tags || [],
+      });
+    } catch (error) {
+      console.error("REVIEW NEW ERROR:", error);
+
+      return res.render("pages/reviews/new", {
+        title: "Nouvelle review - GamingBox",
+        csrfToken: generateToken(req, res),
+        user: res.locals.currentUser || null,
+        flash: res.locals.flash || {},
+        games: [],
+        tags: [],
+      });
+    }
   }
 
   // Création (on stocke la review)
 
   async store(req, res) {
     try {
-      await ReviewService.create(req.session.userId, req.body); // Surement un ajout en parametre d'un IGDB ou Game id
+      console.log("=== REVIEW STORE START ===");
+      console.log("SESSION USER ID:", req.session.userId);
+      console.log("REVIEW BODY:", req.body);
+      console.log("GAME ID:", req.body.gameId);
+      console.log("REVIEW TITLE:", req.body.reviewTitle);
+      console.log("REVIEW RATE:", req.body.reviewRate);
+      console.log("TAG IDS:", req.body.tagIds);
+
+      const review = await ReviewService.create(
+        req.session.userId,
+        req.body.gameId,
+        req.body,
+      ); // Surement un ajout en parametre d'un IGDB ou Game id
+
+      console.log("REVIEW CREATED:", review);
+      console.log("=== REVIEW STORE END ===");
+
       req.flash("success", "Review enregistrée avec succès ✅");
       return res.redirect("/reviews");
     } catch (error) {
@@ -94,9 +156,15 @@ class ReviewController {
         return res.status(404).render("pages/errors/404");
       }
 
+      const tags = await TagService.findByUserId(req.session.userId);
+      const reviewTags = await ReviewService.getTagsByReviewId(review.id);
+      const selectedTagIds = (reviewTags || []).map((tag) => tag.id);
+
       return res.render("pages/reviews/edit", {
         title: "Modifier la review - GamingBox",
         review,
+        tags: tags || [],
+        selectedTagIds,
         csrfToken: generateToken(req, res),
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},
@@ -114,7 +182,7 @@ class ReviewController {
   async update(req, res) {
     try {
       await ReviewService.update(req.session.userId, req.params.slug, req.body);
-      req.flash("success", "La review à bien été mise à jour ✅");
+      req.flash("success", "La review a bien été mise à jour ✅");
       return res.redirect("/reviews");
     } catch (error) {
       console.error("REVIEW UPDATE ERROR:", error);
@@ -128,7 +196,7 @@ class ReviewController {
   async destroy(req, res) {
     try {
       await ReviewService.deleteReview(req.session.userId, req.params.slug);
-      req.flash("success", "La review à bien été supprimé 🗑️");
+      req.flash("success", "La review a bien été supprimée 🗑️");
       return res.redirect("/reviews");
     } catch (error) {
       console.error("REVIEW DELETE ERROR:", error);

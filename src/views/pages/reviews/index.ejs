@@ -91,19 +91,19 @@
                     <article class="rounded-2xl bg-white/5 backdrop-blur-md border border-white/10
                                     overflow-hidden shadow-xl hover:-translate-y-1 transition">
 
-                        <!-- Cover -->
-                        <a href="/reviews/<%= review.id || review.idReview || review.slug %>" class="block">
-                            <% if (review.coverUrl || review.cover_url) { %>
-                                <img
-                                    src="<%= review.coverUrl || review.cover_url %>"
-                                    alt="<%= review.gameTitle || review.game_title || 'Jeu' %>"
-                                    class="w-full h-56 object-cover">
-                            <% } else { %>
-                                <div class="w-full h-56 bg-slate-800 flex items-center justify-center text-slate-500">
-                                    Pas d’image
-                                </div>
-                            <% } %>
-                        </a>
+<!-- Cover -->
+<a href="/reviews/<%= review.slug || review.id || review.idReview %>" class="block">
+    <% if (review.thumbnailUrl || review.thumbnail_url) { %>
+        <img
+            src="<%= review.thumbnailUrl || review.thumbnail_url %>"
+            alt="<%= review.gameTitle || review.game_title || 'Jeu' %>"
+            class="w-full h-56 object-cover">
+    <% } else { %>
+        <div class="w-full h-56 bg-slate-800 flex items-center justify-center text-slate-500">
+            Pas d’image
+        </div>
+    <% } %>
+</a>
 
                         <!-- Content -->
                         <div class="p-5">
@@ -113,7 +113,7 @@
                                         <%= review.gameTitle || review.game_title || "Jeu" %>
                                     </p>
                                     <h2 class="text-lg font-semibold leading-tight">
-                                        <a href="/reviews/<%= review.id || review.idReview || review.slug %>" class="hover:text-purple-300 transition">
+                                        <a href="/reviews/<%= review.slug || review.id || review.idReview %>" class="hover:text-purple-300 transition">
                                             <%= review.reviewTitle || review.review_title || "Sans titre" %>
                                         </a>
                                     </h2>
@@ -160,7 +160,7 @@
 
                             <!-- Footer -->
                             <div class="mt-5 flex items-center justify-between">
-                                <a href="/reviews/<%= review.id || review.idReview || review.slug %>"
+                                <a href="/reviews/<%= review.slug || review.id || review.idReview %>"
                                    class="text-sm text-purple-300 hover:text-purple-200 transition">
                                     Voir la review →
                                 </a>

@@ -26,13 +26,31 @@ class Review {
     this.gamePlatforme = data.game_platforme;
     this.createdAt = data.created_at;
     this.updatedAt = data.updated_at;
+
+    // Données enrichies si la review vient d'une vue SQL plus complète
+    this.igdbId = data.igdb_id;
+    this.gameTitle = data.game_title;
+    this.releaseDate = data.release_date;
+    this.gameGenre = data.game_genre;
+    this.thumbnailUrl = data.thumbnail_url;
+    this.metadata = data.metadata;
+    this.tags = data.tags || [];
+    this.shares = data.shares || [];
+
+    // Relation avec User (si JOIN effectué)
+    if (data.user_pseudo) {
+      this.user = {
+        pseudo: data.user_pseudo,
+        avatar: data.user_avatar,
+      };
+    }
   }
 
   /**
    * Crée une entité depuis une ligne PostgreSQL
    */
   static fromDatabase(row) {
-    return row ? new review(row) : null;
+    return row ? new Review(row) : null;
   }
 
   /**
@@ -54,10 +72,13 @@ class Review {
       reviewTitle: this.reviewTitle,
       gameTitle: this.gameTitle,
       slug: this.slug,
+      igdbId: this.igdbId,
       releaseDate: this.releaseDate,
       gameGenre: this.gameGenre,
       thumbnailUrl: this.thumbnailUrl,
       metadata: this.metadata,
+      tags: this.tags,
+      shares: this.shares,
       reviewRate: this.reviewRate,
       reviewLike: this.reviewLike,
       reviewPlatine: this.reviewPlatine,
@@ -66,6 +87,7 @@ class Review {
       gamePlatforme: this.gamePlatforme,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      user: this.user,
     };
   }
 

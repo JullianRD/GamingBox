@@ -1,0 +1,206 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white px-4 py-6">
+
+    <!-- Top bar -->
+    <div class="max-w-5xl mx-auto flex items-center justify-between mb-8">
+
+        <!-- Branding / title -->
+        <div>
+            <p class="text-sm text-slate-400 mb-2">
+                <a href="/reviews" class="hover:text-purple-300 transition">← Retour aux reviews</a>
+            </p>
+            <h1 class="text-3xl font-bold tracking-tight">
+                <%= review.reviewTitle || review.review_title || "Détail de la review" %>
+            </h1>
+            <p class="text-slate-400 mt-1 text-sm">
+                Consulte ton avis complet sur ce jeu.
+            </p>
+        </div>
+
+        <!-- Profile avatar -->
+        <a href="/profile"
+           class="w-12 h-12 rounded-full overflow-hidden border border-purple-400/30
+                  bg-slate-800 flex items-center justify-center
+                  hover:scale-105 transition shadow-lg shadow-purple-900/30">
+            <% if (user && user.avatar) { %>
+                <img src="<%= user.avatar %>" alt="Photo de profil" class="w-full h-full object-cover">
+            <% } else { %>
+                <span class="text-sm font-semibold text-slate-200">
+                    <%= user && user.pseudo ? user.pseudo.charAt(0).toUpperCase() : "U" %>
+                </span>
+            <% } %>
+        </a>
+    </div>
+
+    <!-- Flash messages -->
+    <% if (flash && flash.success) { %>
+        <div class="max-w-5xl mx-auto mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300">
+            <%= flash.success %>
+        </div>
+    <% } %>
+
+    <% if (flash && flash.error) { %>
+        <div class="max-w-5xl mx-auto mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300">
+            <%= flash.error %>
+        </div>
+    <% } %>
+
+    <!-- Review card -->
+    <div class="max-w-5xl mx-auto rounded-3xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl">
+
+<!-- Cover -->
+<div class="w-full">
+    <% if (review.thumbnailUrl || review.thumbnail_url) { %>
+        <img
+            src="<%= review.thumbnailUrl || review.thumbnail_url %>"
+            alt="<%= review.gameTitle || review.game_title || 'Jeu' %>"
+            class="w-full h-[280px] md:h-[380px] object-cover">
+    <% } else { %>
+        <div class="w-full h-[280px] md:h-[380px] bg-slate-800 flex items-center justify-center text-slate-500 text-lg">
+            Pas d’image disponible
+        </div>
+    <% } %>
+</div>
+
+        <!-- Content -->
+        <div class="p-6 md:p-8">
+
+            <!-- Header infos -->
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
+                <div>
+                    <p class="text-sm uppercase tracking-[0.2em] text-purple-300/80 mb-2">
+                        <%= review.gameTitle || review.game_title || "Jeu" %>
+                    </p>
+
+                    <h2 class="text-2xl md:text-3xl font-bold mb-3">
+                        <%= review.reviewTitle || review.review_title || "Sans titre" %>
+                    </h2>
+
+                    <div class="flex flex-wrap gap-2 text-sm text-slate-300">
+                        <% if (review.gamePlatform || review.game_platform) { %>
+                            <span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700">
+                                🎮 <%= review.gamePlatform || review.game_platform %>
+                            </span>
+                        <% } %>
+
+                        <% if (review.progressionStatus || review.progression_status) { %>
+                            <span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700">
+                                📍 <%= review.progressionStatus || review.progression_status %>
+                            </span>
+                        <% } %>
+
+                        <% if ((review.reviewPlatine ?? review.review_platine) === true) { %>
+                            <span class="px-3 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/20 text-yellow-300">
+                                🏆 Platine
+                            </span>
+                        <% } %>
+
+                        <% if ((review.reviewLike ?? review.review_like) === true) { %>
+                            <span class="px-3 py-1 rounded-full bg-pink-500/15 border border-pink-500/20 text-pink-300">
+                                ❤️ Coup de cœur
+                            </span>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Note -->
+                <% if ((review.reviewRating ?? review.review_rating) !== null && (review.reviewRating ?? review.review_rating) !== undefined) { %>
+                    <div class="shrink-0 rounded-2xl border border-purple-500/20 bg-purple-500/10 px-6 py-4 text-center min-w-[110px]">
+                        <p class="text-xs uppercase tracking-wide text-purple-300/80 mb-1">Note</p>
+                        <p class="text-3xl font-bold text-purple-300">
+                            <%= review.reviewRating ?? review.review_rating %>
+                        </p>
+                        <p class="text-xs text-slate-400">/20</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Infos secondaires -->
+            <div class="grid md:grid-cols-3 gap-4 mb-8">
+                <div class="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+                    <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">Slug</p>
+                    <p class="text-sm text-slate-200 break-all">
+                        <%= review.slug || "Aucun slug" %>
+                    </p>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+                    <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">Créée le</p>
+                    <p class="text-sm text-slate-200">
+                        <%= review.createdAt || review.created_at ? new Date(review.createdAt || review.created_at).toLocaleDateString("fr-FR", {
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                        }) : "Date inconnue" %>
+                    </p>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+                    <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">Dernière mise à jour</p>
+                    <p class="text-sm text-slate-200">
+                        <%= review.updatedAt || review.updated_at ? new Date(review.updatedAt || review.updated_at).toLocaleDateString("fr-FR", {
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                        }) : "Jamais mise à jour" %>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-3">🏷️ Tags</h3>
+
+                <% if (tags && tags.length > 0) { %>
+                    <div class="flex flex-wrap gap-2">
+                        <% tags.forEach(tag => { %>
+                            <span class="px-3 py-1 rounded-full border border-purple-500/20 bg-purple-500/10 text-sm text-purple-200">
+                                <%= tag.name || tag.tagName || tag.label || "Tag" %>
+                            </span>
+                        <% }) %>
+                    </div>
+                <% } else { %>
+                    <div class="rounded-2xl border border-dashed border-white/10 bg-slate-900/30 p-4 text-sm text-slate-400">
+                        Aucun tag associé à cette review.
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Avis -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-3">📝 Mon avis</h3>
+
+                <div class="rounded-2xl border border-white/10 bg-slate-900/40 p-5 text-slate-200 leading-7 whitespace-pre-line">
+                    <%= review.avisReview || review.avis_review || "Aucun avis renseigné pour cette review." %>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between pt-2">
+                <a href="/reviews"
+                   class="inline-flex items-center justify-center px-5 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition text-slate-200">
+                    ← Retour à mes reviews
+                </a>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="/reviews/<%= review.slug %>/edit"
+                       class="inline-flex items-center justify-center px-5 py-3 rounded-xl
+                              bg-gradient-to-r from-purple-600 to-indigo-600
+                              hover:from-purple-500 hover:to-indigo-500
+                              transition shadow-lg shadow-purple-600/30">
+                        ✏️ Modifier
+                    </a>
+
+                    <form action="/reviews/<%= review.slug %>/delete" method="POST" onsubmit="return confirm('Supprimer cette review ?');">
+                        <button type="submit"
+                                class="w-full inline-flex items-center justify-center px-5 py-3 rounded-xl
+                                       border border-red-500/20 bg-red-500/10 text-red-300
+                                       hover:bg-red-500/20 transition">
+                            🗑️ Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -7,18 +7,27 @@ import { z } from "zod";
  *
  * @see https://zod.dev
  */
+const boolFromForm = z
+  .union([z.boolean(), z.stringbool()])
+  .transform((value) => Boolean(value));
+
 const progressionStatusEnum = z.enum(
   ["En cour", "Terminé", "Whislist", "Dropped"],
   { errorMap: () => ({ message: "Statut de progression invalide" }) },
 );
 
-const gamePlatformeEnum = z.enum(["PC", "Console de jeu", "Autre"], {
-  errorMap: () => ({ message: "Plateforme de jeu invalide" }),
-});
+const gamePlatformeEnum = z.enum(
+  ["PC", "Console de jeu", "Autre"],
+  { errorMap: () => ({ message: "Plateforme invalide" }) },
+);
 
-const boolFromForm = z
-  .union([z.boolean(), z.stringbool()])
-  .transform((value) => Boolean(value));
+const tagIdsSchema = z
+  .union([
+    z.uuid("Tag invalide"),
+    z.array(z.uuid("Tag invalide")),
+  ])
+  .transform((value) => (Array.isArray(value) ? value : [value]))
+  .optional();
 
 const baseReviewSchema = z.object({
   gameId: z.uuid("Identifiant de jeu invalide"),
@@ -47,9 +56,9 @@ const baseReviewSchema = z.object({
     .optional()
     .or(z.literal("")),
 
-  gamePlatforme: gamePlatformeEnum.default("Autre"),
+  gamePlatforme: gamePlatformeEnum,
 
-  tagIds: z.array(z.uuid("Tag invalide")).optional(),
+  tagIds: tagIdsSchema,
 });
 
 export const schemas = {

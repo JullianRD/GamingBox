@@ -17,27 +17,27 @@ export const validate = (schema) => (req, res, next) => {
 
     next();
   } catch (error) {
-    if (error instanceof ZodError) {
-      const errors = {};
+if (error instanceof ZodError) {
+  const errors = {};
 
-      for (const issue of error.issues) {
-        const field = issue.path[0] || "global";
-        errors[field] = issue.message;
-      }
+  console.log("=== VALIDATION ERROR ===");
+  console.log("BODY RECEIVED:", req.body);
+  console.log("ZOD ISSUES:", error.issues);
 
-      // Flash global
-      req.session.flash = {
-        error: "Veuillez corriger les erreurs ci-dessous.",
-      };
+  for (const issue of error.issues) {
+    const field = issue.path[0] || "global";
+    errors[field] = issue.message;
+  }
 
-      // Erreurs par champ
-      req.session.errors = errors;
+  req.session.flash = {
+    error: "Veuillez corriger les erreurs ci-dessous.",
+  };
 
-      // Ancien input (pour refill form)
-      req.session.oldInput = req.body;
+  req.session.errors = errors;
+  req.session.oldInput = req.body;
 
-      return res.redirect(req.get("Referer") || "/");
-    }
+  return res.redirect(req.get("Referer") || "/");
+}
 
     next(error); // Erreur technique
   }
