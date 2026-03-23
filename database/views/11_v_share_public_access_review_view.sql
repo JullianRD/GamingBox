@@ -2,6 +2,7 @@ CREATE OR REPLACE VIEW v_share_public_review AS
 SELECT
     s.id_share,
     s.share_token,
+    s.recipient_email,
     s.access_config,
     s.created_at AS share_created_at,
     s.updated_at,
@@ -18,8 +19,9 @@ SELECT
     r.review_like,
     r.review_platine,
     r.created_at AS review_created_at,
+    r.updated_at AS review_updated_at,
 
-    g.game_title AS game_title,
+    g.game_title,
     g.thumbnail_url,
     g.game_genre,
     g.release_date,
@@ -33,7 +35,5 @@ JOIN reviews r
 JOIN games g
     ON g.id_game = r.game_id
 JOIN users u
-    ON u.id_user = r.user_id;
-
-
-        -- vue utile pour les partages de review avec stast et infos complète
+    ON u.id_user = r.user_id
+WHERE s.review_id IS NOT NULL;

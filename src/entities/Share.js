@@ -13,44 +13,48 @@ class Share {
     this.recipientEmail = data.recipient_email;
     this.shareToken = data.share_token;
     this.accessConfig = data.access_config || {};
-    this.createdAt = data.created_at;
+    this.createdAt = data.created_at || data.share_created_at;
     this.updatedAt = data.updated_at;
 
-    // Type de ressource partagée
-    this.sharedType = data.review_id ? "review" : "profile";
+    // Type de partage
+    this.shareType = data.share_type || (data.review_id ? "review" : "profile");
 
     // Relation avec Review et User (si JOIN effectué)
     if (data.owner_pseudo || data.user_pseudo) {
       this.user = {
-        id: data.user_id,
-        pseudo: data.owner_pseudo || data.user_pseudo,
-        avatar: data.owner_avatar || data.user_avatar,
-        email: data.owner_email,
-        biographie: data.biographie,
-        totalReviews: data.total_reviews,
-        finishedGames: data.finished_games,
-        platineGames: data.platine_games,
-        likedGames: data.liked_games,
+        id: data.user_id || data.owner_id,
+        pseudo: data.user_pseudo || data.owner_pseudo,
+        avatar: data.user_avatar || data.owner_avatar,
       };
     }
 
     if (data.review_title) {
       this.review = {
-        id: data.review_id,
+        id: data.id_review || data.review_id,
         reviewTitle: data.review_title,
         slug: data.slug,
-        avisReview: data.avis_review,
         reviewRate: data.review_rate,
         progressionStatus: data.progression_status,
+        gameTitle: data.game_title,
+        thumbnailUrl: data.thumbnail_url,
+        avisReview: data.avis_review,
         gamePlatforme: data.game_platforme,
         reviewLike: data.review_like,
         reviewPlatine: data.review_platine,
-        gameTitle: data.game_title,
-        thumbnailUrl: data.thumbnail_url,
-        gameGenre: data.game_genre,
         releaseDate: data.release_date,
-        userPseudo: data.user_pseudo,
-        userAvatar: data.user_avatar,
+        gameGenre: data.game_genre,
+        createdAt: data.review_created_at,
+        updatedAt: data.review_updated_at,
+      };
+    }
+
+    // Profil partagé
+    if (!data.review_title) {
+      this.profile = {
+        id: data.owner_id || data.user_id,
+        pseudo: data.owner_pseudo,
+        avatar: data.owner_avatar,
+        biographie: data.owner_biographie,
       };
     }
   }
@@ -81,11 +85,12 @@ class Share {
       recipientEmail: this.recipientEmail,
       shareToken: this.shareToken,
       accessConfig: this.accessConfig,
-      sharedType: this.sharedType,
+      shareType: this.shareType,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       ...(this.user && { user: this.user }),
       ...(this.review && { review: this.review }),
+      ...(this.profile && { profile: this.profile }),
     };
   }
 

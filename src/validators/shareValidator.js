@@ -7,16 +7,25 @@ import { z } from "zod";
  *
  * @see https://zod.dev
  */
+const shareBaseSchema = z.object({
+  recipientEmail: z.email("Email du destinataire invalide"),
 
-const recipientEmail = z.email("Email du destinataire invalide");
+  redirectTo: z.string().trim().optional(),
+
+  message: z
+    .string()
+    .trim()
+    .max(500, "Le message ne peut pas dépasser 500 caractères")
+    .optional()
+    .or(z.literal("")),
+});
 
 export const schemas = {
-  createProfile: z.object({
-    recipientEmail,
+  createProfile: shareBaseSchema.extend({
+    userId: z.uuid("Identifiant de profil invalide"),
   }),
 
-  createReview: z.object({
+  createReview: shareBaseSchema.extend({
     reviewId: z.uuid("Identifiant de review invalide"),
-    recipientEmail,
   }),
 };

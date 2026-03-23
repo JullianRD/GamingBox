@@ -38,35 +38,35 @@ router.get("/shares", ShareController.index);
 
 /**
  * ➕ Formulaire création pour un profil
- * GET /shares/new?itemId=xxx
+ * GET /shares/new/profile
  */
-router.get("/shares/new", ShareController.newforProfil);
+router.get("/shares/new/profile", ShareController.newForProfile);
 
-// Formulaire de création pour une review
-router.get("/shares/new", ShareController.newForReview);
+/**
+ * ➕ Formulaire création pour une review
+ * GET /shares/new/review
+ */
+router.get("/shares/new/review", ShareController.newForReview);
 
 /**
  * 💾 Création pour un profil
- * POST /shares
+ * POST /shares/profile
  */
-router.post("/shares", validate(shareSchemas.create), ShareController.storeForProfil);
-
-// Création pour une review
-router.post("/shares", validate(shareSchemas.create), ShareController.storeForReview);
+router.post(
+  "/shares/profile",
+  validate(shareSchemas.createProfile),
+  ShareController.storeForProfile,
+);
 
 /**
- * ✏️ Formulaire édition
- * GET /shares/:id/edit
+ * 💾 Création pour une review
+ * POST /shares/review
  */
-router.get("/shares/:id/edit", ShareController.edit);
-
-/**
- * 🔄 Mise à jour pour un profil
- */
-router.post("/shares/:id", validate(shareSchemas.create),ShareController.updateForProfil);
-
-// Mise à jour pour une review
-router.post("/shares/:id", validate(shareSchemas.create),ShareController.updateForReview);
+router.post(
+  "/shares/review",
+  validate(shareSchemas.createReview),
+  ShareController.storeForReview,
+);
 
 /**
  * 🗑️ Révocation

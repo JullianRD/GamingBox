@@ -4,6 +4,7 @@ import { Router } from "express";
 import ProfileController from "../../controller/ProfileController.js";
 import { requireAuth } from "../../middlewares/authMiddleware.js";
 import { doubleCsrfProtection } from "../../config/security.js";
+import uploadAvatar from "../../middlewares/uploadAvatar.js";
 
 const router = Router();
 
@@ -27,13 +28,19 @@ router.use(requireAuth);
 router.get("/profile", ProfileController.index);
 
 // Affiche le formulaire d'édition du profil
-router.get("/profile/edit", ProfileController.edit)
+router.get("/profile/edit", ProfileController.edit);
 
 /**
  * 🔄 Mise à jour du profil
- * POST /profile
+ * POST /profile/edit
  */
-router.post("/profile/edit", requireAuth, doubleCsrfProtection, ProfileController.update);
+router.post(
+  "/profile/edit",
+  requireAuth,
+  uploadAvatar.single("avatar"),
+  doubleCsrfProtection,
+  ProfileController.update,
+);
 
 /**
  * 🗑️ Suppression du compte

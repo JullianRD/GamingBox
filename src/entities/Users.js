@@ -13,6 +13,7 @@ class User {
     this.passwordHash = data.password_hash; // ⚠️ SENSIBLE - Ne jamais exposer en API
     this.pseudo = data.pseudo;
     this.biographie = data.biographie;
+    this.avatar = data.avatar;
     this.roleName = data.role_name;
     this.authProvider = data.auth_provider;
     this.settingsUser = data.settings_user;
@@ -54,6 +55,7 @@ class User {
       email: this.email,
       pseudo: this.pseudo,
       biographie: this.biographie,
+      avatar: this.avatar,
       roleName: this.roleName,
       authProvider: this.authProvider,
       settingsUser: this.settingsUser,

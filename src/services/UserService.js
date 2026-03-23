@@ -31,7 +31,7 @@ class UserService {
   }
 
   // Mettre à jour une info ou plusieurs du profil utilisateur
-  static async updateProfile(userId, data) {
+  static async updateProfile(userId, data, avatarPath = null) {
     const currentUser = await UserRepository.findById(userId);
 
     if (!currentUser) {
@@ -39,7 +39,6 @@ class UserService {
     }
 
     const pseudo = data.pseudo?.trim();
-    const avatar = data.avatar?.trim() || null;
     const biographie = data.biographie?.trim() || null;
 
     if (!pseudo) {
@@ -54,6 +53,8 @@ class UserService {
     ) {
       throw new Error("Ce pseudo est déjà utilisé.");
     }
+
+    const avatar = avatarPath || currentUser.avatar || null;
 
     return UserRepository.update(userId, {
       pseudo,

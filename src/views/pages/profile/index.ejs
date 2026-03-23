@@ -1,6 +1,5 @@
 <!-- Page du profil perso d'un utilisateur de l'app -->
 
-
 <div class="min-h-screen px-4 py-10 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
   <div class="max-w-4xl mx-auto">
 
@@ -13,7 +12,8 @@
         </p>
       </div>
 
-      <div class="flex gap-3">
+      <div class="flex flex-wrap gap-3 items-center">
+
         <a
           href="/reviews"
           class="px-4 py-2 rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
@@ -27,6 +27,21 @@
         >
           Modifier le profil
         </a>
+
+        <!-- Déconnexion -->
+        <form action="/auth/logout" method="POST">
+          <% if (typeof csrfToken !== "undefined") { %>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <% } %>
+
+          <button
+            type="submit"
+            class="px-4 py-2 rounded-lg border border-red-500/40 text-red-400 hover:bg-red-500/10 transition"
+          >
+            ⏻ Déconnexion
+          </button>
+        </form>
+
       </div>
     </div>
 
@@ -67,6 +82,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
               <div class="rounded-xl bg-slate-900/50 border border-slate-800 p-4">
                 <p class="text-xs uppercase tracking-wide text-slate-500 mb-1">Pseudo</p>
                 <p class="text-white font-medium">
@@ -84,7 +100,7 @@
               <div class="rounded-xl bg-slate-900/50 border border-slate-800 p-4">
                 <p class="text-xs uppercase tracking-wide text-slate-500 mb-1">Rôle</p>
                 <p class="text-white font-medium capitalize">
-                  <%= user?.role || "visiteur" %>
+                  <%= user?.roleName || "visiteur" %>
                 </p>
               </div>
 
@@ -94,6 +110,7 @@
                   <%= user?.avatar ? "Personnalisé" : "Avatar par défaut" %>
                 </p>
               </div>
+
             </div>
 
             <div class="rounded-xl bg-slate-900/50 border border-slate-800 p-5">
@@ -102,6 +119,7 @@
                 <%= user?.biographie || "Aucune biographie pour le moment. Tu peux personnaliser ton profil en ajoutant une bio." %>
               </p>
             </div>
+
           </div>
         </div>
       </div>
@@ -109,6 +127,7 @@
 
     <!-- Bottom actions mobile-friendly -->
     <div class="mt-6 flex flex-col sm:flex-row gap-3">
+
       <a
         href="/reviews"
         class="w-full sm:w-auto text-center px-4 py-2 rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
@@ -122,6 +141,8 @@
       >
         Modifier le profil
       </a>
+
     </div>
+
   </div>
 </div>
