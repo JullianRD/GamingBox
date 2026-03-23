@@ -37,6 +37,13 @@ router.get("/reviews/:slug/edit", ReviewController.edit);
 // Mise à jour de la review
 router.post("/reviews/:slug", validate(reviewSchemas.update), ReviewController.update);
 
+// Mise à jour des tags depuis la page détail
+router.post(
+  "/reviews/:slug/tags",
+  validate(reviewSchemas.updateTags),
+  ReviewController.updateTags,
+);
+
 // Afficher les détails d'une review
 router.get("/reviews/:slug", ReviewController.show);
 

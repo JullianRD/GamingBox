@@ -14,24 +14,44 @@ class ReviewController {
   /**
    * Liste de toutes les reviews d'un utilisateur
    */
-  async index(req, res) {
-    try {
-      const userId = req.session.userId;
-      const reviews = await ReviewService.findAllByUser(userId);
+async index(req, res) {
+  try {
+    const userId = req.session.userId;
+    const rawTagId = req.query.tag;
 
-      console.log("RENDER REVIEWS WITH USER:", res.locals.currentUser || null);
+    const selectedTagId =
+      rawTagId && rawTagId !== "null" && rawTagId !== "undefined"
+        ? rawTagId
+        : null;
 
-      return res.render("pages/reviews/index", {
-        title: "Mes reviews - GamingBox",
-        reviews,
-        user: res.locals.currentUser || null,
-        flash: res.locals.flash || {},
-      });
-    } catch (error) {
-      console.error("REVIEW INDEX ERROR:", error);
-      return res.redirect("/");
-    }
+    const reviews = selectedTagId
+      ? await ReviewService.findAllByUserAndTag(userId, selectedTagId)
+      : await ReviewService.findAllByUser(userId);
+
+    const tags = await TagService.findByUserId(userId);
+    const selectedTag = selectedTagId
+      ? tags.find((tag) => tag.id === selectedTagId) || null
+      : null;
+
+    console.log("RENDER REVIEWS WITH USER:", res.locals.currentUser || null);
+    console.log("RAW TAG ID:", rawTagId);
+    console.log("SELECTED TAG ID:", selectedTagId);
+    console.log("SELECTED TAG:", selectedTag);
+
+    return res.render("pages/reviews/index", {
+      title: "Mes reviews - GamingBox",
+      reviews,
+      tags: tags || [],
+      selectedTagId,
+      selectedTag,
+      user: res.locals.currentUser || null,
+      flash: res.locals.flash || {},
+    });
+  } catch (error) {
+    console.error("REVIEW INDEX ERROR:", error);
+    return res.redirect("/");
   }
+}
 
   // Détails d'une review
 
@@ -55,6 +75,8 @@ class ReviewController {
       }
 
       const tags = await ReviewService.getTagsByReviewId(review.id);
+      const availableTags = await TagService.findByUserId(req.session.userId);
+      const selectedTagIds = (tags || []).map((tag) => tag.id);
 
       console.log("TAGS FOUND:", tags);
       console.log("=== REVIEW SHOW END ===");
@@ -63,6 +85,9 @@ class ReviewController {
         title: "Détail de la review - GamingBox",
         review,
         tags: tags || [],
+        availableTags: availableTags || [],
+        selectedTagIds,
+        csrfToken: generateToken(req, res),
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},
       });
@@ -188,6 +213,25 @@ class ReviewController {
       console.error("REVIEW UPDATE ERROR:", error);
       req.flash("error", error.message || "Impossible de mettre à jour la review.");
       return res.redirect(`/reviews/${req.params.slug}/edit`);
+    }
+  }
+
+  // Associer des tags depuis la page détail de la review
+
+  async updateTags(req, res) {
+    try {
+      await ReviewService.replaceTagsBySlug(
+        req.session.userId,
+        req.params.slug,
+        req.body.tagIds,
+      );
+
+      req.flash("success", "Les tags de la review ont bien été mis à jour ✅");
+      return res.redirect(`/reviews/${req.params.slug}`);
+    } catch (error) {
+      console.error("REVIEW UPDATE TAGS ERROR:", error);
+      req.flash("error", error.message || "Impossible de mettre à jour les tags.");
+      return res.redirect(`/reviews/${req.params.slug}`);
     }
   }
 

@@ -17,6 +17,21 @@ class ReviewRepository {
     return rows.map((row) => new Review(row));
   }
 
+// Récupère toutes les reviews d'un utilisateur filtrées par tag
+static async findAllByUserAndTag(userId, tagId) {
+  const query = /*sql*/ `
+    SELECT vrc.*
+    FROM v_reviews_complete vrc
+    JOIN review_tags rt ON rt.id_review = vrc.id_review
+    WHERE vrc.user_id = $1
+      AND rt.id_tag = $2
+    ORDER BY vrc.created_at DESC;
+  `;
+
+  const { rows } = await db.query(query, [userId, tagId]);
+  return rows.map((row) => new Review(row));
+}
+
   static async findByIdComplete(id) {
     const query = /*SQL*/ `
       SELECT *

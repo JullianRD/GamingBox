@@ -7,18 +7,16 @@ import { z } from "zod";
  *
  * @see https://zod.dev
  */
+
+const recipientEmail = z.email("Email du destinataire invalide");
+
 export const schemas = {
-  create: z.object({
-    review_id: z.string().uuid("Identifiant de pépite invalide"),
-    user_id: z.string().uuid("Identifiant de profil invalide"),
+  createProfile: z.object({
+    recipientEmail,
+  }),
 
-    email: z.email("Email du destinataire invalide"),
-
-    message: z
-      .string()
-      .trim()
-      .max(500, "Le message ne peut pas dépasser 500 caractères")
-      .optional()
-      .or(z.literal("")),
+  createReview: z.object({
+    reviewId: z.uuid("Identifiant de review invalide"),
+    recipientEmail,
   }),
 };

@@ -13,6 +13,12 @@ class ReviewService {
     return ReviewRepository.findAllByUser(id);
   }
 
+  // Trouver toutes les reviews d'un utilisateur filtrées par tag
+
+  static async findAllByUserAndTag(userId, tagId) {
+    return ReviewRepository.findAllByUserAndTag(userId, tagId);
+  }
+
   // Trouver une review via son slug pour un utilisateur donné
 
   static async findBySlug(slug, userId) {
@@ -91,6 +97,23 @@ class ReviewService {
     }
 
     return updatedReview;
+  }
+
+  // Modifier uniquement les tags d'une review via son slug
+  static async replaceTagsBySlug(userId, slug, tagIds) {
+    const review = await ReviewRepository.findBySlug(slug, userId);
+
+    if (!review) {
+      throw new Error("Review introuvable.");
+    }
+
+    const normalizedTagIds = Array.isArray(tagIds)
+      ? tagIds
+      : tagIds
+        ? [tagIds]
+        : [];
+
+    return ReviewTagRepository.replaceForReview(review.id, normalizedTagIds);
   }
 
   // Supprimer une review proprement

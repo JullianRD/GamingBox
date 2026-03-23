@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @fileoverview Modèle Share - Gestion des partages de pépites
+ * @fileoverview Modèle Share - Gestion des partages de ressources
  * @module models/Share
  */
 
@@ -12,26 +12,49 @@ class Share {
     this.reviewId = data.review_id;
     this.recipientEmail = data.recipient_email;
     this.shareToken = data.share_token;
-    this.accessConfig = data.access_config;
+    this.accessConfig = data.access_config || {};
     this.createdAt = data.created_at;
     this.updatedAt = data.updated_at;
 
-    //Relation avec Review et User (si JOIN effectué)
-    if (data.user_pseudo) {
+    // Type de ressource partagée
+    this.sharedType = data.review_id ? "review" : "profile";
+
+    // Relation avec Review et User (si JOIN effectué)
+    if (data.owner_pseudo || data.user_pseudo) {
       this.user = {
         id: data.user_id,
-        pseudo: data.user_pseudo,
-        roleName: data.user_role_name,
+        pseudo: data.owner_pseudo || data.user_pseudo,
+        avatar: data.owner_avatar || data.user_avatar,
+        email: data.owner_email,
+        biographie: data.biographie,
+        totalReviews: data.total_reviews,
+        finishedGames: data.finished_games,
+        platineGames: data.platine_games,
+        likedGames: data.liked_games,
       };
     }
+
     if (data.review_title) {
       this.review = {
         id: data.review_id,
-        reviewTitle: data.review_review_title,
-        gameTitle: data.review_game_title,
+        reviewTitle: data.review_title,
+        slug: data.slug,
+        avisReview: data.avis_review,
+        reviewRate: data.review_rate,
+        progressionStatus: data.progression_status,
+        gamePlatforme: data.game_platforme,
+        reviewLike: data.review_like,
+        reviewPlatine: data.review_platine,
+        gameTitle: data.game_title,
+        thumbnailUrl: data.thumbnail_url,
+        gameGenre: data.game_genre,
+        releaseDate: data.release_date,
+        userPseudo: data.user_pseudo,
+        userAvatar: data.user_avatar,
       };
     }
   }
+
   /**
    * Crée une entité depuis une ligne PostgreSQL
    */
@@ -58,8 +81,10 @@ class Share {
       recipientEmail: this.recipientEmail,
       shareToken: this.shareToken,
       accessConfig: this.accessConfig,
+      sharedType: this.sharedType,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      ...(this.user && { user: this.user }),
       ...(this.review && { review: this.review }),
     };
   }

@@ -54,16 +54,12 @@ router.get("/tags/:id/edit", TagController.edit);
 /**
  * 🔄 Mise à jour
  * POST /tags/:id
- *
- * (on réutilise le même schema, KISS)
  */
-router.post("/tags/:id", validate(tagSchemas.create), TagController.update);
+router.post("/tags/:id", validate(tagSchemas.update), TagController.update);
 
 /**
  * 🗑️ Suppression
  * POST /tags/:id/delete
- *
- * (pas de validation : pas de body)
  */
 router.post("/tags/:id/delete", TagController.destroy);
 

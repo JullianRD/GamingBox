@@ -47,19 +47,19 @@
     <!-- Review card -->
     <div class="max-w-5xl mx-auto rounded-3xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl">
 
-<!-- Cover -->
-<div class="w-full">
-    <% if (review.thumbnailUrl || review.thumbnail_url) { %>
-        <img
-            src="<%= review.thumbnailUrl || review.thumbnail_url %>"
-            alt="<%= review.gameTitle || review.game_title || 'Jeu' %>"
-            class="w-full h-[280px] md:h-[380px] object-cover">
-    <% } else { %>
-        <div class="w-full h-[280px] md:h-[380px] bg-slate-800 flex items-center justify-center text-slate-500 text-lg">
-            Pas d’image disponible
+        <!-- Cover -->
+        <div class="w-full">
+            <% if (review.thumbnailUrl || review.thumbnail_url) { %>
+                <img
+                    src="<%= review.thumbnailUrl || review.thumbnail_url %>"
+                    alt="<%= review.gameTitle || review.game_title || 'Jeu' %>"
+                    class="w-full h-[280px] md:h-[380px] object-cover">
+            <% } else { %>
+                <div class="w-full h-[280px] md:h-[380px] bg-slate-800 flex items-center justify-center text-slate-500 text-lg">
+                    Pas d’image disponible
+                </div>
+            <% } %>
         </div>
-    <% } %>
-</div>
 
         <!-- Content -->
         <div class="p-6 md:p-8">
@@ -76,9 +76,9 @@
                     </h2>
 
                     <div class="flex flex-wrap gap-2 text-sm text-slate-300">
-                        <% if (review.gamePlatform || review.game_platform) { %>
+                        <% if (review.gamePlatforme || review.game_platforme) { %>
                             <span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700">
-                                🎮 <%= review.gamePlatform || review.game_platform %>
+                                🎮 <%= review.gamePlatforme || review.game_platforme %>
                             </span>
                         <% } %>
 
@@ -103,13 +103,13 @@
                 </div>
 
                 <!-- Note -->
-                <% if ((review.reviewRating ?? review.review_rating) !== null && (review.reviewRating ?? review.review_rating) !== undefined) { %>
+                <% if ((review.reviewRate ?? review.review_rate) !== null && (review.reviewRate ?? review.review_rate) !== undefined) { %>
                     <div class="shrink-0 rounded-2xl border border-purple-500/20 bg-purple-500/10 px-6 py-4 text-center min-w-[110px]">
                         <p class="text-xs uppercase tracking-wide text-purple-300/80 mb-1">Note</p>
                         <p class="text-3xl font-bold text-purple-300">
-                            <%= review.reviewRating ?? review.review_rating %>
+                            <%= review.reviewRate ?? review.review_rate %>
                         </p>
-                        <p class="text-xs text-slate-400">/20</p>
+                        <p class="text-xs text-slate-400">/10</p>
                     </div>
                 <% } %>
             </div>
@@ -151,18 +151,49 @@
                 <h3 class="text-lg font-semibold mb-3">🏷️ Tags</h3>
 
                 <% if (tags && tags.length > 0) { %>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-2 mb-4">
                         <% tags.forEach(tag => { %>
                             <span class="px-3 py-1 rounded-full border border-purple-500/20 bg-purple-500/10 text-sm text-purple-200">
-                                <%= tag.name || tag.tagName || tag.label || "Tag" %>
+                                <%= tag.name || tag.tagName || "Tag" %>
                             </span>
                         <% }) %>
                     </div>
                 <% } else { %>
-                    <div class="rounded-2xl border border-dashed border-white/10 bg-slate-900/30 p-4 text-sm text-slate-400">
+                    <div class="rounded-2xl border border-dashed border-white/10 bg-slate-900/30 p-4 text-sm text-slate-400 mb-4">
                         Aucun tag associé à cette review.
                     </div>
                 <% } %>
+
+                <form action="/reviews/<%= review.slug %>/tags" method="POST" class="rounded-2xl border border-white/10 bg-slate-900/30 p-4">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                    <p class="text-sm text-slate-300 mb-3">Modifier les tags associés à cette review :</p>
+
+                    <% if (availableTags && availableTags.length > 0) { %>
+                        <div class="flex flex-wrap gap-3 mb-4">
+                            <% availableTags.forEach(tag => { %>
+                                <label class="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        name="tagIds"
+                                        value="<%= tag.id || tag.id_tag %>"
+                                        class="accent-purple-600"
+                                        <%= selectedTagIds && selectedTagIds.includes(tag.id || tag.id_tag) ? "checked" : "" %>>
+                                    <span><%= tag.tagName || tag.tag_name %></span>
+                                </label>
+                            <% }) %>
+                        </div>
+
+                        <button type="submit"
+                            class="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition shadow-lg shadow-purple-600/30">
+                            Enregistrer les tags
+                        </button>
+                    <% } else { %>
+                        <div class="text-sm text-slate-400">
+                            Aucun tag disponible. Tu peux en créer depuis l’index des reviews.
+                        </div>
+                    <% } %>
+                </form>
             </div>
 
             <!-- Avis -->

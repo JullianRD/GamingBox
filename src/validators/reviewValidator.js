@@ -61,7 +61,12 @@ const baseReviewSchema = z.object({
   tagIds: tagIdsSchema,
 });
 
+const updateTagsSchema = z.object({
+  tagIds: tagIdsSchema,
+});
+
 export const schemas = {
   create: baseReviewSchema,
   update: baseReviewSchema.partial(),
+  updateTags: updateTagsSchema,
 };

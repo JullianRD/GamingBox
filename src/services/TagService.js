@@ -8,6 +8,10 @@ class TagService {
   // Créer un tag lié à un utilisateur
 
   static async create(userId, tagName) {
+    if (!userId) {
+      throw new Error("UserId requis");
+    }
+
     return TagRepository.create({
       userId,
       tagName,
@@ -28,15 +32,39 @@ class TagService {
     return await TagRepository.findById(tagId);
   }
 
+  static async findByIdForUser(tagId, userId) {
+    if (!tagId) {
+      throw new Error("TagId requis");
+    }
+
+    if (!userId) {
+      throw new Error("UserId requis");
+    }
+
+    return await TagRepository.findByIdForUser(tagId, userId);
+  }
+
   // renommer un tag
-  static async update(tagId, tagName) {
-    return TagRepository.update(tagId, { tagName });
+  static async update(tagId, userId, tagName) {
+    const tag = await TagRepository.findByIdForUser(tagId, userId);
+
+    if (!tag) {
+      throw new Error("Tag introuvable.");
+    }
+
+    return TagRepository.update(tagId, userId, { tagName });
   }
 
   // Supprimer un tag
 
-  static async delete(tagId) {
-    return TagRepository.delete(tagId);
+  static async delete(tagId, userId) {
+    const tag = await TagRepository.findByIdForUser(tagId, userId);
+
+    if (!tag) {
+      throw new Error("Tag introuvable.");
+    }
+
+    return TagRepository.delete(tagId, userId);
   }
 }
 
