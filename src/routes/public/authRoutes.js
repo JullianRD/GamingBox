@@ -11,7 +11,7 @@ import { generateToken } from "../../config/security.js";
 
 const router = Router();
 
-// Routes pour authentifier et enregistrer l'utilisateur
+// Routes pour authentifier et enregistrer l'utilisateur connecté
 
 // Inscription
 
