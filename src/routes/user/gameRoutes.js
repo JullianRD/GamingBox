@@ -1,38 +1,38 @@
-"use strict"
+"use strict";
 
 import { Router } from "express";
 import GameController from "../../controller/GameController.js";
 import { requireAuth, requireAdmin } from "../../middlewares/authMiddleware.js";
 
-
-
-
-
-// Routes pour les jeux en base local / Réservé aux admins
+// Routes pour les jeux en base locale + import IGDB
 
 const router = Router();
 
-// Il faut être connecté et être admin pour accéder à ces routes
+// Routes accessibles aux utilisateurs connectés pour la recherche/import IGDB
 router.use(requireAuth);
-router.use(requireAdmin);
 
+// Recherche de jeux via IGDB
+router.get("/games/search/igdb", GameController.searchIgdb);
 
-// Liste des jeux présent en base 
-router.get("/games", GameController.index);
+// Import d'un jeu depuis IGDB vers la base locale
+router.post("/games/import/igdb", GameController.importFromIgdb);
+
+// Routes admin pour la gestion locale
+router.get("/games", requireAdmin, GameController.index);
 
 // Détails d'un jeu en base
-router.get("/games/:id", GameController.show);
+router.get("/games/:id", requireAdmin, GameController.show);
 
-// Création d'un jeu en base local (plutôt le stockage via IGDB)
-router.post("/games", GameController.store)
+// Création d'un jeu en base local
+router.post("/games", requireAdmin, GameController.store);
 
 // Formulaire d'édition du jeu
-router.get("/games/:id/edit", GameController.edit)
+router.get("/games/:id/edit", requireAdmin, GameController.edit);
 
 // Mise à jour du jeu dans la base
-router.post("/games", GameController.update);
+router.post("/games/:id", requireAdmin, GameController.update);
 
 // Suppression du jeu dans la base
-router.post("/games", GameController.destroy);
+router.post("/games/:id/delete", requireAdmin, GameController.destroy);
 
 export default router;

@@ -24,6 +24,37 @@
 
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
+      <!-- SEARCH IGDB -->
+      <div class="rounded-2xl border border-indigo-500/20 bg-slate-900/40 p-5">
+        <div class="mb-3">
+          <h2 class="text-lg font-semibold text-white">🔎 Rechercher un jeu sur IGDB</h2>
+          <p class="text-sm text-slate-400 mt-1">
+            Si ton jeu n’est pas présent dans la liste locale, cherche-le ici puis importe-le.
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input
+            id="igdbSearchInput"
+            type="text"
+            placeholder="Ex : Hades, Hollow Knight, Persona 5..."
+            class="flex-1 px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500"
+          >
+
+          <button
+            id="igdbSearchButton"
+            type="button"
+            class="px-5 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg"
+          >
+            Rechercher
+          </button>
+        </div>
+
+        <div id="igdbSearchStatus" class="mt-3 text-sm text-slate-400"></div>
+
+        <div id="igdbResults" class="mt-4 grid gap-3"></div>
+      </div>
+
       <!-- SELECT GAME -->
       <div>
         <label class="block text-sm text-slate-300 mb-2">Jeu</label>
@@ -178,6 +209,11 @@
   const thumbnailPreview = document.getElementById("gameThumbnailPreview");
   const thumbnailFallback = document.getElementById("gameThumbnailFallback");
 
+  const igdbSearchInput = document.getElementById("igdbSearchInput");
+  const igdbSearchButton = document.getElementById("igdbSearchButton");
+  const igdbSearchStatus = document.getElementById("igdbSearchStatus");
+  const igdbResults = document.getElementById("igdbResults");
+
   function formatDate(dateValue) {
     if (!dateValue) return "—";
 
@@ -228,6 +264,128 @@
       thumbnailFallback.classList.remove("hidden");
     }
   }
+
+  function upsertLocalGame(game) {
+    const existing = games.find((g) => String(g.id) === String(game.id));
+
+    if (!existing) {
+      games.push(game);
+
+      const option = document.createElement("option");
+      option.value = game.id;
+      option.textContent = game.gameTitle || "Jeu sans titre";
+      gameSelect.appendChild(option);
+    }
+
+    gameSelect.value = String(game.id);
+    updateGamePreview();
+  }
+
+  async function searchIgdbGames() {
+    const query = igdbSearchInput.value.trim();
+
+    if (query.length < 2) {
+      igdbSearchStatus.textContent = "Tape au moins 2 caractères pour rechercher.";
+      igdbResults.innerHTML = "";
+      return;
+    }
+
+    igdbSearchStatus.textContent = "Recherche en cours...";
+    igdbResults.innerHTML = "";
+
+    try {
+      const response = await fetch(`/games/search/igdb?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur de recherche IGDB.");
+      }
+
+      const results = data.games || [];
+
+      if (!results.length) {
+        igdbSearchStatus.textContent = "Aucun jeu trouvé sur IGDB.";
+        return;
+      }
+
+      igdbSearchStatus.textContent = `${results.length} jeu(x) trouvé(s).`;
+
+      results.forEach((game) => {
+        const card = document.createElement("div");
+        card.className = "rounded-xl border border-slate-800 bg-slate-900/50 p-4 flex gap-4 items-start";
+
+        card.innerHTML = `
+          <div class="w-16 h-20 bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+            ${
+              game.thumbnailUrl
+                ? `<img src="${game.thumbnailUrl}" alt="${game.gameTitle}" class="w-full h-full object-cover">`
+                : `<span class="text-xs text-slate-500 text-center">Pas d'image</span>`
+            }
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <h3 class="text-white font-semibold">${game.gameTitle}</h3>
+            <p class="text-sm text-slate-400 mt-1">Genre : ${game.gameGenre || "Inconnu"}</p>
+            <p class="text-sm text-slate-400">Sortie : ${formatDate(game.releaseDate)}</p>
+          </div>
+
+          <button
+            type="button"
+            class="import-igdb-game px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white shadow-lg shrink-0"
+            data-igdb-id="${game.igdbId}"
+          >
+            Importer
+          </button>
+        `;
+
+        igdbResults.appendChild(card);
+      });
+
+      document.querySelectorAll(".import-igdb-game").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const igdbId = button.dataset.igdbId;
+
+          button.disabled = true;
+          button.textContent = "Import...";
+
+          try {
+            const response = await fetch("/games/import/igdb", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ igdbId }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+              throw new Error(data.error || "Impossible d'importer le jeu.");
+            }
+
+            upsertLocalGame(data.game);
+            igdbSearchStatus.textContent = `Jeu importé avec succès : ${data.game.gameTitle}`;
+          } catch (error) {
+            igdbSearchStatus.textContent = error.message;
+          } finally {
+            button.disabled = false;
+            button.textContent = "Importer";
+          }
+        });
+      });
+    } catch (error) {
+      igdbSearchStatus.textContent = error.message || "Erreur lors de la recherche IGDB.";
+    }
+  }
+
+  igdbSearchButton.addEventListener("click", searchIgdbGames);
+
+  igdbSearchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      searchIgdbGames();
+    }
+  });
 
   gameSelect.addEventListener("change", updateGamePreview);
   updateGamePreview();

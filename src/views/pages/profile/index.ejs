@@ -28,8 +28,15 @@
           Modifier le profil
         </a>
 
+        <a
+          href="/shares/new/profile"
+          class="px-4 py-2 rounded-lg border border-purple-500/30 text-purple-200 hover:bg-purple-500/10 transition"
+        >
+          Partager le profil
+        </a>
+
         <!-- Déconnexion -->
-        <form action="/auth/logout" method="POST">
+        <form action="/logout" method="POST">
           <% if (typeof csrfToken !== "undefined") { %>
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <% } %>
@@ -44,6 +51,19 @@
 
       </div>
     </div>
+
+    <!-- Flash messages -->
+    <% if (flash && flash.success) { %>
+      <div class="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300">
+        <%= flash.success %>
+      </div>
+    <% } %>
+
+    <% if (flash && flash.error) { %>
+      <div class="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300">
+        <%= flash.error %>
+      </div>
+    <% } %>
 
     <!-- Main card -->
     <div class="rounded-2xl border border-purple-500/20 bg-white/5 backdrop-blur-xl shadow-2xl overflow-hidden relative">
@@ -100,7 +120,7 @@
               <div class="rounded-xl bg-slate-900/50 border border-slate-800 p-4">
                 <p class="text-xs uppercase tracking-wide text-slate-500 mb-1">Rôle</p>
                 <p class="text-white font-medium capitalize">
-                  <%= user?.roleName || "visiteur" %>
+                  <%= user?.roleName || user?.role || "visiteur" %>
                 </p>
               </div>
 
@@ -125,6 +145,80 @@
       </div>
     </div>
 
+    <!-- Partages du profil -->
+    <div class="mt-8 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-white">🔗 Partages de mon profil</h2>
+          <p class="text-slate-400 mt-1">
+            Gère ici les accès lecture seule à ton profil.
+          </p>
+        </div>
+
+        <a
+          href="/shares/new/profile"
+          class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 transition shadow-lg shadow-purple-900/30"
+        >
+          Nouveau partage
+        </a>
+      </div>
+
+      <% if (!profileShares || profileShares.length === 0) { %>
+        <div class="rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-6 text-slate-400">
+          Aucun partage de profil créé pour le moment.
+        </div>
+      <% } else { %>
+        <div class="grid gap-4">
+          <% profileShares.forEach(share => { %>
+            <div class="rounded-xl border border-white/10 bg-slate-900/40 p-4">
+              <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs uppercase tracking-wide text-purple-300/80 mb-2">
+                    Profil
+                  </p>
+
+                  <h3 class="text-lg font-semibold text-white">
+                    Profil de <%= user?.pseudo || "Utilisateur" %>
+                  </h3>
+
+                  <p class="text-sm text-slate-300 mt-3 break-all">
+                    Destinataire : <%= share.recipientEmail %>
+                  </p>
+
+                  <p class="text-sm text-slate-400 break-all mt-1">
+                    Lien :
+                    <a href="/shares/access/<%= share.shareToken %>" class="text-purple-300 hover:text-purple-200 transition">
+                      /shares/access/<%= share.shareToken %>
+                    </a>
+                  </p>
+
+                  <% if (share.createdAt) { %>
+                    <p class="text-xs text-slate-500 mt-2">
+                      Créé le <%= new Date(share.createdAt).toLocaleDateString("fr-FR") %>
+                    </p>
+                  <% } %>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <a href="/shares/access/<%= share.shareToken %>"
+                     class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 transition text-center">
+                    Ouvrir
+                  </a>
+
+                  <form action="/shares/<%= share.id %>/delete" method="POST" onsubmit="return confirm('Révoquer ce partage ?');">
+                    <button type="submit"
+                            class="w-full px-4 py-2 rounded-lg border border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/20 transition">
+                      Révoquer
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
     <!-- Bottom actions mobile-friendly -->
     <div class="mt-6 flex flex-col sm:flex-row gap-3">
 
@@ -133,6 +227,13 @@
         class="w-full sm:w-auto text-center px-4 py-2 rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
       >
         ← Retour aux reviews
+      </a>
+
+      <a
+        href="/shares/new/profile"
+        class="w-full sm:w-auto text-center px-4 py-2 rounded-lg border border-purple-500/30 text-purple-200 hover:bg-purple-500/10 transition"
+      >
+        Partager le profil
       </a>
 
       <a

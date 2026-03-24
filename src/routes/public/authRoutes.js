@@ -13,44 +13,43 @@ const router = Router();
 
 // Routes pour authentifier et enregistrer l'utilisateur
 
-
-// Inscription 
+// Inscription
 
 router.get(
-    "/register",
-    requireGuest,
-    injectCsrfToken(generateToken),
-    AuthController.showRegister,
+  "/register",
+  requireGuest,
+  injectCsrfToken(generateToken),
+  AuthController.showRegister,
 );
 
 router.post(
-    "/register",
-        AuthController.handleRegister
-    );
+  "/register",
+  requireGuest,
+  validate(authSchemas.register),
+  AuthController.handleRegister,
+);
 
-
-// Connexion 
+// Connexion
 
 router.get(
-    "/login",
-    requireGuest,
-    injectCsrfToken(generateToken),
-    AuthController.showLogin,
+  "/login",
+  requireGuest,
+  injectCsrfToken(generateToken),
+  AuthController.showLogin,
 );
 
 router.post(
-    "/login",
-    requireGuest,
-    validate(authSchemas.login),
-    AuthController.handleLogin,
+  "/login",
+  requireGuest,
+  validate(authSchemas.login),
+  AuthController.handleLogin,
 );
-
 
 // Déconnexion
 router.post(
-    "/logout",
-    requireAuth,
-    AuthController.logout,
+  "/logout",
+  requireAuth,
+  AuthController.logout,
 );
 
 export default router;

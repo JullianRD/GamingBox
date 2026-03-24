@@ -11,6 +11,7 @@ class AuthController {
     res.render("pages/auth/register", {
       title: "Inscription à GamingBox",
       csrfToken: generateToken(req, res),
+      flash: res.locals.flash || {},
     });
   }
 
@@ -21,10 +22,10 @@ class AuthController {
       await AuthService.register(req.body);
 
       req.flash("success", "Compte créé avec succès ✅");
-      res.redirect("/auth/login");
+      return res.redirect("/login");
     } catch (error) {
       req.flash("error", error.message);
-      res.redirect("/auth/register");
+      return res.redirect("/register");
     }
   }
 
@@ -63,7 +64,7 @@ class AuthController {
         if (err) {
           console.error("SESSION SAVE ERROR:", err);
           req.flash("error", "Impossible d'enregistrer la session.");
-          return res.redirect("/auth/login");
+          return res.redirect("/login");
         }
 
         return res.redirect("/reviews");
@@ -71,7 +72,7 @@ class AuthController {
     } catch (error) {
       console.error("LOGIN ERROR:", error);
       req.flash("error", error.message || "Erreur lors de la connexion.");
-      return res.redirect("/auth/login");
+      return res.redirect("/login");
     }
   }
 
@@ -81,13 +82,16 @@ class AuthController {
     try {
       const sessionId = req.sessionID;
 
+      console.log("LOGOUT HIT");
+      console.log("LOGOUT SESSION ID:", sessionId);
+
       if (!sessionId) {
         res.clearCookie(SESSION_COOKIE_NAME, {
           httpOnly: true,
           sameSite: "lax",
           secure: process.env.NODE_ENV === "production",
         });
-        return res.redirect("/auth/login?logout=1");
+        return res.redirect("/login?logout=1");
       }
 
       req.sessionStore.destroy(sessionId, (error) => {
@@ -102,7 +106,7 @@ class AuthController {
           secure: process.env.NODE_ENV === "production",
         });
 
-        return res.redirect("/auth/login?logout=1");
+        return res.redirect("/login?logout=1");
       });
     } catch (error) {
       console.error("LOGOUT ERROR:", error);

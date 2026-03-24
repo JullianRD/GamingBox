@@ -14,47 +14,46 @@ class ReviewController {
   /**
    * Liste de toutes les reviews d'un utilisateur
    */
-async index(req, res) {
-  try {
-    const userId = req.session.userId;
-    const rawTagId = req.query.tag;
+  async index(req, res) {
+    try {
+      const userId = req.session.userId;
+      const rawTagId = req.query.tag;
 
-    const selectedTagId =
-      rawTagId && rawTagId !== "null" && rawTagId !== "undefined"
-        ? rawTagId
+      const selectedTagId =
+        rawTagId && rawTagId !== "null" && rawTagId !== "undefined"
+          ? rawTagId
+          : null;
+
+      const reviews = selectedTagId
+        ? await ReviewService.findAllByUserAndTag(userId, selectedTagId)
+        : await ReviewService.findAllByUser(userId);
+
+      const tags = await TagService.findByUserId(userId);
+      const selectedTag = selectedTagId
+        ? tags.find((tag) => tag.id === selectedTagId) || null
         : null;
 
-    const reviews = selectedTagId
-      ? await ReviewService.findAllByUserAndTag(userId, selectedTagId)
-      : await ReviewService.findAllByUser(userId);
+      console.log("RENDER REVIEWS WITH USER:", res.locals.currentUser || null);
+      console.log("RAW TAG ID:", rawTagId);
+      console.log("SELECTED TAG ID:", selectedTagId);
+      console.log("SELECTED TAG:", selectedTag);
 
-    const tags = await TagService.findByUserId(userId);
-    const selectedTag = selectedTagId
-      ? tags.find((tag) => tag.id === selectedTagId) || null
-      : null;
-
-    console.log("RENDER REVIEWS WITH USER:", res.locals.currentUser || null);
-    console.log("RAW TAG ID:", rawTagId);
-    console.log("SELECTED TAG ID:", selectedTagId);
-    console.log("SELECTED TAG:", selectedTag);
-
-    return res.render("pages/reviews/index", {
-      title: "Mes reviews - GamingBox",
-      reviews,
-      tags: tags || [],
-      selectedTagId,
-      selectedTag,
-      user: res.locals.currentUser || null,
-      flash: res.locals.flash || {},
-    });
-  } catch (error) {
-    console.error("REVIEW INDEX ERROR:", error);
-    return res.redirect("/");
+      return res.render("pages/reviews/index", {
+        title: "Mes reviews - GamingBox",
+        reviews,
+        tags: tags || [],
+        selectedTagId,
+        selectedTag,
+        user: res.locals.currentUser || null,
+        flash: res.locals.flash || {},
+      });
+    } catch (error) {
+      console.error("REVIEW INDEX ERROR:", error);
+      return res.redirect("/");
+    }
   }
-}
 
   // Détails d'une review
-
   async show(req, res) {
     try {
       console.log("=== REVIEW SHOW START ===");
@@ -99,7 +98,6 @@ async index(req, res) {
   }
 
   // Formulaire de création d'une review
-
   async new(req, res) {
     try {
       const games = await GameService.findAllByGameId();
@@ -139,7 +137,6 @@ async index(req, res) {
   }
 
   // Création (on stocke la review)
-
   async store(req, res) {
     try {
       console.log("=== REVIEW STORE START ===");
@@ -154,7 +151,7 @@ async index(req, res) {
         req.session.userId,
         req.body.gameId,
         req.body,
-      ); // Surement un ajout en parametre d'un IGDB ou Game id
+      );
 
       console.log("REVIEW CREATED:", review);
       console.log("=== REVIEW STORE END ===");
@@ -169,7 +166,6 @@ async index(req, res) {
   }
 
   // Formulaire d'édition de la review
-
   async edit(req, res) {
     try {
       const review = await ReviewService.findBySlug(
@@ -201,9 +197,7 @@ async index(req, res) {
     }
   }
 
-  // Mise à jour de la review (Si je comprend bien la logique pour afficher la page on demmande au repo les info en base puis on update les info en les
-  //   renvoyant au service)
-
+  // Mise à jour de la review
   async update(req, res) {
     try {
       await ReviewService.update(req.session.userId, req.params.slug, req.body);
@@ -217,7 +211,6 @@ async index(req, res) {
   }
 
   // Associer des tags depuis la page détail de la review
-
   async updateTags(req, res) {
     try {
       await ReviewService.replaceTagsBySlug(
@@ -236,7 +229,6 @@ async index(req, res) {
   }
 
   // Suppréssion de la review
-
   async destroy(req, res) {
     try {
       await ReviewService.deleteReview(req.session.userId, req.params.slug);

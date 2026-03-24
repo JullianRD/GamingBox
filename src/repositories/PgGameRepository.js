@@ -42,7 +42,28 @@ class GameRepository {
     `;
 
     const { rows } = await db.query(query, [id]);
-    return rows[0] ? new Game(rows[0]) : null; // [0] car on récupère un seul résultat
+    return rows[0] ? new Game(rows[0]) : null;
+  }
+
+  // Retourne un jeu par son identifiant IGDB
+  static async findByIgdbId(igdbId) {
+    const query = /*SQL*/ `
+      SELECT
+        id_game,
+        igdb_id,
+        game_title,
+        game_genre,
+        release_date,
+        thumbnail_url,
+        created_at,
+        updated_at
+      FROM games
+      WHERE igdb_id = $1
+      LIMIT 1
+    `;
+
+    const { rows } = await db.query(query, [igdbId]);
+    return rows[0] ? new Game(rows[0]) : null;
   }
 
   // Afficher toutes les reviews d'un jeu
@@ -57,7 +78,7 @@ class GameRepository {
     const values = [gameId];
     const { rows } = await db.query(query, values);
 
-    return rows.map((row) => new Review(row)); // .map car on récupère plusieurs résulats
+    return rows.map((row) => new Review(row));
   }
 
   // Créer le jeu dans la base de données local
@@ -83,15 +104,25 @@ class GameRepository {
     `;
 
     const values = [
-      data.igdbId || null,
+      data.igdbId,
       data.gameTitle,
       data.gameGenre,
       data.releaseDate || null,
       data.thumbnailUrl ? data.thumbnailUrl.trim() : null,
     ];
 
-    const { rows } = await db.query(query, values);
-    return new Game(rows[0]);
+    try {
+      const { rows } = await db.query(query, values);
+      return new Game(rows[0]);
+    } catch (error) {
+      if (error.code === "23505") {
+        const existingGame = await this.findByIgdbId(data.igdbId);
+        if (existingGame) {
+          return existingGame;
+        }
+      }
+      throw error;
+    }
   }
 
   // Mettre à jour les infos du jeu en base local
