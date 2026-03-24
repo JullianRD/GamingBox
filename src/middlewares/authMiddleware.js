@@ -24,6 +24,8 @@ export const injectUserToLocals = (req, res, next) => {
         avatar: req.session.avatar,
       }
     : null;
+
+  res.locals.isAdmin = req.session.roleName === "admin";
   next();
 };
 
@@ -35,10 +37,9 @@ export const injectUserToLocals = (req, res, next) => {
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-
 export const requireAuth = (req, res, next) => {
   if (!req.session.userId) {
-    return res.redirect("/auth/login");
+    return res.redirect("/login");
   }
   next();
 };
@@ -52,62 +53,38 @@ export const requireAuth = (req, res, next) => {
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-
 export const requireGuest = (req, res, next) => {
   console.log("requireGuest hit", {
     session: req.session,
-    userId: req.session?.userId
+    userId: req.session?.userId,
   });
+
   if (req.session.userId) {
     return res.redirect("/reviews");
   }
+
   next();
 };
 
 /**
- * Vérifie si l'utilisateur est un utilisateur
- * Si non, redirige vers la page de connexion
+ * Vérifie si l'utilisateur est admin
+ * Si non, redirige vers les reviews
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-
-export const requireCustomer = (req, res, next) => {
-  if (req.session.roleName !== "customer") {
-    return res.redirect("auth/login");
-  }
-  next();
-};
-
-/**
- * Vérifie si l'utilisateur est un admin
- * Si non, redirige vers la page de connexion
- *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
- */
-
 export const requireAdmin = (req, res, next) => {
+  if (!req.session.userId) {
+    return res.redirect("/login");
+  }
+
   if (req.session.roleName !== "admin") {
-    return res.redirect("auth/login");
+    req.session.flash = {
+      error: "Accès réservé aux administrateurs.",
+    };
+    return res.redirect("/reviews");
   }
-  next();
-};
 
-/**
- * Vérifie si l'utilisateur est un super_admin
- * Si non, redirige vers la page de connexion
- *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
- */
-
-export const requireSuperAdmin = (req, res, next) => {
-  if (req.session.roleName !== "super_admin") {
-    return res.redirect("auth/login");
-  }
   next();
 };

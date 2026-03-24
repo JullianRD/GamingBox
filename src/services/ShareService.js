@@ -5,70 +5,93 @@ import ShareRepository from "../repositories/PgShareRepository.js";
 import ReviewRepository from "../repositories/PgreviewRepository.js";
 import UserRepository from "../repositories/PgUserRepository.js";
 
-// ShareService : logique métier lié aux partages des ressources (profil utilisateur et review)
+// ShareService : logique métier liée aux partages des ressources (profil utilisateur et review)
 
 class ShareService {
-  // Trouver tout les partages créée par un utilisateur (peut importe la ressource)
+  // Trouver un partage par son id
+  static async findById(id) {
+    return ShareRepository.findById(id);
+  }
+
+  // Trouver tous les partages créés par un utilisateur
   static async findByUserId(userId) {
     return ShareRepository.findByUserId(userId);
   }
 
-  // Trouver tout les partages de profil d'un utilisateur
+  // Trouver tous les partages de profil d'un utilisateur
   static async findProfileSharesByUserId(userId) {
     return ShareRepository.findProfileSharesByUserId(userId);
   }
 
+  // Trouver tous les partages de review d'un utilisateur
+  static async findReviewSharesByUserId(userId) {
+    return ShareRepository.findReviewSharesByUserId(userId);
+  }
+
   // Créer un partage vers un profil utilisateur
-  static async createShareForProfile({ userId, recipientEmail }) {
-    const user = await UserRepository.findById(userId);
-
-    if (!user) {
-      throw new Error("USER_NOT_FOUND");
-    }
-
+  static async createShareForProfile({ userId, recipientEmail, accessConfig }) {
     const exists = await ShareRepository.existByProfileAndEmail(
       userId,
       recipientEmail,
     );
 
     if (exists) {
-      throw new Error("Cette personne a déjà accès à cette ressource.");
+      throw new Error("Cette personne a déjà accès à cette ressource");
     }
 
     return ShareRepository.createShareForProfile({
       userId,
       recipientEmail,
       shareToken: crypto.randomUUID(),
+      accessConfig,
     });
   }
 
+  /**
+   * Alias de compatibilité avec ancien nom
+   */
+  static async createShareForProfil(payload) {
+    return this.createShareForProfile(payload);
+  }
+
   // Créer un partage vers une review d'un utilisateur
-  static async createShareForReview({ reviewId, ownerUserId, recipientEmail }) {
-    const review = await ReviewRepository.findByIdComplete(reviewId);
-
-    if (!review) {
-      throw new Error("REVIEW_NOT_FOUND");
-    }
-
-    if (review.userId !== ownerUserId) {
-      throw new Error("FORBIDDEN");
-    }
-
+  static async createShareForReview({
+    userId,
+    reviewId,
+    recipientEmail,
+    accessConfig,
+  }) {
     const exists = await ShareRepository.existByReviewAndEmail(
       reviewId,
       recipientEmail,
     );
 
     if (exists) {
-      throw new Error("Cette personne a déjà accès à cette ressource.");
+      throw new Error("Cette personne a déjà accès à cette ressource");
     }
 
     return ShareRepository.createShareForReview({
-      userId: ownerUserId,
+      userId,
       reviewId,
       recipientEmail,
       shareToken: crypto.randomUUID(),
+      accessConfig,
     });
+  }
+
+  // Formulaire de partage pour une review
+  static async prepareReviewShare(reviewId, userId) {
+    const review = await ReviewRepository.findById(reviewId);
+
+    if (!review) {
+      throw new Error("REVIEW_NOT_FOUND");
+    }
+
+    if (review.userId !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    return review;
   }
 
   // Formulaire de partage pour le profil
@@ -82,58 +105,33 @@ class ShareService {
     return user;
   }
 
-  // Formulaire de partage pour une review
-  static async prepareReviewShare(reviewId, userId) {
-    const review = await ReviewRepository.findByIdComplete(reviewId);
+  /**
+   * Alias de compatibilité avec ancien nom
+   */
+  static async preprareProfilShare(userId) {
+    return this.prepareProfileShare(userId);
+  }
 
-    if (!review) {
-      throw new Error("REVIEW_NOT_FOUND");
+  // Modifier les droits d'un partage pour une review
+  static async prepareEditForReview(shareId, userId) {
+    const share = await ShareRepository.findById(shareId);
+
+    if (!share) {
+      throw new Error("SHARE_NOT_FOUND");
     }
 
-    if (review.userId !== userId) {
+    const review = await ReviewRepository.findById(share.reviewId);
+
+    if (!review || review.userId !== userId) {
       throw new Error("FORBIDDEN");
     }
 
-    return review;
+    return { share, review };
   }
 
-  // Accès à la ressource via un token
-  static async accessByToken(token) {
-    let share = await ShareRepository.findPublicReviewByToken(token);
-
-    if (!share) {
-      share = await ShareRepository.findPublicProfileByToken(token);
-    }
-
-    if (!share) {
-      throw new Error("INVALID_TOKEN");
-    }
-
-    const config = share.accessConfig || {};
-    const expiration = config.expiration;
-    const maxViews = config.max_views;
-    const viewCount = config.view_count || 0;
-
-    if (expiration && new Date(expiration) < new Date()) {
-      throw new Error("TOKEN_EXPIRED");
-    }
-
-    if (maxViews !== null && maxViews !== undefined && viewCount >= maxViews) {
-      throw new Error("MAX_VIEWS_REACHED");
-    }
-
-    await ShareRepository.incrementViewCount(share.id);
-
-    if (share.shareType === "review") {
-      return ShareRepository.findPublicReviewByToken(token);
-    }
-
-    return ShareRepository.findPublicProfileByToken(token);
-  }
-
-  // Supprimer un partage
-  static async deleteShare(id, userId) {
-    const share = await ShareRepository.findById(id);
+  // Modifier les droits d'un partage pour un profil
+  static async prepareEditForProfile(shareId, userId) {
+    const share = await ShareRepository.findById(shareId);
 
     if (!share) {
       throw new Error("SHARE_NOT_FOUND");
@@ -143,6 +141,36 @@ class ShareService {
       throw new Error("FORBIDDEN");
     }
 
+    return share;
+  }
+
+  /**
+   * Alias de compatibilité avec ancien nom
+   */
+  static async prepareEditForProfil(shareId, userId) {
+    return this.prepareEditForProfile(shareId, userId);
+  }
+
+  // Modifier les droits d'un partage
+  static async updateAccess(id, accessConfig) {
+    if (accessConfig.expiration) {
+      const expDate = new Date(accessConfig.expiration);
+
+      if (expDate < new Date()) {
+        throw new Error("INVALID_EXPIRATION_DATE");
+      }
+    }
+
+    return ShareRepository.updateAccessConfig(id, accessConfig);
+  }
+
+  // Accès à la ressource via un token
+  static async accessByToken(token) {
+    throw new Error("Méthode non finalisée pour l'accès public.");
+  }
+
+  // Supprimer un partage
+  static async deleteShare(id) {
     return ShareRepository.delete(id);
   }
 
@@ -154,6 +182,13 @@ class ShareService {
   // Suppression en cascade pour un profil
   static async deleteSharesByProfile(userId) {
     return ShareRepository.deleteByProfileId(userId);
+  }
+
+  /**
+   * Alias de compatibilité avec ancien nom
+   */
+  static async deleteSharesByProfil(userId) {
+    return this.deleteSharesByProfile(userId);
   }
 }
 

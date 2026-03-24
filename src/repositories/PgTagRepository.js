@@ -11,12 +11,26 @@ class TagRepository {
     const { rows } = await db.query(
       /*SQL*/ `
         SELECT *
-        FROM v_user_tags
+        FROM tags
         WHERE user_id = $1
         ORDER BY tag_name ASC
       `,
       [userId],
     );
+
+    return rows.map((row) => new Tag(row));
+  }
+
+  // Chercher tous les tags (admin)
+  static async findAllAdmin() {
+    const { rows } = await db.query(
+      /*SQL*/ `
+        SELECT *
+        FROM tags
+        ORDER BY created_at DESC
+      `,
+    );
+
     return rows.map((row) => new Tag(row));
   }
 
@@ -26,10 +40,24 @@ class TagRepository {
   static async findByUserIdWithCount(userId) {
     const { rows } = await db.query(
       /*SQL*/ `
-        SELECT *
-        FROM v_user_tags_with_count
-        WHERE user_id = $1
-        ORDER BY tag_name ASC
+        SELECT
+          t.id_tag,
+          t.tag_name,
+          t.user_id,
+          t.created_at,
+          t.updated_at,
+          COUNT(rt.id_review) AS review_count
+        FROM tags t
+        LEFT JOIN review_tags rt
+          ON rt.id_tag = t.id_tag
+        WHERE t.user_id = $1
+        GROUP BY
+          t.id_tag,
+          t.tag_name,
+          t.user_id,
+          t.created_at,
+          t.updated_at
+        ORDER BY t.tag_name ASC
       `,
       [userId],
     );
@@ -38,32 +66,16 @@ class TagRepository {
   }
 
   /**
-   * 🔍 Tag par ID (édition)
+   * 🔍 Tag par ID
    */
   static async findById(id) {
     const { rows } = await db.query(
-      `
+      /*SQL*/ `
         SELECT *
-        FROM v_user_tags
+        FROM tags
         WHERE id_tag = $1
       `,
       [id],
-    );
-
-    return rows[0] ? new Tag(rows[0]) : null;
-  }
-
-  /**
-   * 🔒 Tag par ID + utilisateur
-   */
-  static async findByIdForUser(id, userId) {
-    const { rows } = await db.query(
-      `
-        SELECT *
-        FROM v_user_tags
-        WHERE id_tag = $1 AND user_id = $2
-      `,
-      [id, userId],
     );
 
     return rows[0] ? new Tag(rows[0]) : null;
@@ -74,11 +86,12 @@ class TagRepository {
    */
   static async existsByUserAndName(userId, tagName) {
     const { rows } = await db.query(
-      `
+      /*SQL*/ `
         SELECT EXISTS (
-          SELECT 1 FROM tags
+          SELECT 1
+          FROM tags
           WHERE user_id = $1
-          AND LOWER(tag_name) = LOWER($2)
+            AND LOWER(tag_name) = LOWER($2)
         ) AS exists
       `,
       [userId, tagName],
@@ -96,7 +109,7 @@ class TagRepository {
     }
 
     const { rows } = await db.query(
-      `
+      /*SQL*/ `
         INSERT INTO tags (tag_name, user_id)
         VALUES ($1, $2)
         RETURNING *
@@ -110,9 +123,12 @@ class TagRepository {
   /**
    * ✏️ Mise à jour
    */
-  static async update(id, userId, { tagName }) {
-    const tag = await this.findByIdForUser(id, userId);
-    if (!tag) return null;
+  static async update(id, { tagName }) {
+    const tag = await this.findById(id);
+
+    if (!tag) {
+      return null;
+    }
 
     if (
       tagName &&
@@ -123,28 +139,30 @@ class TagRepository {
     }
 
     const { rows } = await db.query(
-      `
+      /*SQL*/ `
         UPDATE tags
-        SET tag_name = $1, updated_at = NOW()
-        WHERE id_tag = $2 AND user_id = $3
+        SET
+          tag_name = $1,
+          updated_at = NOW()
+        WHERE id_tag = $2
         RETURNING *
       `,
-      [tagName.trim(), id, userId],
+      [tagName.trim(), id],
     );
 
-    return rows[0] ? new Tag(rows[0]) : null;
+    return new Tag(rows[0]);
   }
 
   /**
    * 🗑️ Suppression
    */
-  static async delete(id, userId) {
+  static async delete(id) {
     const result = await db.query(
-      `
+      /*SQL*/ `
         DELETE FROM tags
-        WHERE id_tag = $1 AND user_id = $2
+        WHERE id_tag = $1
       `,
-      [id, userId],
+      [id],
     );
 
     return result.rowCount > 0;

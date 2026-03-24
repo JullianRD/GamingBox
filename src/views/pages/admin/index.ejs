@@ -1,0 +1,128 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 px-4 py-10">
+  <div class="mx-auto max-w-6xl">
+
+    <!-- Header -->
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-white">🛡️ Dashboard Admin</h1>
+        <p class="mt-1 text-sm text-slate-400">
+          Gestion globale des ressources de GamingBox
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <a
+          href="/profile"
+          class="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 transition"
+        >
+          Profil
+        </a>
+
+        <form action="/logout" method="POST">
+          <button
+            type="submit"
+            class="inline-flex items-center justify-center rounded-lg border border-red-500/30 px-4 py-2 text-sm text-red-300 hover:bg-red-500/10 transition"
+          >
+            ⏻ Déconnexion
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <% if (flash && flash.success) { %>
+      <div class="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300">
+        <%= flash.success %>
+      </div>
+    <% } %>
+
+    <% if (flash && flash.error) { %>
+      <div class="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300">
+        <%= flash.error %>
+      </div>
+    <% } %>
+
+    <!-- Welcome block -->
+    <div class="mb-8 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-6 shadow-xl">
+      <p class="text-sm uppercase tracking-wide text-amber-300/80 mb-2">
+        Administration
+      </p>
+      <h2 class="text-2xl font-bold text-white">
+        Bienvenue <%= user?.pseudo || "Admin" %>
+      </h2>
+      <p class="mt-2 text-slate-300">
+        Depuis cet espace, tu peux consulter et gérer toutes les ressources globales de l’application.
+      </p>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-5 mb-10">
+      <a href="/admin/users"
+         class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md hover:bg-white/10 transition shadow-xl">
+        <p class="text-sm text-slate-400">Utilisateurs</p>
+        <p class="mt-3 text-3xl font-bold text-white"><%= counts?.users ?? 0 %></p>
+      </a>
+
+      <a href="/admin/reviews"
+         class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md hover:bg-white/10 transition shadow-xl">
+        <p class="text-sm text-slate-400">Reviews</p>
+        <p class="mt-3 text-3xl font-bold text-white"><%= counts?.reviews ?? 0 %></p>
+      </a>
+
+      <a href="/admin/tags"
+         class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md hover:bg-white/10 transition shadow-xl">
+        <p class="text-sm text-slate-400">Tags</p>
+        <p class="mt-3 text-3xl font-bold text-white"><%= counts?.tags ?? 0 %></p>
+      </a>
+
+      <a href="/admin/shares"
+         class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md hover:bg-white/10 transition shadow-xl">
+        <p class="text-sm text-slate-400">Partages</p>
+        <p class="mt-3 text-3xl font-bold text-white"><%= counts?.shares ?? 0 %></p>
+      </a>
+
+      <a href="/admin/games"
+         class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md hover:bg-white/10 transition shadow-xl">
+        <p class="text-sm text-slate-400">Jeux</p>
+        <p class="mt-3 text-3xl font-bold text-white"><%= counts?.games ?? 0 %></p>
+      </a>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md shadow-xl">
+      <h3 class="text-xl font-semibold text-white mb-4">Accès rapide</h3>
+
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <a href="/admin/users"
+           class="rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-slate-200 hover:bg-slate-800 transition">
+          👤 Gérer les utilisateurs
+        </a>
+
+        <a href="/admin/reviews"
+           class="rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-slate-200 hover:bg-slate-800 transition">
+          📝 Gérer les reviews
+        </a>
+
+        <a href="/admin/tags"
+           class="rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-slate-200 hover:bg-slate-800 transition">
+          🏷️ Gérer les tags
+        </a>
+
+        <a href="/admin/shares"
+           class="rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-slate-200 hover:bg-slate-800 transition">
+          🔗 Gérer les partages
+        </a>
+
+        <a href="/admin/games"
+           class="rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-slate-200 hover:bg-slate-800 transition">
+          🎮 Gérer les jeux
+        </a>
+
+        <a href="/profile"
+           class="rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-slate-200 hover:bg-slate-800 transition">
+          🙍 Voir le profil
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,31 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 px-4 py-10">
+  <div class="mx-auto max-w-6xl">
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-white">📝 Reviews</h1>
+        <p class="mt-1 text-sm text-slate-400">Gestion globale des reviews</p>
+      </div>
+      <a href="/admin" class="rounded-lg border border-slate-700 px-4 py-2 text-slate-200 hover:bg-slate-800">
+        ← Retour admin
+      </a>
+    </div>
+
+    <div class="grid gap-4">
+      <% reviews.forEach(item => { %>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <p class="text-lg font-semibold text-white"><%= item.reviewTitle %></p>
+            <p class="text-sm text-slate-400"><%= item.gameTitle || "Jeu inconnu" %></p>
+            <p class="text-xs text-slate-500 mt-2">Slug : <%= item.slug %></p>
+          </div>
+
+          <form action="/admin/reviews/<%= item.id %>/delete" method="POST" onsubmit="return confirm('Supprimer cette review ?');">
+            <button class="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-red-300 hover:bg-red-500/20 transition">
+              Supprimer
+            </button>
+          </form>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>

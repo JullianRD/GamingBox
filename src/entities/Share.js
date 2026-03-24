@@ -22,7 +22,7 @@ class Share {
     // Relation avec Review et User (si JOIN effectué)
     if (data.owner_pseudo || data.user_pseudo) {
       this.user = {
-        id: data.user_id || data.owner_id,
+        id: data.owner_id || data.user_id,
         pseudo: data.user_pseudo || data.owner_pseudo,
         avatar: data.user_avatar || data.owner_avatar,
       };
@@ -49,12 +49,12 @@ class Share {
     }
 
     // Profil partagé
-    if (!data.review_title) {
+    if (this.shareType === "profile") {
       this.profile = {
         id: data.owner_id || data.user_id,
-        pseudo: data.owner_pseudo,
-        avatar: data.owner_avatar,
-        biographie: data.owner_biographie,
+        pseudo: data.owner_pseudo || data.user_pseudo || null,
+        avatar: data.owner_avatar || data.user_avatar || null,
+        biographie: data.owner_biographie || null,
       };
     }
   }

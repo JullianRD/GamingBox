@@ -12,18 +12,16 @@ import ShareService from "../services/ShareService.js";
  * - récupère req / res
  * - délègue toute décision au service
  */
-
 class ShareController {
-  // Liste de tout les partages de l'utilisateur connecté (partage profil comme review)
-
+  // Liste de tous les partages de l'utilisateur connecté (profil + review)
   async index(req, res) {
     try {
       const userId = req.session.userId;
       const shares = await ShareService.findByUserId(userId);
 
       return res.render("pages/shares/index", {
-        title: "Mes partages - GamingBox",
-        shares,
+        title: "Mes partages",
+        shares: shares || [],
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},
       });
@@ -38,13 +36,14 @@ class ShareController {
    * ➕ Formulaire de création d’un partage de profil utilisateur
    */
   async newForProfile(req, res) {
+    const userId = req.session.userId;
+
     try {
-      const userId = req.session.userId;
-      const user = await ShareService.prepareProfileShare(userId);
+      const profile = await ShareService.prepareProfileShare(userId);
 
       return res.render("pages/shares/new/profile", {
-        title: "Partager mon profil - GamingBox",
-        profile: user,
+        title: "Partager un profil utilisateur",
+        profile,
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},
       });
@@ -54,26 +53,55 @@ class ShareController {
     }
   }
 
-  // Création du partage de profil
+  /**
+   * Alias de compatibilité si d'autres fichiers appellent encore l'ancien nom
+   */
+  async newforProfil(req, res) {
+    return this.newForProfile(req, res);
+  }
 
+  /**
+   * 💾 Création du partage de profil
+   */
   async storeForProfile(req, res) {
     try {
-      const share = await ShareService.createShareForProfile({
-        userId: req.session.userId,
-        recipientEmail: req.body.recipientEmail,
+      const userId = req.session.userId;
+      const { recipientEmail, allow_download, expiration, maxViews } = req.body;
+
+      const accessConfig = {
+        allow_download: allow_download === "on",
+        expiration: expiration || null,
+        maxViews: maxViews ? Number(maxViews) : null,
+      };
+
+      await ShareService.createShareForProfile({
+        userId,
+        recipientEmail,
+        accessConfig,
       });
 
       req.flash("success", "Partage du profil créé avec succès ✅");
       return res.redirect("/shares");
     } catch (error) {
       console.error("SHARE STORE PROFILE ERROR:", error);
-      req.flash("error", error.message || "Impossible de créer le partage.");
+      req.flash(
+        "error",
+        error.message || "Impossible de créer le partage du profil.",
+      );
       return res.redirect("/shares/new/profile");
     }
   }
 
-  // Formulaire de création de partage pour une review
+  /**
+   * Alias de compatibilité si d'autres fichiers appellent encore l'ancien nom
+   */
+  async storeForProfil(req, res) {
+    return this.storeForProfile(req, res);
+  }
 
+  /**
+   * ➕ Formulaire de création de partage pour une review
+   */
   async newForReview(req, res) {
     const userId = req.session.userId;
     const { reviewId } = req.query;
@@ -82,7 +110,7 @@ class ShareController {
       const review = await ShareService.prepareReviewShare(reviewId, userId);
 
       return res.render("pages/shares/new/review", {
-        title: "Partager une review - GamingBox",
+        title: "Partager une review",
         review,
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},
@@ -98,52 +126,131 @@ class ShareController {
    */
   async storeForReview(req, res) {
     try {
+      const userId = req.session.userId;
+      const { reviewId, recipientEmail, allow_download, expiration, maxViews } =
+        req.body;
+
+      const accessConfig = {
+        allow_download: allow_download === "on",
+        expiration: expiration || null,
+        maxViews: maxViews ? Number(maxViews) : null,
+      };
+
       await ShareService.createShareForReview({
-        reviewId: req.body.reviewId,
-        ownerUserId: req.session.userId,
-        recipientEmail: req.body.recipientEmail,
+        userId,
+        reviewId,
+        recipientEmail,
+        accessConfig,
       });
 
       req.flash("success", "Partage de la review créé avec succès ✅");
       return res.redirect("/shares");
     } catch (error) {
       console.error("SHARE STORE REVIEW ERROR:", error);
-      req.flash("error", error.message || "Impossible de créer le partage.");
-      return res.redirect(`/shares/new/review?reviewId=${req.body.reviewId}`);
+      req.flash(
+        "error",
+        error.message || "Impossible de créer le partage de la review.",
+      );
+
+      if (req.body.reviewId) {
+        return res.redirect(`/shares/new/review?reviewId=${req.body.reviewId}`);
+      }
+
+      return res.redirect("/shares");
     }
   }
 
-  // Révocation d'un partage
+  /**
+   * ✏️ Édition des droits d’un partage
+   */
+  async edit(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.session.userId;
 
+      const share = await ShareService.findById(id);
+
+      if (!share) {
+        return res.status(404).render("pages/errors/404");
+      }
+
+      if (share.userId !== userId) {
+        return res.status(403).render("pages/errors/403");
+      }
+
+      return res.render("pages/shares/edit", {
+        title: "Modifier le partage",
+        share,
+        user: res.locals.currentUser || null,
+        flash: res.locals.flash || {},
+      });
+    } catch (error) {
+      console.error("SHARE EDIT ERROR:", error);
+      req.flash("error", "Impossible de charger le partage.");
+      return res.redirect("/shares");
+    }
+  }
+
+  /**
+   * 🔄 Mise à jour des droits pour un partage
+   */
+  async update(req, res) {
+    const { id } = req.params;
+    const { allow_download, expiration, maxViews } = req.body;
+
+    try {
+      const accessConfig = {
+        allow_download: allow_download === "on",
+        expiration: expiration || null,
+        maxViews: maxViews ? Number(maxViews) : null,
+      };
+
+      await ShareService.updateAccess(id, accessConfig);
+
+      req.flash("success", "Le partage a bien été mis à jour ✅");
+      return res.redirect("/shares");
+    } catch (error) {
+      console.error("SHARE UPDATE ERROR:", error);
+      req.flash(
+        "error",
+        error.message || "Impossible de mettre à jour le partage.",
+      );
+      return res.redirect("/shares");
+    }
+  }
+
+  /**
+   * 🗑️ Révocation d'un partage
+   */
   async destroy(req, res) {
     try {
-      await ShareService.deleteShare(req.params.id, req.session.userId);
-      req.flash("success", "Le partage a été révoqué ✅");
+      const { id } = req.params;
+
+      await ShareService.deleteShare(id);
+
+      req.flash("success", "Partage révoqué avec succès ✅");
       return res.redirect("/shares");
     } catch (error) {
       console.error("SHARE DELETE ERROR:", error);
-      req.flash("error", error.message || "Impossible de supprimer le partage.");
+      req.flash(
+        "error",
+        error.message || "Impossible de supprimer le partage.",
+      );
       return res.redirect("/shares");
     }
   }
 
-  // Accés public à la ressource via un token sécurisé
-
+  /**
+   * 🌍 Accès public à la ressource via un token sécurisé
+   */
   async access(req, res) {
     const { token } = req.params;
 
     try {
       const share = await ShareService.accessByToken(token);
 
-      if (share.shareType === "review") {
-        return res.render("pages/shares/public-review", {
-          title: "Review partagée - GamingBox",
-          share,
-        });
-      }
-
-      return res.render("pages/shares/public-profile", {
-        title: "Profil partagé - GamingBox",
+      return res.render("pages/shares/public", {
+        title: "Accès partagé à la ressource",
         share,
       });
     } catch (error) {

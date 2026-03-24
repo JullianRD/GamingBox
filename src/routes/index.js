@@ -1,9 +1,8 @@
-"use strict"
+"use strict";
 
 import { Router } from "express";
 
 import homesRoutes from "./public/homeController.js";
-
 
 // 🔐 Auth & compte
 import authRoutes from "./public/authRoutes.js";
@@ -15,11 +14,8 @@ import tagRoutes from "./user/tagRoutes.js";
 import shareRoutes from "./user/shareRoutes.js";
 import gameRoutes from "./user/gameRoutes.js";
 
-// Dashboard / pour les admins
-// import dashboardRoutes from "./admin/dashBoardRoutes.js";
-// import appEventRoutesRoutes from "./admin/appEventRoutesRoutes.js";
-// import userRoutes from "./admin/userRoutes.js";
-
+// Admin
+import adminRoutes from "./admin/adminRoutes.js";
 
 // Router principal de l'application gamingbox
 const router = Router();
@@ -29,11 +25,11 @@ const router = Router();
  *
  * Ce fichier :
  * - centralise toutes les routes
- * - définit les zones (public / auth / métier)
+ * - définit les zones (public / auth / métier / admin)
  * - ne contient AUCUNE logique métier
  */
 
-router.use(homesRoutes); // Page d'acceuil de gamingbox entre review index et l'authentification / register
+router.use(homesRoutes);
 
 // Authentification utilisateur
 router.use(authRoutes);
@@ -44,5 +40,8 @@ router.use(reviewRoutes);
 router.use(tagRoutes);
 router.use(shareRoutes);
 router.use(gameRoutes);
+
+// Administration
+router.use(adminRoutes);
 
 export default router;

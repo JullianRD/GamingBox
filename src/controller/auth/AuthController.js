@@ -2,11 +2,9 @@
 
 import AuthService from "../../services/AuthService.js";
 import { generateToken } from "../../config/security.js";
-import { SESSION_COOKIE_NAME } from "../../config/session.js";
 
 class AuthController {
   // Affiche la page d'inscription à l'App
-
   async showRegister(req, res) {
     res.render("pages/auth/register", {
       title: "Inscription à GamingBox",
@@ -16,32 +14,29 @@ class AuthController {
   }
 
   // Traite la réussite ou l'echec de l'inscription
-
   async handleRegister(req, res) {
     try {
       await AuthService.register(req.body);
 
       req.flash("success", "Compte créé avec succès ✅");
-      return res.redirect("/login");
+      res.redirect("/login");
     } catch (error) {
       req.flash("error", error.message);
-      return res.redirect("/register");
+      res.redirect("/register");
     }
   }
 
   // Affiche la page de connexion à l'App
-
   async showLogin(req, res) {
     res.render("pages/auth/login", {
       title: "Connexion à l'APP GamingBox",
       csrfToken: req.csrfToken(),
-      logoutSuccess: req.query.logout === "1",
       flash: res.locals.flash || {},
+      logoutSuccess: false,
     });
   }
 
   // Traite la connexion à l'App
-
   async handleLogin(req, res) {
     try {
       const user = await AuthService.login(req.body);
@@ -67,6 +62,10 @@ class AuthController {
           return res.redirect("/login");
         }
 
+        if (user.roleName === "admin") {
+          return res.redirect("/admin");
+        }
+
         return res.redirect("/reviews");
       });
     } catch (error) {
@@ -77,36 +76,16 @@ class AuthController {
   }
 
   // Déconnexion à l'App
-
   async logout(req, res) {
     try {
-      const sessionId = req.sessionID;
-
-      console.log("LOGOUT HIT");
-      console.log("LOGOUT SESSION ID:", sessionId);
-
-      if (!sessionId) {
-        res.clearCookie(SESSION_COOKIE_NAME, {
-          httpOnly: true,
-          sameSite: "lax",
-          secure: process.env.NODE_ENV === "production",
-        });
-        return res.redirect("/login?logout=1");
-      }
-
-      req.sessionStore.destroy(sessionId, (error) => {
+      req.session.destroy((error) => {
         if (error) {
-          console.error("LOGOUT STORE DESTROY ERROR:", error);
+          console.error("LOGOUT ERROR:", error);
           return res.redirect("/reviews");
         }
 
-        res.clearCookie(SESSION_COOKIE_NAME, {
-          httpOnly: true,
-          sameSite: "lax",
-          secure: process.env.NODE_ENV === "production",
-        });
-
-        return res.redirect("/login?logout=1");
+        res.clearCookie("connect.sid");
+        return res.redirect("/login");
       });
     } catch (error) {
       console.error("LOGOUT ERROR:", error);

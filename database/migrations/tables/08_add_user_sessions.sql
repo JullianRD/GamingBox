@@ -24,3 +24,5 @@ $$;
 -- Cette session contient des infos temporaires (ex : user_id, rôle, panier, préférences)
 -- La session est associée à un identifiant unique (sid)
 -- La session a une date d’expiration (expire)
+
+-- Promote user to admin

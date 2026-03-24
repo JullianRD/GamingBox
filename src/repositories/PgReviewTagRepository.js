@@ -3,7 +3,7 @@
 import db from "../config/database.js";
 import Tag from "../entities/Tags.js";
 
-// ReviewTagRepository : gestion de la table pivot reviews_tags
+// ReviewTagRepository : gestion de la table pivot review_tags
 // Permet d'associer, récupérer, remplacer et supprimer les tags liés à une review
 
 class ReviewTagRepository {
@@ -11,9 +11,15 @@ class ReviewTagRepository {
   static async findAllByReview(reviewId) {
     const { rows } = await db.query(
       /* SQL */ `
-        SELECT t.*
+        SELECT
+          t.id_tag,
+          t.tag_name,
+          t.user_id,
+          t.created_at,
+          t.updated_at
         FROM review_tags rt
-        JOIN tags t ON t.id_tag = rt.id_tag
+        JOIN tags t
+          ON t.id_tag = rt.id_tag
         WHERE rt.id_review = $1
         ORDER BY t.tag_name ASC
       `,

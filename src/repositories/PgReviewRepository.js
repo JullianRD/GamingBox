@@ -17,57 +17,78 @@ class ReviewRepository {
     return rows.map((row) => new Review(row));
   }
 
-// Récupère toutes les reviews d'un utilisateur filtrées par tag
-static async findAllByUserAndTag(userId, tagId) {
-  const query = /*sql*/ `
-    SELECT vrc.*
-    FROM v_reviews_complete vrc
-    JOIN review_tags rt ON rt.id_review = vrc.id_review
-    WHERE vrc.user_id = $1
-      AND rt.id_tag = $2
-    ORDER BY vrc.created_at DESC;
-  `;
+  // Récupère toutes les reviews d'un utilisateur filtrées par tag
+  static async findAllByUserAndTag(userId, tagId) {
+    const query = /*sql*/ `
+      SELECT v.*
+      FROM v_reviews_complete v
+      JOIN (
+        SELECT DISTINCT rt.id_review
+        FROM review_tags rt
+        JOIN reviews r
+          ON r.id_review = rt.id_review
+        WHERE r.user_id = $1
+          AND rt.id_tag = $2
+      ) filtered
+        ON filtered.id_review = v.id_review
+      ORDER BY v.created_at DESC;
+    `;
 
-  const { rows } = await db.query(query, [userId, tagId]);
-  return rows.map((row) => new Review(row));
-}
+    const { rows } = await db.query(query, [userId, tagId]);
+    return rows.map((row) => new Review(row));
+  }
 
-  static async findByIdComplete(id) {
-    const query = /*SQL*/ `
+  // Récupère toutes les reviews (admin)
+  static async findAllAdmin() {
+    const query = /*sql*/ `
       SELECT *
       FROM v_reviews_complete
-      WHERE id_review = $1;
+      ORDER BY created_at DESC;
+    `;
+
+    const { rows } = await db.query(query);
+    return rows.map((row) => new Review(row));
+  }
+
+  // Récupère une review par son id
+  static async findById(id) {
+    const query = /*sql*/ `
+      SELECT *
+      FROM v_reviews_complete
+      WHERE id_review = $1
+      LIMIT 1;
     `;
 
     const { rows } = await db.query(query, [id]);
     return rows[0] ? new Review(rows[0]) : null;
   }
 
-  // Récupère une review par son slug
-  static async findBySlug(slug, userId) {
+  // Récupère une review par slug
+  // - user normal : slug + userId
+  // - admin / global : slug seul
+  static async findBySlug(slug, userId = null) {
+    if (userId) {
+      const query = /*sql*/ `
+        SELECT *
+        FROM v_reviews_complete
+        WHERE slug = $1
+          AND user_id = $2
+        LIMIT 1;
+      `;
+
+      const { rows } = await db.query(query, [slug, userId]);
+      return rows[0] ? new Review(rows[0]) : null;
+    }
+
     const query = /*sql*/ `
       SELECT *
       FROM v_reviews_complete
-      WHERE slug = $1 AND user_id = $2;
-    `;
-
-    const { rows } = await db.query(query, [slug, userId]);
-    return rows[0] ? new Review(rows[0]) : null;
-  }
-
-  //Trouver une review avec son jeu associé
-  static async findWithGameById(reviewId) {
-    const query = /*SQL*/ `
-      SELECT *
-      FROM v_reviews_with_game
-      WHERE id_review = $1
+      WHERE slug = $1
       LIMIT 1;
     `;
 
-    const values = [reviewId];
-    const { rows } = await db.query(query, values);
-
-    return rows[0] || null;
+    const { rows } = await db.query(query, [slug]);
+    return rows[0] ? new Review(rows[0]) : null;
   }
 
   // Création d'une review
@@ -127,7 +148,7 @@ static async findAllByUserAndTag(userId, tagId) {
 
   // Mise à jour d'une review
   static async update(id, data) {
-    const query = /*SQL*/ `
+    const query = /*sql*/ `
       UPDATE reviews
       SET
         review_title = COALESCE($1, review_title),
@@ -161,16 +182,8 @@ static async findAllByUserAndTag(userId, tagId) {
         data.reviewTitle,
         data.slug,
         data.reviewRate,
-        data.reviewLike === "on" || data.reviewLike === true
-          ? true
-          : data.reviewLike === undefined
-            ? null
-            : false,
-        data.reviewPlatine === "on" || data.reviewPlatine === true
-          ? true
-          : data.reviewPlatine === undefined
-            ? null
-            : false,
+        data.reviewLike,
+        data.reviewPlatine,
         data.progressionStatus,
         data.avisReview,
         data.gamePlatforme,
@@ -189,9 +202,9 @@ static async findAllByUserAndTag(userId, tagId) {
   // Suppression d'une review
   static async delete(id) {
     const result = await db.query(
-      /*SQL*/ `
+      /*sql*/ `
         DELETE FROM reviews
-        WHERE id_review = $1
+        WHERE id_review = $1;
       `,
       [id],
     );

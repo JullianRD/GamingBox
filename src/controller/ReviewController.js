@@ -16,6 +16,10 @@ class ReviewController {
    */
   async index(req, res) {
     try {
+      if (req.session.roleName === "admin") {
+        return res.redirect("/admin");
+      }
+
       const userId = req.session.userId;
       const rawTagId = req.query.tag;
 
@@ -56,6 +60,10 @@ class ReviewController {
   // Détails d'une review
   async show(req, res) {
     try {
+      if (req.session.roleName === "admin") {
+        return res.redirect("/admin");
+      }
+
       console.log("=== REVIEW SHOW START ===");
       console.log("REQ PARAMS:", req.params);
       console.log("REQ PARAMS SLUG:", req.params.slug);
@@ -100,6 +108,10 @@ class ReviewController {
   // Formulaire de création d'une review
   async new(req, res) {
     try {
+      if (req.session.roleName === "admin") {
+        return res.redirect("/admin");
+      }
+
       const games = await GameService.findAllByGameId();
       const tags = await TagService.findByUserId(req.session.userId);
 
@@ -139,6 +151,10 @@ class ReviewController {
   // Création (on stocke la review)
   async store(req, res) {
     try {
+      if (req.session.roleName === "admin") {
+        return res.redirect("/admin");
+      }
+
       console.log("=== REVIEW STORE START ===");
       console.log("SESSION USER ID:", req.session.userId);
       console.log("REVIEW BODY:", req.body);
@@ -168,6 +184,10 @@ class ReviewController {
   // Formulaire d'édition de la review
   async edit(req, res) {
     try {
+      if (req.session.roleName === "admin") {
+        return res.redirect("/admin");
+      }
+
       const review = await ReviewService.findBySlug(
         req.params.slug,
         req.session.userId,
@@ -200,6 +220,10 @@ class ReviewController {
   // Mise à jour de la review
   async update(req, res) {
     try {
+      if (req.session.roleName === "admin") {
+        return res.redirect("/admin");
+      }
+
       await ReviewService.update(req.session.userId, req.params.slug, req.body);
       req.flash("success", "La review a bien été mise à jour ✅");
       return res.redirect("/reviews");
@@ -213,6 +237,10 @@ class ReviewController {
   // Associer des tags depuis la page détail de la review
   async updateTags(req, res) {
     try {
+      if (req.session.roleName === "admin") {
+        return res.redirect("/admin");
+      }
+
       await ReviewService.replaceTagsBySlug(
         req.session.userId,
         req.params.slug,
@@ -231,6 +259,10 @@ class ReviewController {
   // Suppréssion de la review
   async destroy(req, res) {
     try {
+      if (req.session.roleName === "admin") {
+        return res.redirect("/admin");
+      }
+
       await ReviewService.deleteReview(req.session.userId, req.params.slug);
       req.flash("success", "La review a bien été supprimée 🗑️");
       return res.redirect("/reviews");

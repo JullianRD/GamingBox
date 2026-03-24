@@ -15,19 +15,16 @@ const router = Router();
  * - Accès public : via token
  */
 
-//
-// 🌍 ROUTE PUBLIQUE (token)
-//
-
 /**
+ * 🌍 ROUTE PUBLIQUE (token)
  * 🔓 Accès public à un partage
  * GET /shares/access/:token
  */
 router.get("/shares/access/:token", ShareController.access);
 
-//
-// 🔐 ZONE UTILISATEUR CONNECTÉ
-//
+/**
+ * 🔐 ZONE UTILISATEUR CONNECTÉ
+ */
 router.use(requireAuth);
 
 /**

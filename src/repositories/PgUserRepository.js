@@ -8,12 +8,11 @@ import User from "../entities/Users.js";
  *
  * Règles :
  * - Écriture : table `users`
- * - Lecture UI / Admin : vues SQL
+ * - Lecture UI / Admin : vues SQL ou table directe
  */
 
 class UserRepository {
   // Retourne un utilisateur par son identifiant (usage interne)
-
   static async findById(id) {
     const query = /*SQL*/ `
       SELECT
@@ -33,12 +32,12 @@ class UserRepository {
       FROM users
       WHERE id_user = $1;
     `;
+
     const { rows } = await db.query(query, [id]);
     return rows[0] ? new User(rows[0]) : null;
   }
 
   // Retourne un utilisateur par son email (sert pour l'authentification)
-
   static async findByEmail(email) {
     const query = /*SQL*/ `
       SELECT
@@ -64,30 +63,27 @@ class UserRepository {
   }
 
   // Liste des utilisateurs de l'application (reservé aux admins)
-
   static async findAllAdmin() {
     const query = /*SQL*/ `
-      SELECT *
-      FROM v_users_admin
+      SELECT
+        id_user,
+        email,
+        pseudo,
+        biographie,
+        avatar,
+        role_name,
+        auth_provider,
+        settings_user,
+        gdpr_consent,
+        gdpr_consent_date,
+        created_at,
+        updated_at
+      FROM users
       ORDER BY created_at DESC;
     `;
 
     const { rows } = await db.query(query);
-    if (rows.length === 0) return null;
     return rows.map((row) => new User(row));
-  }
-
-  // Affiche le profil utilisateur avec ses statistiques
-
-  static async findProfilWithStats(id) {
-    const query = /*SQL*/ `
-      SELECT *
-      FROM v_user_profil_with_stats
-      WHERE id_user = $1;
-    `;
-
-    const { rows } = await db.query(query, [id]);
-    return rows[0] ? new User(rows[0]) : null;
   }
 
   // Vérifie si un email existe (pour l'authentification)
@@ -98,6 +94,7 @@ class UserRepository {
         WHERE LOWER(email) = LOWER($1)
       ) AS exists;
     `;
+
     const { rows } = await db.query(query, [email]);
     return rows[0].exists;
   }
@@ -110,12 +107,12 @@ class UserRepository {
         WHERE LOWER(pseudo) = LOWER($1)
       ) AS exists;
     `;
+
     const { rows } = await db.query(query, [pseudo]);
     return rows[0].exists;
   }
 
   // Créer un nouvel utilisateur
-
   static async create(data) {
     const query = /*SQL*/ `
       INSERT INTO users (
@@ -155,19 +152,10 @@ class UserRepository {
       data.gdprConsent,
     ];
 
-    console.log("=== USER CREATE START ===");
-    console.log("DATA:", data);
-    console.log("VALUES:", values);
-
     try {
       const { rows } = await db.query(query, values);
-      console.log("ROWS:", rows);
-      console.log("=== USER CREATE END ===");
       return new User(rows[0]);
     } catch (error) {
-      console.error("=== USER CREATE ERROR ===");
-      console.error(error);
-
       if (error.code === "23505") {
         throw new Error("Email ou pseudo déjà utilisé.");
       }
@@ -177,7 +165,6 @@ class UserRepository {
   }
 
   // Met à jour un utilisateur
-  // Coalesce -> sert à chosir sois la nouvelle valeur entré ($1) sois la valeur existante en base
   static async update(id, data) {
     const query = /*SQL*/ `
       UPDATE users
@@ -219,10 +206,7 @@ class UserRepository {
     return rows[0] ? new User(rows[0]) : null;
   }
 
-  // Texte en minuscule (tolowercase) + supprime les espaces (trim)
-
   // Met à jour les préférences de l'utilisateur
-
   static async updateSettings(id, settings) {
     const query = /*sql*/ `
       UPDATE users
@@ -245,12 +229,10 @@ class UserRepository {
     `;
 
     const { rows } = await db.query(query, [JSON.stringify(settings), id]);
-
     return rows[0] ? new User(rows[0]) : null;
   }
 
-  // Supprimer un utilisateur (RGPD)
-
+  // Supprimer un utilisateur (RGPD ou admin)
   static async delete(id) {
     const result = await db.query(
       /*SQL*/ `
@@ -259,6 +241,7 @@ class UserRepository {
       `,
       [id],
     );
+
     return result.rowCount > 0;
   }
 }
