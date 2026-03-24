@@ -44,7 +44,10 @@ class GameService {
     const existingGame = await GameRepository.findByIgdbId(igdbId);
 
     if (existingGame) {
-      return existingGame;
+      return {
+        game: existingGame,
+        created: false,
+      };
     }
 
     const igdbGame = await IgdbService.findGameByIgdbId(igdbId);
@@ -53,7 +56,12 @@ class GameService {
       throw new Error("Jeu introuvable sur IGDB.");
     }
 
-    return GameRepository.create(igdbGame);
+    const createdGame = await GameRepository.create(igdbGame);
+
+    return {
+      game: createdGame,
+      created: true,
+    };
   }
 
   // Créer un jeu en base local

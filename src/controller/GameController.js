@@ -38,7 +38,15 @@ class GameController {
   async searchIgdb(req, res) {
     try {
       const query = req.query.q || "";
+
+      console.log("=== IGDB SEARCH CONTROLLER START ===");
+      console.log("QUERY:", query);
+
       const games = await GameService.searchIgdbGames(query);
+
+      console.log("GAMES FOUND:", games);
+      console.log("=== IGDB SEARCH CONTROLLER END ===");
+
       return res.json({ games });
     } catch (error) {
       console.error("IGDB SEARCH ERROR:", error);
@@ -53,15 +61,22 @@ class GameController {
     try {
       const { igdbId } = req.body;
 
+      console.log("=== IGDB IMPORT START ===");
+      console.log("IGDB ID:", igdbId);
+
       if (!igdbId) {
         return res.status(400).json({ error: "igdbId requis." });
       }
 
-      const game = await GameService.getOrCreateByIgdbId(igdbId);
+      const result = await GameService.getOrCreateByIgdbId(igdbId);
+
+      console.log("IMPORTED / REUSED GAME:", result);
+      console.log("=== IGDB IMPORT END ===");
 
       return res.json({
         success: true,
-        game,
+        game: result.game,
+        created: result.created,
       });
     } catch (error) {
       console.error("IGDB IMPORT ERROR:", error);

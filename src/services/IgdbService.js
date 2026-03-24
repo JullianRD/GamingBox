@@ -49,6 +49,8 @@ class IgdbService {
     this.#accessToken = data.access_token;
     this.#tokenExpiresAt = now + (data.expires_in - 60) * 1000;
 
+    console.log("IGDB TOKEN RECUPERE AVEC SUCCES");
+
     return this.#accessToken;
   }
 
@@ -56,6 +58,10 @@ class IgdbService {
   static async request(endpoint, body) {
     const token = await this.getAccessToken();
     const clientId = process.env.IGDB_CLIENT_ID;
+
+    console.log("=== IGDB REQUEST START ===");
+    console.log("ENDPOINT:", endpoint);
+    console.log("BODY:", body);
 
     const response = await fetch(`https://api.igdb.com/v4/${endpoint}`, {
       method: "POST",
@@ -68,12 +74,17 @@ class IgdbService {
       body,
     });
 
+    const rawText = await response.text();
+
+    console.log("IGDB STATUS:", response.status);
+    console.log("IGDB RAW RESPONSE:", rawText);
+    console.log("=== IGDB REQUEST END ===");
+
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Erreur IGDB : ${errorText}`);
+      throw new Error(`Erreur IGDB : ${rawText}`);
     }
 
-    return response.json();
+    return rawText ? JSON.parse(rawText) : [];
   }
 
   // Recherche des jeux sur IGDB
@@ -86,19 +97,14 @@ class IgdbService {
 
     const body = `
       search "${safeQuery}";
-      fields
-        id,
-        name,
-        first_release_date,
-        genres.name,
-        cover.image_id,
-        category,
-        version_parent;
-      where category = 0 & version_parent = null;
+      fields id,name,first_release_date,genres.name,cover.image_id,version_parent;
+      where version_parent = null;
       limit 10;
     `;
 
     const results = await this.request("games", body);
+
+    console.log("IGDB SEARCH RESULTS COUNT:", results.length);
 
     return results.map((game) => ({
       igdbId: game.id,
@@ -116,15 +122,8 @@ class IgdbService {
   // Récupérer un jeu précis par son ID IGDB
   static async findGameByIgdbId(igdbId) {
     const body = `
-      fields
-        id,
-        name,
-        first_release_date,
-        genres.name,
-        cover.image_id,
-        category,
-        version_parent;
-      where id = ${Number(igdbId)} & category = 0;
+      fields id,name,first_release_date,genres.name,cover.image_id,version_parent;
+      where id = ${Number(igdbId)};
       limit 1;
     `;
 

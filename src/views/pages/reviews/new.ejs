@@ -23,13 +23,34 @@
       class="space-y-6 rounded-2xl border border-purple-500/20 bg-white/5 p-6 shadow-2xl backdrop-blur-xl">
 
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" id="gameId" name="gameId" required>
+
+      <!-- RECHERCHE LOCALE -->
+      <div class="rounded-2xl border border-purple-500/20 bg-slate-900/40 p-5">
+        <div class="mb-3">
+          <h2 class="text-lg font-semibold text-white">🎮 Choisir un jeu déjà présent en base locale</h2>
+          <p class="text-sm text-slate-400 mt-1">
+            Recherche rapidement dans ta base locale au lieu de parcourir une longue liste.
+          </p>
+        </div>
+
+        <input
+          id="localSearchInput"
+          type="text"
+          placeholder="Ex : Hades, Elden Ring, Witcher..."
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500"
+        >
+
+        <div id="localSearchStatus" class="mt-3 text-sm text-slate-400"></div>
+        <div id="localResults" class="mt-4 grid gap-3"></div>
+      </div>
 
       <!-- SEARCH IGDB -->
       <div class="rounded-2xl border border-indigo-500/20 bg-slate-900/40 p-5">
         <div class="mb-3">
           <h2 class="text-lg font-semibold text-white">🔎 Rechercher un jeu sur IGDB</h2>
           <p class="text-sm text-slate-400 mt-1">
-            Si ton jeu n’est pas présent dans la liste locale, cherche-le ici puis importe-le.
+            Si ton jeu n’est pas présent dans la base locale, cherche-le ici puis importe-le.
           </p>
         </div>
 
@@ -51,22 +72,28 @@
         </div>
 
         <div id="igdbSearchStatus" class="mt-3 text-sm text-slate-400"></div>
-
         <div id="igdbResults" class="mt-4 grid gap-3"></div>
       </div>
 
-      <!-- SELECT GAME -->
+      <!-- JEU SÉLECTIONNÉ -->
       <div>
-        <label class="block text-sm text-slate-300 mb-2">Jeu</label>
-        <select id="gameId" name="gameId" required
-          class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500">
-          <option value="">Sélectionner un jeu</option>
-          <% (games || []).forEach(game => { %>
-            <option value="<%= game.id || game.idGame || game.id_game %>">
-              <%= game.gameTitle || game.game_title || "Jeu sans titre" %>
-            </option>
-          <% }) %>
-        </select>
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <label class="block text-sm text-slate-300">Jeu sélectionné</label>
+
+          <button
+            id="clearSelectedGameButton"
+            type="button"
+            class="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300 hover:bg-red-500/20 transition"
+          >
+            Retirer la sélection
+          </button>
+        </div>
+
+        <div class="rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
+          <p id="selectedGameLabel" class="text-slate-200">
+            Aucun jeu sélectionné
+          </p>
+        </div>
       </div>
 
       <!-- PREVIEW GAME -->
@@ -202,12 +229,19 @@
 <script>
   const games = JSON.parse(document.getElementById("games-data").textContent || "[]");
 
-  const gameSelect = document.getElementById("gameId");
+  const gameIdInput = document.getElementById("gameId");
+  const selectedGameLabel = document.getElementById("selectedGameLabel");
+  const clearSelectedGameButton = document.getElementById("clearSelectedGameButton");
+
   const titlePreview = document.getElementById("gameTitlePreview");
   const genrePreview = document.getElementById("gameGenrePreview");
   const releasePreview = document.getElementById("gameReleasePreview");
   const thumbnailPreview = document.getElementById("gameThumbnailPreview");
   const thumbnailFallback = document.getElementById("gameThumbnailFallback");
+
+  const localSearchInput = document.getElementById("localSearchInput");
+  const localSearchStatus = document.getElementById("localSearchStatus");
+  const localResults = document.getElementById("localResults");
 
   const igdbSearchInput = document.getElementById("igdbSearchInput");
   const igdbSearchButton = document.getElementById("igdbSearchButton");
@@ -227,15 +261,9 @@
     });
   }
 
-  function updateGamePreview() {
-    const selectedId = gameSelect.value;
-
-    const game = games.find((g) => {
-      const currentId = g.id || g.idGame || g.id_game;
-      return String(currentId) === String(selectedId);
-    });
-
+  function renderPreviewFromGame(game) {
     if (!game) {
+      selectedGameLabel.textContent = "Aucun jeu sélectionné";
       titlePreview.textContent = "Aucun jeu sélectionné";
       genrePreview.textContent = "—";
       releasePreview.textContent = "—";
@@ -250,6 +278,7 @@
     const releaseDate = game.releaseDate || game.release_date;
     const image = game.thumbnailUrl || game.thumbnail_url || "";
 
+    selectedGameLabel.textContent = title;
     titlePreview.textContent = title;
     genrePreview.textContent = genre;
     releasePreview.textContent = formatDate(releaseDate);
@@ -265,20 +294,79 @@
     }
   }
 
+  function clearSelectedGame() {
+    gameIdInput.value = "";
+    renderPreviewFromGame(null);
+  }
+
   function upsertLocalGame(game) {
     const existing = games.find((g) => String(g.id) === String(game.id));
 
     if (!existing) {
       games.push(game);
-
-      const option = document.createElement("option");
-      option.value = game.id;
-      option.textContent = game.gameTitle || "Jeu sans titre";
-      gameSelect.appendChild(option);
     }
 
-    gameSelect.value = String(game.id);
-    updateGamePreview();
+    gameIdInput.value = String(game.id);
+    renderPreviewFromGame(game);
+  }
+
+  function selectLocalGame(game) {
+    gameIdInput.value = String(game.id);
+    renderPreviewFromGame(game);
+  }
+
+  function renderLocalResults(query) {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    localResults.innerHTML = "";
+
+    if (!normalizedQuery) {
+      localSearchStatus.textContent = `${games.length} jeu(x) disponible(s) en base locale.`;
+      return;
+    }
+
+    const filteredGames = games.filter((game) => {
+      const title = (game.gameTitle || game.game_title || "").toLowerCase();
+      const genre = (game.gameGenre || game.game_genre || "").toLowerCase();
+
+      return title.includes(normalizedQuery) || genre.includes(normalizedQuery);
+    });
+
+    if (!filteredGames.length) {
+      localSearchStatus.textContent = "Aucun jeu trouvé en base locale.";
+      return;
+    }
+
+    localSearchStatus.textContent = `${filteredGames.length} jeu(x) trouvé(s) en base locale.`;
+
+    filteredGames.slice(0, 8).forEach((game) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "rounded-xl border border-slate-800 bg-slate-900/50 p-4 flex gap-4 items-start text-left hover:border-purple-500/40 transition";
+
+      card.innerHTML = `
+        <div class="w-16 h-20 bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+          ${
+            game.thumbnailUrl
+              ? `<img src="${game.thumbnailUrl}" alt="${game.gameTitle}" class="w-full h-full object-cover">`
+              : `<span class="text-xs text-slate-500 text-center">Pas d'image</span>`
+          }
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <h3 class="text-white font-semibold">${game.gameTitle || "Jeu sans titre"}</h3>
+          <p class="text-sm text-slate-400 mt-1">Genre : ${game.gameGenre || "Inconnu"}</p>
+          <p class="text-sm text-slate-400">Sortie : ${formatDate(game.releaseDate)}</p>
+        </div>
+      `;
+
+      card.addEventListener("click", () => {
+        selectLocalGame(game);
+        localSearchStatus.textContent = `Jeu sélectionné : ${game.gameTitle}`;
+      });
+
+      localResults.appendChild(card);
+    });
   }
 
   async function searchIgdbGames() {
@@ -308,7 +396,7 @@
         return;
       }
 
-      igdbSearchStatus.textContent = `${results.length} jeu(x) trouvé(s).`;
+      igdbSearchStatus.textContent = `${results.length} jeu(x) trouvé(s) sur IGDB.`;
 
       results.forEach((game) => {
         const card = document.createElement("div");
@@ -364,7 +452,12 @@
             }
 
             upsertLocalGame(data.game);
-            igdbSearchStatus.textContent = `Jeu importé avec succès : ${data.game.gameTitle}`;
+
+            if (data.created) {
+              igdbSearchStatus.textContent = `Jeu importé avec succès : ${data.game.gameTitle}`;
+            } else {
+              igdbSearchStatus.textContent = `Jeu déjà présent en base locale : ${data.game.gameTitle}`;
+            }
           } catch (error) {
             igdbSearchStatus.textContent = error.message;
           } finally {
@@ -378,6 +471,12 @@
     }
   }
 
+  clearSelectedGameButton.addEventListener("click", clearSelectedGame);
+
+  localSearchInput.addEventListener("input", (event) => {
+    renderLocalResults(event.target.value);
+  });
+
   igdbSearchButton.addEventListener("click", searchIgdbGames);
 
   igdbSearchInput.addEventListener("keydown", (event) => {
@@ -387,6 +486,6 @@
     }
   });
 
-  gameSelect.addEventListener("change", updateGamePreview);
-  updateGamePreview();
+  renderLocalResults("");
+  renderPreviewFromGame(null);
 </script>
