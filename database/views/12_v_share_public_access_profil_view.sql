@@ -1,3 +1,5 @@
+SET CLIENT_ENCODING TO 'UTF8';
+
 CREATE OR REPLACE VIEW v_share_public_profile AS
 SELECT
     s.id_share,

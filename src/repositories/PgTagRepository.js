@@ -34,6 +34,25 @@ class TagRepository {
     return rows.map((row) => new Tag(row));
   }
 
+  // Trouver un tag par son id pour un utilisateur donné
+static async findByIdForUser(tagId, userId) {
+  const query = /* SQL */ `
+    SELECT
+      id_tag,
+      tag_name,
+      user_id,
+      created_at,
+      updated_at
+    FROM tags
+    WHERE id_tag = $1
+      AND user_id = $2
+    LIMIT 1;
+  `;
+
+  const { rows } = await db.query(query, [tagId, userId]);
+  return rows[0] ? new Tag(rows[0]) : null;
+}
+
   /**
    * 📊 Tags avec nombre de reviews
    */

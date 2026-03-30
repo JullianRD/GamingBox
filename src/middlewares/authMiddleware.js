@@ -15,7 +15,9 @@
  * @param {import('express').NextFunction} next
  */
 export const injectUserToLocals = (req, res, next) => {
-  res.locals.currentUser = req.session.userId
+  const isLoggedIn = Boolean(req.session?.userId);
+
+  res.locals.currentUser = isLoggedIn
     ? {
         id: req.session.userId,
         email: req.session.email,
@@ -25,7 +27,8 @@ export const injectUserToLocals = (req, res, next) => {
       }
     : null;
 
-  res.locals.isAdmin = req.session.roleName === "admin";
+  res.locals.isAdmin = isLoggedIn && req.session.roleName === "admin";
+
   next();
 };
 
@@ -80,9 +83,9 @@ export const requireAdmin = (req, res, next) => {
   }
 
   if (req.session.roleName !== "admin") {
-    req.session.flash = {
-      error: "Accès réservé aux administrateurs.",
-    };
+    if (req.originalUrl !== "/favicon.ico") {
+      req.flash("error", "Accès réservé aux administrateurs.");
+    }
     return res.redirect("/reviews");
   }
 
