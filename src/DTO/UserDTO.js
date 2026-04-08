@@ -39,6 +39,7 @@ export function profileDTO(user) {
   };
 }
 
+// TODO À supprimer
 /**
  * Version minimale (ex: navbar)
  * @param {UserEntityLike} user

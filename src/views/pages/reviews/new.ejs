@@ -221,33 +221,41 @@
   </div>
 </div>
 
-<!-- DATA POUR JS -->
+<!-- Données envoyées par le serveur vers la vue EJS.
+     La variable "games" est transformée en JSON afin d'être relue côté navigateur. -->
 <script id="games-data" type="application/json">
   <%- JSON.stringify(games || []) %>
 </script>
 
 <script>
+  // Récupère les jeux injectés dans la page par EJS,
+  // puis les convertit en tableau JavaScript.
   const games = JSON.parse(document.getElementById("games-data").textContent || "[]");
 
+  // Récupération des éléments liés au jeu sélectionné
   const gameIdInput = document.getElementById("gameId");
   const selectedGameLabel = document.getElementById("selectedGameLabel");
   const clearSelectedGameButton = document.getElementById("clearSelectedGameButton");
 
+  // Récupération des éléments de la zone d’aperçu
   const titlePreview = document.getElementById("gameTitlePreview");
   const genrePreview = document.getElementById("gameGenrePreview");
   const releasePreview = document.getElementById("gameReleasePreview");
   const thumbnailPreview = document.getElementById("gameThumbnailPreview");
   const thumbnailFallback = document.getElementById("gameThumbnailFallback");
 
+  // Récupération des éléments de recherche locale
   const localSearchInput = document.getElementById("localSearchInput");
   const localSearchStatus = document.getElementById("localSearchStatus");
   const localResults = document.getElementById("localResults");
 
+  // Récupération des éléments de recherche IGDB
   const igdbSearchInput = document.getElementById("igdbSearchInput");
   const igdbSearchButton = document.getElementById("igdbSearchButton");
   const igdbSearchStatus = document.getElementById("igdbSearchStatus");
   const igdbResults = document.getElementById("igdbResults");
 
+  // Formate une date en affichage français lisible
   function formatDate(dateValue) {
     if (!dateValue) return "—";
 
@@ -261,7 +269,9 @@
     });
   }
 
+  // Met à jour la zone de prévisualisation à partir d’un jeu
   function renderPreviewFromGame(game) {
+    // Si aucun jeu n'est sélectionné, on affiche un état vide
     if (!game) {
       selectedGameLabel.textContent = "Aucun jeu sélectionné";
       titlePreview.textContent = "Aucun jeu sélectionné";
@@ -273,16 +283,19 @@
       return;
     }
 
+    // Compatibilité possible entre noms camelCase et snake_case
     const title = game.gameTitle || game.game_title || "Jeu sans titre";
     const genre = game.gameGenre || game.game_genre || "—";
     const releaseDate = game.releaseDate || game.release_date;
     const image = game.thumbnailUrl || game.thumbnail_url || "";
 
+    // Mise à jour des informations textuelles
     selectedGameLabel.textContent = title;
     titlePreview.textContent = title;
     genrePreview.textContent = genre;
     releasePreview.textContent = formatDate(releaseDate);
 
+    // Gestion de l’image ou du fallback
     if (image) {
       thumbnailPreview.src = image;
       thumbnailPreview.classList.remove("hidden");
@@ -294,11 +307,14 @@
     }
   }
 
+  // Supprime le jeu sélectionné et réinitialise l’aperçu
   function clearSelectedGame() {
     gameIdInput.value = "";
     renderPreviewFromGame(null);
   }
 
+  // Ajoute un jeu importé à la liste locale si besoin,
+  // puis le sélectionne automatiquement
   function upsertLocalGame(game) {
     const existing = games.find((g) => String(g.id) === String(game.id));
 
@@ -310,21 +326,26 @@
     renderPreviewFromGame(game);
   }
 
+  // Sélectionne un jeu local puis met à jour l’aperçu
   function selectLocalGame(game) {
     gameIdInput.value = String(game.id);
     renderPreviewFromGame(game);
   }
 
+  // Affiche les résultats de recherche locale
   function renderLocalResults(query) {
     const normalizedQuery = query.trim().toLowerCase();
 
+    // Vide les anciens résultats
     localResults.innerHTML = "";
 
+    // Si la recherche est vide, on affiche seulement le nombre de jeux disponibles
     if (!normalizedQuery) {
       localSearchStatus.textContent = `${games.length} jeu(x) disponible(s) en base locale.`;
       return;
     }
 
+    // Filtre les jeux selon le titre ou le genre
     const filteredGames = games.filter((game) => {
       const title = (game.gameTitle || game.game_title || "").toLowerCase();
       const genre = (game.gameGenre || game.game_genre || "").toLowerCase();
@@ -332,6 +353,7 @@
       return title.includes(normalizedQuery) || genre.includes(normalizedQuery);
     });
 
+    // Aucun résultat trouvé
     if (!filteredGames.length) {
       localSearchStatus.textContent = "Aucun jeu trouvé en base locale.";
       return;
@@ -339,6 +361,7 @@
 
     localSearchStatus.textContent = `${filteredGames.length} jeu(x) trouvé(s) en base locale.`;
 
+    // Création des cartes de résultats
     filteredGames.slice(0, 8).forEach((game) => {
       const card = document.createElement("button");
       card.type = "button";
@@ -360,6 +383,8 @@
         </div>
       `;
 
+      // Quand l'utilisateur clique sur une carte,
+      // le jeu est sélectionné et affiché en aperçu
       card.addEventListener("click", () => {
         selectLocalGame(game);
         localSearchStatus.textContent = `Jeu sélectionné : ${game.gameTitle}`;
@@ -369,9 +394,11 @@
     });
   }
 
+  // Recherche un jeu sur IGDB via le back-end
   async function searchIgdbGames() {
     const query = igdbSearchInput.value.trim();
 
+    // Évite les recherches trop courtes
     if (query.length < 2) {
       igdbSearchStatus.textContent = "Tape au moins 2 caractères pour rechercher.";
       igdbResults.innerHTML = "";
@@ -382,6 +409,7 @@
     igdbResults.innerHTML = "";
 
     try {
+      // Appel au serveur Express, qui se charge ensuite d'interroger IGDB
       const response = await fetch(`/games/search/igdb?q=${encodeURIComponent(query)}`);
       const data = await response.json();
 
@@ -398,6 +426,7 @@
 
       igdbSearchStatus.textContent = `${results.length} jeu(x) trouvé(s) sur IGDB.`;
 
+      // Affichage des résultats IGDB sous forme de cartes
       results.forEach((game) => {
         const card = document.createElement("div");
         card.className = "rounded-xl border border-slate-800 bg-slate-900/50 p-4 flex gap-4 items-start";
@@ -429,6 +458,7 @@
         igdbResults.appendChild(card);
       });
 
+      // Gestion de l'import des jeux trouvés sur IGDB
       document.querySelectorAll(".import-igdb-game").forEach((button) => {
         button.addEventListener("click", async () => {
           const igdbId = button.dataset.igdbId;
@@ -437,6 +467,7 @@
           button.textContent = "Import...";
 
           try {
+            // Requête vers le back-end pour importer le jeu dans la base locale
             const response = await fetch("/games/import/igdb", {
               method: "POST",
               headers: {
@@ -451,6 +482,8 @@
               throw new Error(data.error || "Impossible d'importer le jeu.");
             }
 
+            // Ajoute le jeu à la liste locale s'il n'existe pas déjà
+            // puis met à jour la sélection et la preview
             upsertLocalGame(data.game);
 
             if (data.created) {
@@ -471,14 +504,18 @@
     }
   }
 
+  // Bouton permettant d'effacer le jeu sélectionné
   clearSelectedGameButton.addEventListener("click", clearSelectedGame);
 
+  // Recherche locale en direct à chaque saisie clavier
   localSearchInput.addEventListener("input", (event) => {
     renderLocalResults(event.target.value);
   });
 
+  // Recherche IGDB au clic
   igdbSearchButton.addEventListener("click", searchIgdbGames);
 
+  // Recherche IGDB avec la touche Entrée
   igdbSearchInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -486,6 +523,7 @@
     }
   });
 
+  // Initialisation de la page au chargement
   renderLocalResults("");
   renderPreviewFromGame(null);
 </script>

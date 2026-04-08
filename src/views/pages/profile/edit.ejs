@@ -148,33 +148,35 @@
   const avatarPreview = document.getElementById("avatarPreview");
   const avatarFallback = document.getElementById("avatarFallback");
   const fileName = document.getElementById("fileName");
+  // Ici, on récupère tous les éléments HTML nécessaires
 
-  function preventDefaults(event) {
+  function preventDefaults(event) {  // Empeche le navigateur d'ouvrir directement le fichier déposé
     event.preventDefault();
-    event.stopPropagation();
+    event.stopPropagation(); 
   }
 
-  ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+  ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => { // Le navigateur garde un comportement controllé
     document.addEventListener(eventName, preventDefaults, false);
   });
 
-  function showPreview(file) {
-    if (!file) return;
+  function showPreview(file) {  // La fonction showPreview sert à afficher un aperçu de l’image sélectionnée
+    if (!file) return; // On arrête si aucun fichier
 
-    if (!file.type.startsWith("image/")) {
+    if (!file.type.startsWith("image/")) {  // On vérifie que le fichier est bien une image.
       fileName.textContent = "Le fichier sélectionné n'est pas une image valide.";
       return;
     }
 
-    fileName.textContent = file.name;
+    fileName.textContent = file.name; // Le nom du fichier est affiché dans l’interface.
 
-    const reader = new FileReader();
+    const reader = new FileReader();   // On crée un objet FileReader, qui permet de lire le contenu du fichier côté navigateur.
     reader.onload = (event) => {
       avatarPreview.src = event.target.result;
       avatarPreview.classList.remove("hidden");
       avatarFallback.classList.add("hidden");
     };
     reader.readAsDataURL(file);
+    //Le fichier est lu au format Data URL, ce qui permet de l’afficher immédiatement dans une balise <img>.
   }
 
   avatarInput.addEventListener("change", (event) => {
@@ -185,32 +187,36 @@
   dropzone.addEventListener("dragenter", () => {
     dropzone.classList.add("border-purple-500", "bg-slate-800/60");
   });
+  // Quand un fichier entre dans la dropzone, on ajoute des classes CSS pour signaler visuellement que la zone est active.
 
   dropzone.addEventListener("dragover", () => {
     dropzone.classList.add("border-purple-500", "bg-slate-800/60");
   });
+  // Quand le fichier survole la zone, on garde le style actif.
 
   dropzone.addEventListener("dragleave", () => {
     dropzone.classList.remove("border-purple-500", "bg-slate-800/60");
   });
+  // Quand le fichier quitte la zone, on retire les classes visuelles.
 
   dropzone.addEventListener("drop", (event) => {
     dropzone.classList.remove("border-purple-500", "bg-slate-800/60");
+    // Quand le fichier est déposé, on retire le style de survol.
 
-    const files = event.dataTransfer.files;
+    const files = event.dataTransfer.files; // On récupère les fichiers déposés.
     if (!files || !files.length) return;
 
-    const file = files[0];
+    const file = files[0]; // On prend le premier fichier 
 
-    if (!file.type.startsWith("image/")) {
+    if (!file.type.startsWith("image/")) { // Le fichier doit être une image
       fileName.textContent = "Le fichier déposé n'est pas une image valide.";
       return;
     }
 
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(file);
-    avatarInput.files = dataTransfer.files;
+    avatarInput.files = dataTransfer.files; // Place le fichier déposé en drag and drop dans l'input fichier
 
-    showPreview(file);
+    showPreview(file); // On affiche immédiatement l'aperçu du fichier déposé
   });
 </script>
