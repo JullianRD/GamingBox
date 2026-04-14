@@ -1,7 +1,7 @@
 "use strict";
 
 import UserRepository from "../repositories/PgUserRepository.js";
-import ReviewRepository from "../repositories/PgreviewRepository.js";
+import ReviewRepository from "../repositories/PgReviewRepository.js";
 import TagRepository from "../repositories/PgTagRepository.js";
 import ShareRepository from "../repositories/PgShareRepository.js";
 import GameRepository from "../repositories/PgGameRepository.js";

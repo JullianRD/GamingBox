@@ -2,7 +2,7 @@
 /**
  * Service métier reviews
  */
-import ReviewRepository from "../repositories/PgreviewRepository.js";
+import ReviewRepository from "../repositories/PgReviewRepository.js";
 import ReviewTagRepository from "../repositories/PgReviewTagRepository.js";
 import { generateSlug } from "../utils/generateSlug.js";
 

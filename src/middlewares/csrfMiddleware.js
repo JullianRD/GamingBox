@@ -15,9 +15,9 @@ export function injectCsrfToken(generateToken) {
 }
 
 
-// Ce fichier sert à protéger ton application contre les attaques CSRF et à rendre le token CSRF disponible dans tes vues EJS.
+// Ce fichier sert à protéger l'application contre les attaques CSRF et à rendre le token CSRF disponible dans tes vues EJS.
 // -> Cross-Site Request Forgery / Exemple : 
-// → quelqu’un peut forcer un utilisateur connecté à envoyer une requête à ton site.
+// → quelqu’un peut forcer un utilisateur connecté à envoyer une requête au site.
 
 // Exemple :
 

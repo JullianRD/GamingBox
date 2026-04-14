@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @fileoverview Point d'entrée principal de l'application Memoria
+ * @fileoverview Point d'entrée principal de l'application Gamingbox
  */
 import dotenv from "dotenv";
 dotenv.config();

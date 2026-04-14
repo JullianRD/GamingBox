@@ -1,7 +1,7 @@
 "use strict";
 
 import UserService from "../services/UserService.js";
-import UserDTO from "../dto/UserDTO.js";
+import { UserDTO } from "../DTO/UserDTO.js";
 
  // UserController (page réservé aux ADMINS)
 

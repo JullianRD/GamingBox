@@ -48,8 +48,7 @@ SELECT ON SEQUENCES TO app_gamingbox;
 -- Créer des rôles
 -- Supprimer toutes les permissions
 -- Drop le schéma
--- Donc tu limites les dégâts.
--- Imagine ton backend comme un employé.
+-- Donc on limites les dégâts.
 -- postgres = le PDG
 -- app_gamingbox = un employé avec accès limité
 -- admin dans ta table users = manager dans ton application

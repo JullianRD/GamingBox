@@ -4,6 +4,7 @@ import ReviewService from "../services/ReviewService.js";
 import GameService from "../services/GameService.js";
 import TagService from "../services/TagService.js";
 import { generateToken } from "../config/security.js";
+import logger from "../config/logger.js";
 
 /**
  * reviewController
@@ -37,10 +38,10 @@ class ReviewController {
         ? tags.find((tag) => tag.id === selectedTagId) || null
         : null;
 
-      console.log("RENDER REVIEWS WITH USER:", res.locals.currentUser || null);
-      console.log("RAW TAG ID:", rawTagId);
-      console.log("SELECTED TAG ID:", selectedTagId);
-      console.log("SELECTED TAG:", selectedTag);
+      // console.log("RENDER REVIEWS WITH USER:", res.locals.currentUser || null);
+      // console.log("RAW TAG ID:", rawTagId);
+      // console.log("SELECTED TAG ID:", selectedTagId);
+      // console.log("SELECTED TAG:", selectedTag);
 
       return res.render("pages/reviews/index", {
         title: "Mes reviews - GamingBox",
@@ -115,17 +116,6 @@ class ReviewController {
       const games = await GameService.findAllByGameId();
       const tags = await TagService.findByUserId(req.session.userId);
 
-      console.log("=== REVIEW NEW ===");
-      console.log("GAMES RAW:", games);
-      console.log("GAMES IS ARRAY:", Array.isArray(games));
-      console.log("GAMES LENGTH:", games?.length);
-      console.log("TAGS RAW:", tags);
-
-      if (games?.length) {
-        console.log("FIRST GAME:", games[0]);
-        console.log("FIRST GAME JSON:", JSON.stringify(games[0], null, 2));
-      }
-
       return res.render("pages/reviews/new", {
         title: "Nouvelle review - GamingBox",
         csrfToken: generateToken(req, res),
@@ -155,27 +145,19 @@ class ReviewController {
         return res.redirect("/admin");
       }
 
-      console.log("=== REVIEW STORE START ===");
-      console.log("SESSION USER ID:", req.session.userId);
-      console.log("REVIEW BODY:", req.body);
-      console.log("GAME ID:", req.body.gameId);
-      console.log("REVIEW TITLE:", req.body.reviewTitle);
-      console.log("REVIEW RATE:", req.body.reviewRate);
-      console.log("TAG IDS:", req.body.tagIds);
-
       const review = await ReviewService.create(
         req.session.userId,
         req.body.gameId,
         req.body,
       );
 
-      console.log("REVIEW CREATED:", review);
-      console.log("=== REVIEW STORE END ===");
+      logger.info("REVIEW CREATED:", review);
+      logger.info("=== REVIEW STORE END ===");
 
       req.flash("success", "Review enregistrée avec succès ✅");
       return res.redirect("/reviews");
     } catch (error) {
-      console.error("REVIEW STORE ERROR:", error);
+      logger.error("REVIEW STORE ERROR:", error);
       req.flash("error", error.message || "Impossible d'enregistrer la review.");
       return res.redirect("/reviews/new");
     }
