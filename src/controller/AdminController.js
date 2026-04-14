@@ -1,6 +1,6 @@
 "use strict";
 
-import AdminService from "../services/AdminService";
+import AdminService from "../services/AdminService.js";
 
 /**
  * AdminController
