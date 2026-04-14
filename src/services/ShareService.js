@@ -2,7 +2,7 @@
 
 import crypto from "node:crypto";
 import ShareRepository from "../repositories/PgShareRepository.js";
-import ReviewRepository from "../repositories/PgreviewRepository.js";
+import ReviewRepository from "../repositories/PgReviewRepository.js";
 import UserRepository from "../repositories/PgUserRepository.js";
 
 // ShareService : logique métier liée aux partages des ressources (profil utilisateur et review)
