@@ -8,18 +8,16 @@ CREATE TABLE IF NOT EXISTS users (
     id_user UUID DEFAULT uuidv7 () PRIMARY KEY,
     email CITEXT UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    pseudo CITEXT VARCHAR(50) UNIQUE NOT NULL,
+    pseudo CITEXT UNIQUE NOT NULL,
     biographie CITEXT,
+    avatar VARCHAR(255),
     role_name role_enum NOT NULL DEFAULT 'visiteur',
     auth_provider auth_provider_enum NOT NULL DEFAULT 'local',
     settings_user JSONB NOT NULL DEFAULT '{}',
     gdpr_consent BOOLEAN NOT NULL DEFAULT FALSE,
     gdpr_consent_date TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NUll DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ,
-    CONSTRAINT chk_email_is_valid CHECK ( -- Contraintes métier
-        email ~ '^[^@]+@[^@.]+\.[^@]+$'
-    )
+    updated_at TIMESTAMPTZ
 );
 
 -- Indexation JSONB (Recherche rapide dans les réglages utilisateur)

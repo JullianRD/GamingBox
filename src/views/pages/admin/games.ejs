@@ -1,0 +1,67 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-purple-700 to-slate-900 px-4 py-10">
+  <div class="mx-auto max-w-6xl">
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-white">🎮 Jeux</h1>
+        <p class="mt-1 text-sm text-slate-400">Gestion globale des jeux importés</p>
+      </div>
+
+      <a href="/admin" class="rounded-lg border border-slate-700 px-4 py-2 text-slate-200 hover:bg-slate-800">
+        ← Retour admin
+      </a>
+    </div>
+
+    <% if (flash && flash.success) { %>
+      <div class="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300">
+        <%= flash.success %>
+      </div>
+    <% } %>
+
+    <% if (flash && flash.error) { %>
+      <div class="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300">
+        <%= flash.error %>
+      </div>
+    <% } %>
+
+    <% if (!games || games.length === 0) { %>
+      <div class="rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 p-6 text-slate-400">
+        Aucun jeu en base pour le moment.
+      </div>
+    <% } else { %>
+      <div class="grid gap-4">
+        <% games.forEach(item => { %>
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex gap-4 items-center">
+              <% if (item.thumbnailUrl) { %>
+                <img
+                  src="<%= item.thumbnailUrl %>"
+                  alt="<%= item.gameTitle %>"
+                  class="w-16 h-20 rounded-lg object-cover"
+                >
+              <% } else { %>
+                <div class="w-16 h-20 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 text-xs">
+                  Pas d'image
+                </div>
+              <% } %>
+
+              <div>
+                <p class="text-lg font-semibold text-white"><%= item.gameTitle %></p>
+                <p class="text-sm text-slate-400"><%= item.gameGenre || "Genre inconnu" %></p>
+                <p class="text-xs text-slate-500 mt-1">
+                  Sortie :
+                  <%= item.releaseDate ? new Date(item.releaseDate).toLocaleDateString("fr-FR") : "Date inconnue" %>
+                </p>
+              </div>
+            </div>
+
+            <form action="/admin/games/<%= item.id %>/delete" method="POST" onsubmit="return confirm('Supprimer ce jeu ?');">
+              <button class="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-red-300 hover:bg-red-500/20 transition">
+                Supprimer
+              </button>
+            </form>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</div>
