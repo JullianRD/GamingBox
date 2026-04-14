@@ -5,7 +5,7 @@ import AdminService from "../services/AdminService";
 /**
  * AdminController
  *
- * Gestion HTTP de l'espace admin
+ * Gestion HTTP de l'espace admin v
  */
 class AdminController {
   // Dashboard admin
