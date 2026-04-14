@@ -9,7 +9,7 @@ const router = Router();
 /**
  * Routes ADMIN
  *
- * Accès réservé aux administrateurs
+ * Accès réservé aux administrateurs de l'app
  */
 
 router.use(requireAuth);
