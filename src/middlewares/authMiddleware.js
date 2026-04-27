@@ -49,7 +49,7 @@ export const requireAuth = (req, res, next) => {
 
 /**
  * Vérifie si l'utilisateur est un visiteur (non connecté)
- * Si connecté, redirige vers le compte
+ * Si connecté, redirige vers les reviews
  * Utile pour les pages login/register
  *
  * @param {import('express').Request} req
