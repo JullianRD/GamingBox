@@ -2,11 +2,12 @@
   "name": "gamingbox-light-mvc",
   "version": "1.0.0",
   "description": "- **GamingBox** est une application permettant de créer une liste de ses jeux terminé ou non et d'en poster des reviews qu'il est possible de partager à ses amis. L'application se veut être une alternative a des application comme Letterbox ou BacklogGD.",
-  "main": "index.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
+    "dev": "nodemon src/app.js",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,14 +17,30 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/JullianRD/GamingBox/issues"
   },
   "homepage": "https://github.com/JullianRD/GamingBox#readme",
   "dependencies": {
+    "@node-rs/argon2": "^2.0.2",
     "connect-pg-simple": "^10.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "csrf-csrf": "^4.0.3",
     "dotenv": "^17.3.1",
-    "express": "^5.2.1"
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "express-ejs-layouts": "^2.5.1",
+    "express-rate-limit": "^8.2.1",
+    "express-session": "^1.19.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.1.1",
+    "pg": "^8.19.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "pino-pretty": "^13.1.3",
+    "sharp": "^0.34.5",
+    "zod": "^4.3.6"
   }
 }

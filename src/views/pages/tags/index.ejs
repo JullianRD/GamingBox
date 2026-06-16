@@ -1,0 +1,80 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-purple-700 to-slate-900 text-white px-4 py-6">
+    <div class="max-w-5xl mx-auto">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight">🏷️ Mes tags</h1>
+                <p class="text-slate-400 mt-1 text-sm">
+                    Gère les tags qui servent à organiser tes reviews.
+                </p>
+            </div>
+
+            <a href="/reviews"
+               class="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
+                ← Retour aux reviews
+            </a>
+        </div>
+
+        <% if (flash && flash.success) { %>
+            <div class="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300">
+                <%= flash.success %>
+            </div>
+        <% } %>
+
+        <% if (flash && flash.error) { %>
+            <div class="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300">
+                <%= flash.error %>
+            </div>
+        <% } %>
+
+        <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 mb-8">
+            <form action="/tags" method="POST" class="flex flex-col sm:flex-row gap-3">
+                <input
+                    type="text"
+                    name="tagName"
+                    placeholder="Nom du tag"
+                    class="flex-1 px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500">
+
+                <button type="submit"
+                    class="px-5 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition shadow-lg shadow-purple-600/30">
+                    Ajouter
+                </button>
+            </form>
+        </div>
+
+        <% if (tags && tags.length > 0) { %>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <% tags.forEach(tag => { %>
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <h2 class="text-lg font-semibold"><%= tag.tagName %></h2>
+
+                                <% if (tag.reviewCount !== undefined) { %>
+                                    <p class="text-sm text-slate-400 mt-1">
+                                        <%= tag.reviewCount %> review(s)
+                                    </p>
+                                <% } %>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <a href="/tags/<%= tag.id %>/edit" class="text-purple-300 hover:text-purple-200 transition">
+                                    ✏️
+                                </a>
+
+                                <form action="/tags/<%= tag.id %>/delete" method="POST" onsubmit="return confirm('Supprimer ce tag ?');">
+                                    <button type="submit" class="text-red-300 hover:text-red-200 transition">
+                                        🗑️
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div class="rounded-2xl border border-dashed border-white/10 bg-slate-900/30 p-6 text-slate-400">
+                Aucun tag créé pour le moment.
+            </div>
+        <% } %>
+    </div>
+</div>

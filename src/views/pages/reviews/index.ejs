@@ -1,0 +1,311 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-purple-700 to-slate-900 text-white px-4 py-6">
+
+    <!-- Top bar -->
+    <div class="max-w-6xl mx-auto flex items-center justify-between mb-8">
+
+        <!-- Branding / title -->
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">🎮 Mes reviews</h1>
+            <p class="text-slate-400 mt-1 text-sm">
+                Retrouve tes jeux, tes avis et ta progression.
+            </p>
+        </div>
+
+        <!-- Profile avatar -->
+        <a href="/profile"
+           class="w-12 h-12 rounded-full overflow-hidden border border-purple-400/30
+                  bg-slate-800 flex items-center justify-center
+                  hover:scale-105 transition shadow-lg shadow-purple-900/30">
+            <% if (user && user.avatar) { %>
+                <img src="<%= user.avatar %>" alt="Photo de profil" class="w-full h-full object-cover">
+            <% } else { %>
+                <span class="text-sm font-semibold text-slate-200">
+                    <%= user && user.pseudo ? user.pseudo.charAt(0).toUpperCase() : "U" %>
+                </span>
+            <% } %>
+        </a>
+    </div>
+
+    <!-- Flash messages -->
+    <% if (flash && flash.success) { %>
+        <div class="max-w-6xl mx-auto mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300">
+            <%= flash.success %>
+        </div>
+    <% } %>
+
+    <% if (flash && flash.error) { %>
+        <div class="max-w-6xl mx-auto mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300">
+            <%= flash.error %>
+        </div>
+    <% } %>
+
+    <!-- Ajout review block -->
+    <div class="max-w-6xl mx-auto mb-6">
+        <a href="/reviews/new"
+           class="block rounded-2xl border border-dashed border-purple-400/30
+                  bg-white/5 backdrop-blur-md p-6 hover:bg-white/10 transition group">
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-white group-hover:text-purple-300 transition">
+                        ➕ Ajouter une nouvelle review
+                    </h2>
+                    <p class="text-sm text-slate-400 mt-1">
+                        Recherche un jeu, donne ton avis et enrichis ta collection GamingBox.
+                    </p>
+                </div>
+
+                <div class="shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600
+                            flex items-center justify-center shadow-lg shadow-purple-600/30">
+                    <span class="text-2xl leading-none">+</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Ajout tag block -->
+    <div class="max-w-6xl mx-auto mb-8 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+
+            <div class="lg:w-1/2">
+                <h2 class="text-lg font-semibold text-white mb-2">🏷️ Mes tags</h2>
+                <p class="text-sm text-slate-400 mb-4">
+                    Crée des tags pour organiser plus facilement tes reviews.
+                </p>
+
+                <form action="/tags" method="POST" class="flex flex-col sm:flex-row gap-3">
+                    <input type="hidden" name="redirectTo" value="/reviews">
+
+                    <input
+                        type="text"
+                        name="tagName"
+                        placeholder="Ex : Rogue-lite, Coop, Pépite..."
+                        class="flex-1 px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500">
+
+                    <button type="submit"
+                        class="px-5 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition shadow-lg shadow-purple-600/30">
+                        Ajouter un tag
+                    </button>
+                </form>
+            </div>
+
+            <div class="lg:w-1/2">
+                <% if (tags && tags.length > 0) { %>
+                    <div class="flex flex-wrap gap-2">
+                        <% tags.forEach(tag => { %>
+                            <div class="inline-flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-sm text-purple-200">
+                                <a href="/reviews?tag=<%= tag.id || tag.id_tag %>" class="hover:text-white transition">
+                                    <%= tag.tagName || tag.tag_name %>
+                                </a>
+
+                                <a href="/tags/<%= tag.id || tag.id_tag %>/edit" class="text-slate-300 hover:text-white transition">
+                                    ✏️
+                                </a>
+
+                                <form action="/tags/<%= tag.id || tag.id_tag %>/delete" method="POST" class="inline">
+                                    <input type="hidden" name="redirectTo" value="/reviews">
+                                    <button type="submit" class="text-red-300 hover:text-red-200 transition" onclick="return confirm('Supprimer ce tag ?');">
+                                        ✕
+                                    </button>
+                                </form>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } else { %>
+                    <div class="rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-4 text-sm text-slate-400">
+                        Aucun tag créé pour le moment.
+                    </div>
+                <% } %>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Filter by tag -->
+    <div class="max-w-6xl mx-auto mb-8">
+        <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5">
+            <div class="flex flex-col gap-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-white">Filtrer les reviews par tag</h2>
+                    <p class="text-sm text-slate-400 mt-1">
+                        Affiche seulement les reviews liées à un tag précis.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <a href="/reviews"
+                       class="px-3 py-2 rounded-full text-sm border transition
+                              <%= !selectedTagId
+                                ? 'border-purple-500/30 bg-purple-500/20 text-white'
+                                : 'border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800' %>">
+                        Tous
+                    </a>
+
+                    <% if (tags && tags.length > 0) { %>
+                        <% tags.forEach(tag => { %>
+                            <a href="/reviews?tag=<%= tag.id %>"
+                               class="px-3 py-2 rounded-full text-sm border transition
+                                      <%= selectedTagId === tag.id
+                                        ? 'border-purple-500/30 bg-purple-500/20 text-white'
+                                        : 'border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800' %>">
+                                <%= tag.tagName %>
+                            </a>
+                        <% }) %>
+                    <% } %>
+                </div>
+
+                <% if (selectedTag) { %>
+                    <div class="text-sm text-slate-300">
+                        Filtre actif :
+                        <span class="text-purple-300 font-medium"><%= selectedTag.tagName %></span>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews grid -->
+    <div class="max-w-6xl mx-auto">
+
+        <% if (!reviews || reviews.length === 0) { %>
+            <!-- Empty state -->
+            <div class="rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 p-10 text-center">
+                <div class="text-5xl mb-4">🕹️</div>
+
+                <% if (selectedTag) { %>
+                    <h2 class="text-xl font-semibold mb-2">Aucune review avec ce tag</h2>
+                    <p class="text-slate-400 max-w-md mx-auto mb-6">
+                        Tu n’as encore associé aucune review au tag "<%= selectedTag.tagName %>".
+                    </p>
+
+                    <a href="/reviews"
+                       class="inline-flex items-center gap-2 px-5 py-3 rounded-lg
+                              bg-gradient-to-r from-purple-600 to-indigo-600
+                              hover:from-purple-500 hover:to-indigo-500
+                              transition shadow-lg shadow-purple-600/30">
+                        <span>←</span>
+                        <span>Voir toutes les reviews</span>
+                    </a>
+                <% } else { %>
+                    <h2 class="text-xl font-semibold mb-2">Aucune review pour le moment</h2>
+                    <p class="text-slate-400 max-w-md mx-auto mb-6">
+                        Commence ta bibliothèque en ajoutant ton premier jeu et en publiant ta première review.
+                    </p>
+
+                    <a href="/reviews/new"
+                       class="inline-flex items-center gap-2 px-5 py-3 rounded-lg
+                              bg-gradient-to-r from-purple-600 to-indigo-600
+                              hover:from-purple-500 hover:to-indigo-500
+                              transition shadow-lg shadow-purple-600/30">
+                        <span>➕</span>
+                        <span>Créer ma première review</span>
+                    </a>
+                <% } %>
+            </div>
+
+        <% } else { %>
+
+            <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                <% reviews.forEach(review => { %>
+                    <article class="rounded-2xl bg-white/5 backdrop-blur-md border border-white/10
+                                    overflow-hidden shadow-xl hover:-translate-y-1 transition">
+
+                        <!-- Cover -->
+                        <a href="/reviews/<%= review.slug || review.id || review.idReview %>" class="block">
+                            <% if (review.thumbnailUrl || review.thumbnail_url) { %>
+                                <img
+                                    src="<%= review.thumbnailUrl || review.thumbnail_url %>"
+                                    alt="<%= review.gameTitle || review.game_title || 'Jeu' %>"
+                                    class="w-full h-56 object-cover">
+                            <% } else { %>
+                                <div class="w-full h-56 bg-slate-800 flex items-center justify-center text-slate-500">
+                                    Pas d’image
+                                </div>
+                            <% } %>
+                        </a>
+
+                        <!-- Content -->
+                        <div class="p-5">
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div>
+                                    <p class="text-xs uppercase tracking-wide text-purple-300/80 mb-1">
+                                        <%= review.gameTitle || review.game_title || "Jeu" %>
+                                    </p>
+                                    <h2 class="text-lg font-semibold leading-tight">
+                                        <a href="/reviews/<%= review.slug || review.id || review.idReview %>" class="hover:text-purple-300 transition">
+                                            <%= review.reviewTitle || review.review_title || "Sans titre" %>
+                                        </a>
+                                    </h2>
+                                </div>
+
+                                <% if ((review.reviewRate ?? review.review_rate) !== null && (review.reviewRate ?? review.review_rate) !== undefined) { %>
+                                    <div class="shrink-0 rounded-lg bg-purple-500/15 border border-purple-500/20 px-3 py-1 text-sm font-semibold text-purple-300">
+                                        <%= review.reviewRate ?? review.review_rate %>/10
+                                    </div>
+                                <% } %>
+                            </div>
+
+                            <!-- Meta -->
+                            <div class="flex flex-wrap gap-2 mb-4 text-xs text-slate-300">
+                                <% if (review.gamePlatforme || review.game_platforme) { %>
+                                    <span class="px-2 py-1 rounded-md bg-slate-800/80 border border-slate-700">
+                                        🎮 <%= review.gamePlatforme || review.game_platforme %>
+                                    </span>
+                                <% } %>
+
+                                <% if (review.progressionStatus || review.progression_status) { %>
+                                    <span class="px-2 py-1 rounded-md bg-slate-800/80 border border-slate-700">
+                                        📍 <%= review.progressionStatus || review.progression_status %>
+                                    </span>
+                                <% } %>
+
+                                <% if ((review.reviewPlatine ?? review.review_platine) === true) { %>
+                                    <span class="px-2 py-1 rounded-md bg-yellow-500/15 border border-yellow-500/20 text-yellow-300">
+                                        🏆 Platine
+                                    </span>
+                                <% } %>
+
+                                <% if ((review.reviewLike ?? review.review_like) === true) { %>
+                                    <span class="px-2 py-1 rounded-md bg-pink-500/15 border border-pink-500/20 text-pink-300">
+                                        ❤️ Coup de cœur
+                                    </span>
+                                <% } %>
+                            </div>
+
+                            <!-- Tags -->
+                            <% if (review.tags && review.tags.length > 0) { %>
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    <% review.tags.forEach(tag => { %>
+                                        <a href="/reviews?tag=<%= tag.id %>"
+                                           class="px-2 py-1 rounded-full border border-purple-500/20 bg-purple-500/10 text-xs text-purple-200 hover:text-white transition">
+                                            <%= tag.name || "Tag" %>
+                                        </a>
+                                    <% }) %>
+                                </div>
+                            <% } %>
+
+                            <!-- Review excerpt -->
+                            <p class="text-sm text-slate-400 line-clamp-3 min-h-[4.5rem]">
+                                <%= review.avisReview || review.avis_review || "Aucun avis renseigné." %>
+                            </p>
+
+                            <!-- Footer -->
+                            <div class="mt-5 flex items-center justify-between">
+                                <a href="/reviews/<%= review.slug || review.id || review.idReview %>"
+                                   class="text-sm text-purple-300 hover:text-purple-200 transition">
+                                    Voir la review →
+                                </a>
+
+                                <% if (review.createdAt || review.created_at) { %>
+                                    <span class="text-xs text-slate-500">
+                                        <%= new Date(review.createdAt || review.created_at).toLocaleDateString("fr-FR") %>
+                                    </span>
+                                <% } %>
+                            </div>
+                        </div>
+                    </article>
+                <% }) %>
+            </div>
+
+        <% } %>
+    </div>
+</div>

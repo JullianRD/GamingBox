@@ -1,0 +1,529 @@
+<!-- Ajout d'une nouvelle review par l'utilisateur -->
+
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-purple-700 to-slate-900 px-4 py-10">
+  <div class="mx-auto max-w-4xl">
+
+    <!-- Header -->
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-white">Nouvelle review</h1>
+        <p class="mt-1 text-sm text-slate-400">
+          Choisis un jeu et partage ton expérience
+        </p>
+      </div>
+
+      <a href="/reviews"
+        class="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
+        ← Retour
+      </a>
+    </div>
+
+    <!-- FORM -->
+    <form action="/reviews" method="POST"
+      class="space-y-6 rounded-2xl border border-purple-500/20 bg-white/5 p-6 shadow-2xl backdrop-blur-xl">
+
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" id="gameId" name="gameId" required>
+
+      <!-- RECHERCHE LOCALE -->
+      <div class="rounded-2xl border border-purple-500/20 bg-slate-900/40 p-5">
+        <div class="mb-3">
+          <h2 class="text-lg font-semibold text-white">🎮 Choisir un jeu déjà présent en base locale</h2>
+          <p class="text-sm text-slate-400 mt-1">
+            Recherche rapidement dans ta base locale au lieu de parcourir une longue liste.
+          </p>
+        </div>
+
+        <input
+          id="localSearchInput"
+          type="text"
+          placeholder="Ex : Hades, Elden Ring, Witcher..."
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500"
+        >
+
+        <div id="localSearchStatus" class="mt-3 text-sm text-slate-400"></div>
+        <div id="localResults" class="mt-4 grid gap-3"></div>
+      </div>
+
+      <!-- SEARCH IGDB -->
+      <div class="rounded-2xl border border-indigo-500/20 bg-slate-900/40 p-5">
+        <div class="mb-3">
+          <h2 class="text-lg font-semibold text-white">🔎 Rechercher un jeu sur IGDB</h2>
+          <p class="text-sm text-slate-400 mt-1">
+            Si ton jeu n’est pas présent dans la base locale, cherche-le ici puis importe-le.
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input
+            id="igdbSearchInput"
+            type="text"
+            placeholder="Ex : Hades, Hollow Knight, Persona 5..."
+            class="flex-1 px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500"
+          >
+
+          <button
+            id="igdbSearchButton"
+            type="button"
+            class="px-5 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg"
+          >
+            Rechercher
+          </button>
+        </div>
+
+        <div id="igdbSearchStatus" class="mt-3 text-sm text-slate-400"></div>
+        <div id="igdbResults" class="mt-4 grid gap-3"></div>
+      </div>
+
+      <!-- JEU SÉLECTIONNÉ -->
+      <div>
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <label class="block text-sm text-slate-300">Jeu sélectionné</label>
+
+          <button
+            id="clearSelectedGameButton"
+            type="button"
+            class="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300 hover:bg-red-500/20 transition"
+          >
+            Retirer la sélection
+          </button>
+        </div>
+
+        <div class="rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
+          <p id="selectedGameLabel" class="text-slate-200">
+            Aucun jeu sélectionné
+          </p>
+        </div>
+      </div>
+
+      <!-- PREVIEW GAME -->
+      <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex gap-4">
+
+        <!-- IMAGE -->
+        <div class="w-24 h-32 bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center">
+          <img id="gameThumbnailPreview" class="hidden w-full h-full object-cover" alt="Couverture du jeu">
+          <span id="gameThumbnailFallback" class="text-xs text-slate-500 text-center">
+            Aucune image
+          </span>
+        </div>
+
+        <!-- INFOS -->
+        <div class="flex-1">
+          <h2 id="gameTitlePreview" class="text-xl font-bold text-white">
+            Aucun jeu sélectionné
+          </h2>
+
+          <p class="text-sm text-slate-400 mt-2">
+            Genre : <span id="gameGenrePreview">—</span>
+          </p>
+
+          <p class="text-sm text-slate-400">
+            Sortie : <span id="gameReleasePreview">—</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- TITLE -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-2">Titre</label>
+        <input type="text" name="reviewTitle" required
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500">
+      </div>
+
+      <!-- NOTE -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-2">Note /10</label>
+        <input type="number" name="reviewRate" min="0" max="10" required
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500">
+      </div>
+
+      <!-- PLATFORM -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-2">Plateforme</label>
+        <select name="gamePlatforme" required
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500">
+          <option value="PC">PC</option>
+          <option value="Console de jeu">Console de jeu</option>
+          <option value="Autre">Autre</option>
+        </select>
+      </div>
+
+      <!-- PROGRESSION -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-2">Progression</label>
+        <select name="progressionStatus"
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white">
+          <option value="En cour">En cour</option>
+          <option value="Terminé">Terminé</option>
+          <option value="Whislist">Whislist</option>
+          <option value="Dropped">Dropped</option>
+        </select>
+      </div>
+
+      <!-- TAGS -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-3">Tags</label>
+
+        <% if (tags && tags.length > 0) { %>
+          <div class="flex flex-wrap gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <% tags.forEach(tag => { %>
+              <label class="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="tagIds"
+                  value="<%= tag.id || tag.id_tag %>"
+                  class="accent-purple-600"
+                >
+                <span><%= tag.tagName || tag.tag_name %></span>
+              </label>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-4 text-sm text-slate-400">
+            Aucun tag disponible pour le moment. Crée d’abord quelques tags pour pouvoir les associer à ta review.
+          </div>
+        <% } %>
+      </div>
+
+      <!-- CHECKBOX -->
+      <div class="flex gap-6">
+        <label class="flex items-center gap-2 text-slate-300">
+          <input type="checkbox" name="reviewLike" class="accent-purple-600">
+          J’aime 👍
+        </label>
+
+        <label class="flex items-center gap-2 text-slate-300">
+          <input type="checkbox" name="reviewPlatine" class="accent-purple-600">
+          Platine 🏆
+        </label>
+      </div>
+
+      <!-- REVIEW -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-2">Avis</label>
+        <textarea name="avisReview" rows="5"
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500"></textarea>
+      </div>
+
+      <!-- SUBMIT -->
+      <div class="flex justify-end gap-3">
+        <a href="/reviews"
+          class="px-4 py-2 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-800">
+          Annuler
+        </a>
+
+        <button type="submit"
+          class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white shadow-lg">
+          Publier
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Données envoyées par le serveur vers la vue EJS.
+     La variable "games" est transformée en JSON afin d'être relue côté navigateur. -->
+<script id="games-data" type="application/json">
+  <%- JSON.stringify(games || []) %>
+</script>
+
+<script>
+  // Récupère les jeux injectés dans la page par EJS,
+  // puis les convertit en tableau JavaScript.
+  const games = JSON.parse(document.getElementById("games-data").textContent || "[]");
+
+  // Récupération des éléments liés au jeu sélectionné
+  const gameIdInput = document.getElementById("gameId");
+  const selectedGameLabel = document.getElementById("selectedGameLabel");
+  const clearSelectedGameButton = document.getElementById("clearSelectedGameButton");
+
+  // Récupération des éléments de la zone d’aperçu
+  const titlePreview = document.getElementById("gameTitlePreview");
+  const genrePreview = document.getElementById("gameGenrePreview");
+  const releasePreview = document.getElementById("gameReleasePreview");
+  const thumbnailPreview = document.getElementById("gameThumbnailPreview");
+  const thumbnailFallback = document.getElementById("gameThumbnailFallback");
+
+  // Récupération des éléments de recherche locale
+  const localSearchInput = document.getElementById("localSearchInput");
+  const localSearchStatus = document.getElementById("localSearchStatus");
+  const localResults = document.getElementById("localResults");
+
+  // Récupération des éléments de recherche IGDB
+  const igdbSearchInput = document.getElementById("igdbSearchInput");
+  const igdbSearchButton = document.getElementById("igdbSearchButton");
+  const igdbSearchStatus = document.getElementById("igdbSearchStatus");
+  const igdbResults = document.getElementById("igdbResults");
+
+  // Formate une date en affichage français lisible
+  function formatDate(dateValue) {
+    if (!dateValue) return "—";
+
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return "—";
+
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  }
+
+  // Met à jour la zone de prévisualisation à partir d’un jeu
+  function renderPreviewFromGame(game) {
+    // Si aucun jeu n'est sélectionné, on affiche un état vide
+    if (!game) {
+      selectedGameLabel.textContent = "Aucun jeu sélectionné";
+      titlePreview.textContent = "Aucun jeu sélectionné";
+      genrePreview.textContent = "—";
+      releasePreview.textContent = "—";
+      thumbnailPreview.src = "";
+      thumbnailPreview.classList.add("hidden");
+      thumbnailFallback.classList.remove("hidden");
+      return;
+    }
+
+    // Compatibilité possible entre noms camelCase et snake_case
+    const title = game.gameTitle || game.game_title || "Jeu sans titre";
+    const genre = game.gameGenre || game.game_genre || "—";
+    const releaseDate = game.releaseDate || game.release_date;
+    const image = game.thumbnailUrl || game.thumbnail_url || "";
+
+    // Mise à jour des informations textuelles
+    selectedGameLabel.textContent = title;
+    titlePreview.textContent = title;
+    genrePreview.textContent = genre;
+    releasePreview.textContent = formatDate(releaseDate);
+
+    // Gestion de l’image ou du fallback
+    if (image) {
+      thumbnailPreview.src = image;
+      thumbnailPreview.classList.remove("hidden");
+      thumbnailFallback.classList.add("hidden");
+    } else {
+      thumbnailPreview.src = "";
+      thumbnailPreview.classList.add("hidden");
+      thumbnailFallback.classList.remove("hidden");
+    }
+  }
+
+  // Supprime le jeu sélectionné et réinitialise l’aperçu
+  function clearSelectedGame() {
+    gameIdInput.value = "";
+    renderPreviewFromGame(null);
+  }
+
+  // Ajoute un jeu importé à la liste locale si besoin,
+  // puis le sélectionne automatiquement
+  function upsertLocalGame(game) {
+    const existing = games.find((g) => String(g.id) === String(game.id));
+
+    if (!existing) {
+      games.push(game);
+    }
+
+    gameIdInput.value = String(game.id);
+    renderPreviewFromGame(game);
+  }
+
+  // Sélectionne un jeu local puis met à jour l’aperçu
+  function selectLocalGame(game) {
+    gameIdInput.value = String(game.id);
+    renderPreviewFromGame(game);
+  }
+
+  // Affiche les résultats de recherche locale
+  function renderLocalResults(query) {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    // Vide les anciens résultats
+    localResults.innerHTML = "";
+
+    // Si la recherche est vide, on affiche seulement le nombre de jeux disponibles
+    if (!normalizedQuery) {
+      localSearchStatus.textContent = `${games.length} jeu(x) disponible(s) en base locale.`;
+      return;
+    }
+
+    // Filtre les jeux selon le titre ou le genre
+    const filteredGames = games.filter((game) => {
+      const title = (game.gameTitle || game.game_title || "").toLowerCase();
+      const genre = (game.gameGenre || game.game_genre || "").toLowerCase();
+
+      return title.includes(normalizedQuery) || genre.includes(normalizedQuery);
+    });
+
+    // Aucun résultat trouvé
+    if (!filteredGames.length) {
+      localSearchStatus.textContent = "Aucun jeu trouvé en base locale.";
+      return;
+    }
+
+    localSearchStatus.textContent = `${filteredGames.length} jeu(x) trouvé(s) en base locale.`;
+
+    // Création des cartes de résultats
+    filteredGames.slice(0, 8).forEach((game) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "rounded-xl border border-slate-800 bg-slate-900/50 p-4 flex gap-4 items-start text-left hover:border-purple-500/40 transition";
+
+      card.innerHTML = `
+        <div class="w-16 h-20 bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+          ${
+            game.thumbnailUrl
+              ? `<img src="${game.thumbnailUrl}" alt="${game.gameTitle}" class="w-full h-full object-cover">`
+              : `<span class="text-xs text-slate-500 text-center">Pas d'image</span>`
+          }
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <h3 class="text-white font-semibold">${game.gameTitle || "Jeu sans titre"}</h3>
+          <p class="text-sm text-slate-400 mt-1">Genre : ${game.gameGenre || "Inconnu"}</p>
+          <p class="text-sm text-slate-400">Sortie : ${formatDate(game.releaseDate)}</p>
+        </div>
+      `;
+
+      // Quand l'utilisateur clique sur une carte,
+      // le jeu est sélectionné et affiché en aperçu
+      card.addEventListener("click", () => {
+        selectLocalGame(game);
+        localSearchStatus.textContent = `Jeu sélectionné : ${game.gameTitle}`;
+      });
+
+      localResults.appendChild(card);
+    });
+  }
+
+  // Recherche un jeu sur IGDB via le back-end
+  async function searchIgdbGames() {
+    const query = igdbSearchInput.value.trim();
+
+    // Évite les recherches trop courtes
+    if (query.length < 2) {
+      igdbSearchStatus.textContent = "Tape au moins 2 caractères pour rechercher.";
+      igdbResults.innerHTML = "";
+      return;
+    }
+
+    igdbSearchStatus.textContent = "Recherche en cours...";
+    igdbResults.innerHTML = "";
+
+    try {
+      // Appel au serveur Express, qui se charge ensuite d'interroger IGDB
+      const response = await fetch(`/games/search/igdb?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur de recherche IGDB.");
+      }
+
+      const results = data.games || [];
+
+      if (!results.length) {
+        igdbSearchStatus.textContent = "Aucun jeu trouvé sur IGDB.";
+        return;
+      }
+
+      igdbSearchStatus.textContent = `${results.length} jeu(x) trouvé(s) sur IGDB.`;
+
+      // Affichage des résultats IGDB sous forme de cartes
+      results.forEach((game) => {
+        const card = document.createElement("div");
+        card.className = "rounded-xl border border-slate-800 bg-slate-900/50 p-4 flex gap-4 items-start";
+
+        card.innerHTML = `
+          <div class="w-16 h-20 bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+            ${
+              game.thumbnailUrl
+                ? `<img src="${game.thumbnailUrl}" alt="${game.gameTitle}" class="w-full h-full object-cover">`
+                : `<span class="text-xs text-slate-500 text-center">Pas d'image</span>`
+            }
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <h3 class="text-white font-semibold">${game.gameTitle}</h3>
+            <p class="text-sm text-slate-400 mt-1">Genre : ${game.gameGenre || "Inconnu"}</p>
+            <p class="text-sm text-slate-400">Sortie : ${formatDate(game.releaseDate)}</p>
+          </div>
+
+          <button
+            type="button"
+            class="import-igdb-game px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white shadow-lg shrink-0"
+            data-igdb-id="${game.igdbId}"
+          >
+            Importer
+          </button>
+        `;
+
+        igdbResults.appendChild(card);
+      });
+
+      // Gestion de l'import des jeux trouvés sur IGDB
+      document.querySelectorAll(".import-igdb-game").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const igdbId = button.dataset.igdbId;
+
+          button.disabled = true;
+          button.textContent = "Import...";
+
+          try {
+            // Requête vers le back-end pour importer le jeu dans la base locale
+            const response = await fetch("/games/import/igdb", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ igdbId }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+              throw new Error(data.error || "Impossible d'importer le jeu.");
+            }
+
+            // Ajoute le jeu à la liste locale s'il n'existe pas déjà
+            // puis met à jour la sélection et la preview
+            upsertLocalGame(data.game);
+
+            if (data.created) {
+              igdbSearchStatus.textContent = `Jeu importé avec succès : ${data.game.gameTitle}`;
+            } else {
+              igdbSearchStatus.textContent = `Jeu déjà présent en base locale : ${data.game.gameTitle}`;
+            }
+          } catch (error) {
+            igdbSearchStatus.textContent = error.message;
+          } finally {
+            button.disabled = false;
+            button.textContent = "Importer";
+          }
+        });
+      });
+    } catch (error) {
+      igdbSearchStatus.textContent = error.message || "Erreur lors de la recherche IGDB.";
+    }
+  }
+
+  // Bouton permettant d'effacer le jeu sélectionné
+  clearSelectedGameButton.addEventListener("click", clearSelectedGame);
+
+  // Recherche locale en direct à chaque saisie clavier
+  localSearchInput.addEventListener("input", (event) => {
+    renderLocalResults(event.target.value);
+  });
+
+  // Recherche IGDB au clic
+  igdbSearchButton.addEventListener("click", searchIgdbGames);
+
+  // Recherche IGDB avec la touche Entrée
+  igdbSearchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      searchIgdbGames();
+    }
+  });
+
+  // Initialisation de la page au chargement
+  renderLocalResults("");
+  renderPreviewFromGame(null);
+</script>

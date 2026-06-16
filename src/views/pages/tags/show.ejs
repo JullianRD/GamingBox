@@ -1,0 +1,50 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-purple-700 to-slate-900 text-white px-4 py-6">
+    <div class="max-w-3xl mx-auto">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <p class="text-sm text-slate-400 mb-2">
+                    <a href="/tags" class="hover:text-purple-300 transition">← Retour aux tags</a>
+                </p>
+                <h1 class="text-3xl font-bold tracking-tight"><%= tag.tagName %></h1>
+                <p class="text-slate-400 mt-1 text-sm">
+                    Détail du tag.
+                </p>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6">
+            <div class="grid gap-4">
+                <div class="rounded-xl border border-white/10 bg-slate-900/40 p-4">
+                    <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">Nom</p>
+                    <p class="text-sm text-slate-200"><%= tag.tagName %></p>
+                </div>
+
+                <% if (tag.createdAt) { %>
+                    <div class="rounded-xl border border-white/10 bg-slate-900/40 p-4">
+                        <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">Créé le</p>
+                        <p class="text-sm text-slate-200"><%= new Date(tag.createdAt).toLocaleDateString("fr-FR") %></p>
+                    </div>
+                <% } %>
+            </div>
+
+            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                <a href="/tags/<%= tag.id %>/edit"
+                   class="inline-flex items-center justify-center px-5 py-3 rounded-xl
+                          bg-gradient-to-r from-purple-600 to-indigo-600
+                          hover:from-purple-500 hover:to-indigo-500
+                          transition shadow-lg shadow-purple-600/30">
+                    ✏️ Modifier
+                </a>
+
+                <form action="/tags/<%= tag.id %>/delete" method="POST" onsubmit="return confirm('Supprimer ce tag ?');">
+                    <button type="submit"
+                            class="inline-flex items-center justify-center px-5 py-3 rounded-xl
+                                   border border-red-500/20 bg-red-500/10 text-red-300
+                                   hover:bg-red-500/20 transition">
+                        🗑️ Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

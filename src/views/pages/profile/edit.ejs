@@ -1,0 +1,222 @@
+<div class="min-h-screen px-4 py-10 bg-gradient-to-br from-slate-950 via-purple-700 to-slate-900">
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-white">Modifier mon profil</h1>
+        <p class="text-slate-400 mt-1">
+          Mets à jour ton pseudo, ta bio et ta photo de profil.
+        </p>
+      </div>
+
+      <a
+        href="/profile"
+        class="px-4 py-2 rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
+      >
+        ← Retour au profil
+      </a>
+    </div>
+
+    <!-- Flash messages -->
+    <% if (flash && flash.success) { %>
+      <div class="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300">
+        <%= flash.success %>
+      </div>
+    <% } %>
+
+    <% if (flash && flash.error) { %>
+      <div class="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300">
+        <%= flash.error %>
+      </div>
+    <% } %>
+
+    <form
+      action="/profile/edit"
+      method="POST"
+      enctype="multipart/form-data"
+      class="rounded-2xl border border-purple-500/20 bg-white/5 backdrop-blur-xl shadow-2xl p-6 space-y-6"
+    >
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <!-- Avatar drag and drop -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-3">Photo de profil</label>
+
+        <input
+          id="avatarInput"
+          type="file"
+          name="avatar"
+          accept="image/png,image/jpeg,image/jpg,image/webp"
+          class="hidden"
+        >
+
+        <label
+          for="avatarInput"
+          id="dropzone"
+          class="block rounded-2xl border-2 border-dashed border-slate-700 bg-slate-900/40 p-6 text-center cursor-pointer hover:border-purple-500 transition"
+        >
+          <div class="flex flex-col items-center gap-4">
+            <div class="w-28 h-28 rounded-full overflow-hidden border border-purple-500/20 bg-slate-800 flex items-center justify-center">
+              <% if (user && user.avatar) { %>
+                <img
+                  id="avatarPreview"
+                  src="<%= user.avatar %>"
+                  alt="Aperçu avatar"
+                  class="w-full h-full object-cover"
+                >
+                <span id="avatarFallback" class="hidden text-3xl font-bold text-slate-300">
+                  <%= user && user.pseudo ? user.pseudo.charAt(0).toUpperCase() : "?" %>
+                </span>
+              <% } else { %>
+                <img
+                  id="avatarPreview"
+                  src=""
+                  alt="Aperçu avatar"
+                  class="hidden w-full h-full object-cover"
+                >
+                <span id="avatarFallback" class="text-3xl font-bold text-slate-300">
+                  <%= user && user.pseudo ? user.pseudo.charAt(0).toUpperCase() : "?" %>
+                </span>
+              <% } %>
+            </div>
+
+            <div>
+              <p class="text-white font-medium">
+                Glisse-dépose une image ici
+              </p>
+              <p class="text-slate-400 text-sm mt-1">
+                ou clique pour sélectionner un fichier
+              </p>
+              <p class="text-slate-500 text-xs mt-2">
+                JPG, PNG ou WEBP • max 5 Mo
+              </p>
+            </div>
+
+            <p id="fileName" class="text-sm text-purple-300"></p>
+          </div>
+        </label>
+      </div>
+
+      <!-- Pseudo -->
+      <div>
+        <label for="pseudo" class="block text-sm text-slate-300 mb-2">Pseudo</label>
+        <input
+          id="pseudo"
+          type="text"
+          name="pseudo"
+          value="<%= user?.pseudo || '' %>"
+          required
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500 outline-none"
+        >
+      </div>
+
+      <!-- Bio -->
+      <div>
+        <label for="biographie" class="block text-sm text-slate-300 mb-2">Biographie</label>
+        <textarea
+          id="biographie"
+          name="biographie"
+          rows="5"
+          class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:border-purple-500 outline-none"
+        ><%= user?.biographie || "" %></textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-col sm:flex-row gap-3 justify-end">
+        <a
+          href="/profile"
+          class="px-4 py-2 rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800 transition text-center"
+        >
+          Annuler
+        </a>
+
+        <button
+          type="submit"
+          class="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 transition shadow-lg shadow-purple-900/30"
+        >
+          Enregistrer les modifications
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const dropzone = document.getElementById("dropzone");
+  const avatarInput = document.getElementById("avatarInput");
+  const avatarPreview = document.getElementById("avatarPreview");
+  const avatarFallback = document.getElementById("avatarFallback");
+  const fileName = document.getElementById("fileName");
+  // Ici, on récupère tous les éléments HTML nécessaires
+
+  function preventDefaults(event) {  // Empeche le navigateur d'ouvrir directement le fichier déposé
+    event.preventDefault();
+    event.stopPropagation(); 
+  }
+
+  ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => { // Le navigateur garde un comportement controllé
+    document.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function showPreview(file) {  // La fonction showPreview sert à afficher un aperçu de l’image sélectionnée
+    if (!file) return; // On arrête si aucun fichier
+
+    if (!file.type.startsWith("image/")) {  // On vérifie que le fichier est bien une image.
+      fileName.textContent = "Le fichier sélectionné n'est pas une image valide.";
+      return;
+    }
+
+    fileName.textContent = file.name; // Le nom du fichier est affiché dans l’interface.
+
+    const reader = new FileReader();   // On crée un objet FileReader, qui permet de lire le contenu du fichier côté navigateur.
+    reader.onload = (event) => {
+      avatarPreview.src = event.target.result;
+      avatarPreview.classList.remove("hidden");
+      avatarFallback.classList.add("hidden");
+    };
+    reader.readAsDataURL(file);
+    //Le fichier est lu au format Data URL, ce qui permet de l’afficher immédiatement dans une balise <img>.
+  }
+
+  avatarInput.addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    showPreview(file);
+  });
+
+  dropzone.addEventListener("dragenter", () => {
+    dropzone.classList.add("border-purple-500", "bg-slate-800/60");
+  });
+  // Quand un fichier entre dans la dropzone, on ajoute des classes CSS pour signaler visuellement que la zone est active.
+
+  dropzone.addEventListener("dragover", () => {
+    dropzone.classList.add("border-purple-500", "bg-slate-800/60");
+  });
+  // Quand le fichier survole la zone, on garde le style actif.
+
+  dropzone.addEventListener("dragleave", () => {
+    dropzone.classList.remove("border-purple-500", "bg-slate-800/60");
+  });
+  // Quand le fichier quitte la zone, on retire les classes visuelles.
+
+  dropzone.addEventListener("drop", (event) => {
+    dropzone.classList.remove("border-purple-500", "bg-slate-800/60");
+    // Quand le fichier est déposé, on retire le style de survol.
+
+    const files = event.dataTransfer.files; // On récupère les fichiers déposés.
+    if (!files || !files.length) return;
+
+    const file = files[0]; // On prend le premier fichier 
+
+    if (!file.type.startsWith("image/")) { // Le fichier doit être une image
+      fileName.textContent = "Le fichier déposé n'est pas une image valide.";
+      return;
+    }
+
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    avatarInput.files = dataTransfer.files; // Place le fichier déposé en drag and drop dans l'input fichier
+
+    showPreview(file); // On affiche immédiatement l'aperçu du fichier déposé
+  });
+</script>
