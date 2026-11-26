@@ -9,7 +9,7 @@
         <input id="search-q" name="q" type="search" value="<%= searchQuery %>" placeholder="Hades, Dune, Frieren, un pseudo…" class="field flex-1" autofocus>
         <button type="submit" class="btn-primary">Rechercher</button>
       </div>
-      <fieldset class="m-0 flex flex-wrap gap-2 border-0 p-0">
+      <fieldset class="chip-row my-0 min-w-0 border-0 py-0">
         <legend class="sr-only">Catégorie</legend>
         <% [{ code: "", plural: "Tout" }, ...Object.values(itemTypes).filter((t) => t.enabled)].forEach((t) => { const on = (searchType || "") === t.code; %>
           <label class="cursor-pointer">

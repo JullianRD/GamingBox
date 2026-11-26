@@ -20,32 +20,13 @@ class HomeController {
     });
   }
 
-  /**
-   * ℹÀ propos
-   */
+  // Page « À propos » : sources des données et confidentialité
   about(req, res) {
     res.render("pages/about", {
       title: "À propos - Cocon",
     });
   }
 
-  /**
-   * Contact
-   */
-  contact(req, res) {
-    res.render("pages/contact", {
-      title: "Contact - Cocon",
-    });
-  }
-
-  /**
-   * Documentation
-   */
-  documentation(req, res) {
-    res.render("pages/documentation", {
-      title: "Documentation - Cocon",
-    });
-  }
 }
 
 export default new HomeController();

@@ -7,7 +7,7 @@
       </div>
       <a href="/recommandations" class="btn-ghost">Recommandations reçues<% if (unseenRecommendations) { %> (<%= unseenRecommendations %>)<% } %></a>
     </div>
-    <nav aria-label="Catégories" class="flex flex-wrap gap-2">
+    <nav aria-label="Catégories" class="chip-row">
       <% [{ code: null, plural: "Tout" }, ...Object.values(itemTypes).filter((t) => t.enabled)].forEach((t) => { const on = currentType === t.code; %>
         <a href="/decouvrir<%= t.code ? `?type=${t.code}` : '' %>" class="rounded-full px-4 py-2 font-semibold no-underline <%= on ? 'bg-peach text-accent-ink' : 'bg-surface text-muted hover:text-ink' %>" <%= on ? 'aria-current=page' : '' %>><%= t.plural %></a>
       <% }) %>

@@ -14,9 +14,9 @@
     <h2 class="m-0 text-2xl">Profil</h2>
     <div class="flex items-center gap-4">
       <%- include('../../partials/social/avatar', { user, size: "h-20 w-20 text-2xl" }) %>
-      <div class="flex flex-col gap-1.5">
+      <div class="flex min-w-0 flex-1 flex-col gap-1.5">
         <label for="avatar" class="text-sm font-bold">Avatar</label>
-        <input id="avatar" name="avatar" type="file" accept="image/png,image/jpeg,image/webp" class="text-sm">
+        <input id="avatar" name="avatar" type="file" accept="image/png,image/jpeg,image/webp" class="w-full min-w-0 text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-peach file:px-4 file:py-2 file:font-bold file:text-accent-ink">
       </div>
     </div>
     <div class="flex flex-col gap-1.5">

@@ -1,96 +1,34 @@
-<div
-  class="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-950 via-purple-700 to-slate-900"
->
-  <div
-    class="w-full max-w-md p-8 rounded-2xl bg-white/5 backdrop-blur-xl shadow-2xl border border-purple-500/20 relative overflow-hidden"
-  >
-    <!-- Glow -->
-    <div
-      class="absolute -top-20 -left-20 w-40 h-40 bg-purple-600/30 blur-3xl rounded-full"
-    ></div>
-    <div
-      class="absolute -bottom-20 -right-20 w-40 h-40 bg-indigo-600/20 blur-3xl rounded-full"
-    ></div>
-
-    <!-- Header -->
-    <div class="mb-6 text-center relative z-10">
-      <h1 class="text-2xl font-bold text-white">🚀 Créer un compte</h1>
-      <p class="text-sm text-slate-400 mt-2">
-        Rejoins Cocon et commence ton aventure
-      </p>
+<div class="flex justify-center py-6 sm:py-12">
+  <div class="card flex w-full max-w-md flex-col gap-6 p-7 sm:p-9">
+    <div class="flex flex-col gap-2">
+      <h1 class="m-0 text-4xl">Créer mon cocon</h1>
+      <p class="m-0 text-muted">Tes jeux, films, livres et musiques, au même endroit.</p>
     </div>
 
-    <!-- Form -->
-    <form action="/register" method="POST" class="space-y-5 relative z-10">
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+    <%- include('../../partials/flash') %>
 
-      <!-- Pseudo -->
-      <div>
-        <label class="block text-sm mb-1 text-slate-300"> Pseudo </label>
-        <input
-          type="text"
-          name="pseudo"
-          required
-          class="w-full px-4 py-2 rounded-lg bg-slate-900/70 border border-slate-700 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-        />
+    <form action="/register" method="post" class="flex flex-col gap-4">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="flex flex-col gap-1.5">
+        <label for="pseudo" class="text-sm font-bold">Pseudo</label>
+        <input id="pseudo" name="pseudo" type="text" required minlength="3" maxlength="50" autocomplete="username" class="field">
       </div>
-
-      <!-- Email -->
-      <div>
-        <label class="block text-sm mb-1 text-slate-300"> Email </label>
-        <input
-          type="email"
-          name="email"
-          required
-          class="w-full px-4 py-2 rounded-lg bg-slate-900/70 border border-slate-700 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-        />
+      <div class="flex flex-col gap-1.5">
+        <label for="email" class="text-sm font-bold">Email</label>
+        <input id="email" name="email" type="email" required autocomplete="email" class="field">
       </div>
-
-      <!-- Password -->
-      <div>
-        <label class="block text-sm mb-1 text-slate-300"> Mot de passe </label>
-        <input
-          type="password"
-          name="password"
-          required
-          class="w-full px-4 py-2 rounded-lg bg-slate-900/70 border border-slate-700 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-        />
+      <div class="flex flex-col gap-1.5">
+        <label for="password" class="text-sm font-bold">Mot de passe</label>
+        <input id="password" name="password" type="password" required autocomplete="new-password" aria-describedby="password-aide" class="field">
+        <p id="password-aide" class="m-0 px-2 text-xs text-muted">Au moins 8 caractères.</p>
       </div>
-
-      <!-- Submit -->
-      <button
-        type="submit"
-        class="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition text-white font-medium shadow-lg shadow-purple-600/30"
-      >
-        Créer mon compte
-      </button>
-
-      <div class="flex items-start gap-2 text-sm text-slate-300">
-        <input
-          type="checkbox"
-          name="gdprConsent"
-          required
-          class="mt-1 accent-purple-600"
-        />
-        <span>
-          J’accepte que mes données soient utilisées dans le cadre de
-          l’application Cocon.
-        </span>
-      </div>
+      <label class="flex items-start gap-3 text-sm leading-snug">
+        <input type="checkbox" name="gdprConsent" required class="mt-0.5 h-4 w-4 shrink-0 accent-[#a9573a]">
+        <span>J'accepte que mes données soient utilisées pour faire fonctionner Cocon. Je peux les exporter ou supprimer mon compte à tout moment.</span>
+      </label>
+      <button type="submit" class="btn-primary mt-2 h-12 w-full">Créer mon compte</button>
     </form>
 
-    <!-- Footer -->
-    <div class="mt-6 text-center text-sm text-slate-400 relative z-10">
-      Déjà un compte ?
-      <a href="/login" class="text-purple-400 hover:underline">
-        Se connecter
-      </a>
-    </div>
-
-    <div class="mt-4 text-center relative z-10">
-      <a href="/" class="text-xs text-slate-500 hover:text-slate-300">
-        ← Retour à l’accueil
-      </a>
-    </div>
+    <p class="m-0 text-center text-sm text-muted">Déjà un compte ? <a href="/login" class="font-bold">Se connecter</a></p>
   </div>
 </div>

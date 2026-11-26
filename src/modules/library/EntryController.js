@@ -5,6 +5,7 @@ import ListService from "../lists/ListService.js";
 import RecommendationService from "../discover/RecommendationService.js";
 import SocialService from "../social/SocialService.js";
 import UserItemRepository from "./UserItemRepository.js";
+import VolumeService, { VOLUME_TYPES } from "./VolumeService.js";
 
 const isHtmx = (req) => Boolean(req.get("HX-Request"));
 
@@ -60,10 +61,11 @@ class EntryController {
       });
     }
 
-    const [lists, friends, alreadySent] = await Promise.all([
+    const [lists, friends, alreadySent, volumes] = await Promise.all([
       ListService.getListsForItem(userId, own.itemId),
       SocialService.getFriends(userId),
       RecommendationService.sentFor(userId, own.itemId),
+      VOLUME_TYPES.has(own.type) ? VolumeService.get(own.id, userId) : null,
     ]);
     res.render("pages/entries/show", {
       title: `${own.title} - Cocon`,
@@ -72,8 +74,23 @@ class EntryController {
       lists,
       friends,
       alreadySent,
+      volumes,
       comments,
     });
+  });
+
+  // Tomes (manga) : un clic fait tourner l'état, ou réglage du total, ou « possédés jusqu'au tome N »
+  updateVolumes = handle(async (req, res) => {
+    const { id } = req.params;
+    const userId = req.session.userId;
+    const { action, number, total, upTo } = req.body;
+    const volumes =
+      action === "total"
+        ? await VolumeService.setTotal(id, userId, total)
+        : action === "jusqua"
+          ? await VolumeService.ownUpTo(id, userId, upTo)
+          : await VolumeService.cycle(id, userId, number);
+    respond(req, res, "partials/entries/volumes", { volumes }, `${volumes.entry.href}#tomes`);
   });
 
   updateStatus = handle(async (req, res) => {

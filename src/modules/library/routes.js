@@ -38,6 +38,7 @@ entryActions.post("/favori", ...guard(EntryController.toggleFavorite));
 entryActions.post("/tags", ...guard(EntryController.addTag));
 entryActions.post("/tags/:tagId/retirer", ...guard(EntryController.removeTag));
 entryActions.post("/personnages/:entityId/favori", ...guard(EntryController.toggleCharacter));
+entryActions.post("/tomes", ...guard(EntryController.updateVolumes));
 entryActions.post("/supprimer", ...guard(EntryController.destroy));
 router.use("/entrees/:id", entryActions);
 

@@ -1,77 +1,28 @@
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-purple-700 to-slate-900 px-4 py-10">
-  <div class="w-full max-w-md rounded-2xl border border-purple-500/20 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
-
-    <!-- Header -->
-    <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-white">Connexion</h1>
-      <p class="mt-2 text-sm text-slate-400">
-        Connecte-toi à ton compte Cocon
-      </p>
+<div class="flex justify-center py-6 sm:py-12">
+  <div class="card flex w-full max-w-md flex-col gap-6 p-7 sm:p-9">
+    <div class="flex flex-col gap-2">
+      <h1 class="m-0 text-4xl">Connexion</h1>
+      <p class="m-0 text-muted">Content de te revoir dans ton cocon.</p>
     </div>
 
-    <!-- Message logout -->
     <% if (typeof logoutSuccess !== "undefined" && logoutSuccess) { %>
-      <div class="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300">
-        Déconnexion réussie ✅
-      </div>
+      <p role="status" class="m-0 rounded-2xl bg-games px-5 py-3 font-semibold text-games-ink">Tu es bien déconnecté.</p>
     <% } %>
+    <%- include('../../partials/flash') %>
 
-    <!-- Flash success -->
-    <% if (flash && flash.success) { %>
-      <div class="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300">
-        <%= flash.success %>
-      </div>
-    <% } %>
-
-    <!-- Flash error -->
-    <% if (flash && flash.error) { %>
-      <div class="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300">
-        <%= flash.error %>
-      </div>
-    <% } %>
-
-    <!-- Form -->
-    <form action="/login" method="POST" class="space-y-5">
+    <form action="/login" method="post" class="flex flex-col gap-4">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-
-      <div>
-        <label for="email" class="mb-2 block text-sm text-slate-300">Email</label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          class="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white focus:border-purple-500 outline-none"
-          placeholder="ton@email.com"
-        >
+      <div class="flex flex-col gap-1.5">
+        <label for="email" class="text-sm font-bold">Email</label>
+        <input id="email" name="email" type="email" required autocomplete="email" class="field">
       </div>
-
-      <div>
-        <label for="password" class="mb-2 block text-sm text-slate-300">Mot de passe</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          class="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white focus:border-purple-500 outline-none"
-          placeholder="••••••••"
-        >
+      <div class="flex flex-col gap-1.5">
+        <label for="password" class="text-sm font-bold">Mot de passe</label>
+        <input id="password" name="password" type="password" required autocomplete="current-password" class="field">
       </div>
-
-      <button
-        type="submit"
-        class="w-full rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-3 font-medium text-white shadow-lg hover:from-purple-500 hover:to-indigo-500 transition"
-      >
-        Se connecter
-      </button>
+      <button type="submit" class="btn-primary mt-2 h-12 w-full">Se connecter</button>
     </form>
 
-    <!-- Bottom links -->
-    <div class="mt-6 text-center text-sm text-slate-400">
-      Pas encore de compte ?
-      <a href="/register" class="text-purple-300 hover:text-purple-200 transition">
-        Inscription
-      </a>
-    </div>
+    <p class="m-0 text-center text-sm text-muted">Pas encore de compte ? <a href="/register" class="font-bold">Créer mon cocon</a></p>
   </div>
 </div>
