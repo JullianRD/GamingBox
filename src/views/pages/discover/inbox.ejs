@@ -1,0 +1,37 @@
+<div class="flex flex-col gap-8">
+  <section class="flex max-w-2xl flex-col gap-2">
+    <a href="/decouvrir" class="text-sm font-semibold">Découvrir</a>
+    <h1 class="m-0 text-4xl">Recommandations reçues</h1>
+    <p class="m-0 leading-relaxed text-muted">Ce que tes amis t'ont conseillé. Ajoute ce qui te tente à ta bibliothèque.</p>
+  </section>
+
+  <% if (!inbox.length) { %>
+    <%- include('../../components/empty-state', { title: "Aucune recommandation pour l'instant", text: "Tes amis peuvent te recommander une œuvre depuis leurs fiches.", ctaHref: "/amis", ctaLabel: "Voir mes amis" }) %>
+  <% } else { %>
+    <ul class="m-0 flex list-none flex-col gap-3 p-0">
+      <% inbox.forEach((r) => { const t = itemTypes[r.item.type]; %>
+        <li class="card flex flex-wrap items-center gap-4 <%= r.unseen ? 'ring-2 ring-peach' : '' %>">
+          <a href="<%= r.item.href %>" class="shrink-0">
+            <% if (r.item.coverUrl) { %><img src="<%= r.item.coverUrl %>" alt="" class="h-24 w-16 rounded-xl object-cover"><% } else { %><span class="block h-24 w-16 rounded-xl <%= t.tone.cover %>"></span><% } %>
+          </a>
+          <div class="flex min-w-[200px] flex-1 flex-col gap-1.5">
+            <span class="flex items-center gap-2 text-sm text-muted">
+              <%- include('../../partials/social/avatar', { user: r.sender, size: "h-6 w-6 text-[10px]" }) %>
+              <a href="/u/<%= encodeURIComponent(r.sender.pseudo) %>" class="font-bold"><%= r.sender.pseudo %></a> te recommande · <%= timeAgo(r.createdAt) %>
+            </span>
+            <a href="<%= r.item.href %>" class="text-lg font-bold text-ink no-underline hover:text-ink"><%= r.item.title %></a>
+            <% if (r.message) { %><p class="m-0 border-l-2 border-peach pl-3 italic text-muted"><%= r.message %></p><% } %>
+          </div>
+          <div class="flex items-center gap-2">
+            <%- include('../../components/type-chip', { type: r.item.type }) %>
+            <a href="<%= r.item.href %>" class="<%= r.item.inLibrary ? 'btn-ghost' : 'btn-primary' %> px-4 py-2 text-sm"><%= r.item.inLibrary ? "Dans ma bibliothèque" : "Voir et ajouter" %></a>
+            <form action="/recommandations/<%= r.id %>/supprimer" method="post" hx-post="/recommandations/<%= r.id %>/supprimer" hx-target="closest li" hx-swap="outerHTML">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="btn-ghost px-3 py-2 text-sm" aria-label="Retirer la recommandation de <%= r.item.title %>">Retirer</button>
+            </form>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>

@@ -1,0 +1,53 @@
+<%#
+  Ligne d'import à vérifier. Paramètres : row, importId
+  États : matched (œuvre retenue), ambiguous (propositions), unmatched, skipped
+%>
+<% const d = row.data; const rowType = itemTypes[d.type]; const base = `/imports/${importId}/lignes/${row.id}`; %>
+<li id="row-<%= row.id %>" class="card flex flex-col gap-4 <%= row.state === 'skipped' ? 'opacity-60' : '' %>">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="flex flex-col gap-1">
+      <span class="font-bold"><%= d.title %><% if (d.year) { %> <span class="font-normal text-muted">(<%= d.year %>)</span><% } %></span>
+      <span class="text-sm text-muted">
+        <%= rowType?.label %><% if (d.creator) { %> · <%= d.creator %><% } %>
+        · <%= rowType?.statusLabels[d.status] ?? d.status %><% if (d.rating) { %> · <%= d.rating / 2 %>/5<% } %>
+      </span>
+    </div>
+    <form hx-post="<%= base %>/ecarter" hx-target="#row-<%= row.id %>" hx-swap="outerHTML" method="post" action="<%= base %>/ecarter">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn-ghost px-4 py-1.5 text-sm"><%= row.state === "skipped" ? "Reprendre" : "Écarter" %></button>
+    </form>
+  </div>
+
+  <% if (row.state === "matched" && row.match) { %>
+    <div class="flex items-center gap-3 rounded-2xl bg-cream px-3 py-2">
+      <% if (row.match.coverUrl) { %><img src="<%= row.match.coverUrl %>" alt="" class="h-14 w-10 rounded-lg object-cover"><% } %>
+      <span class="text-sm">Retenu : <strong><%= row.match.title %></strong><% if (row.match.releaseDate) { %> (<%= String(row.match.releaseDate).slice(0, 4) %>)<% } %></span>
+    </div>
+  <% } else if (row.state !== "skipped") { %>
+    <% if (row.candidates.length) { %>
+      <p class="m-0 text-sm font-semibold">C'est lequel ?</p>
+      <ul class="m-0 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-4">
+        <% row.candidates.forEach((c, index) => { %>
+          <li>
+            <form hx-post="<%= base %>/choisir" hx-target="#row-<%= row.id %>" hx-swap="outerHTML" method="post" action="<%= base %>/choisir" class="h-full">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="index" value="<%= index %>">
+              <button type="submit" class="flex h-full w-full cursor-pointer items-center gap-2 rounded-2xl border border-line-soft bg-surface p-2 text-left hover:border-terracotta">
+                <% if (c.coverUrl) { %><img src="<%= c.coverUrl %>" alt="" loading="lazy" class="h-14 w-10 shrink-0 rounded-lg object-cover"><% } %>
+                <span class="text-sm leading-snug"><strong><%= c.title %></strong><% if (c.releaseDate) { %><br><span class="text-muted"><%= String(c.releaseDate).slice(0, 4) %></span><% } %><% const by = c.metadata?.artist || c.metadata?.authors?.[0]; if (by) { %><br><span class="text-muted"><%= by %></span><% } %></span>
+              </button>
+            </form>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <p class="m-0 text-sm text-muted">Pas trouvé automatiquement. Essaie un autre titre :</p>
+    <% } %>
+    <form hx-post="<%= base %>/recherche" hx-target="#row-<%= row.id %>" hx-swap="outerHTML" method="post" action="<%= base %>/recherche" class="flex flex-wrap gap-2">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label class="sr-only" for="q-<%= row.id %>">Titre à chercher</label>
+      <input id="q-<%= row.id %>" name="q" type="search" value="<%= d.title %>" class="field min-w-0 flex-1 py-2 text-sm">
+      <button type="submit" class="btn-ghost px-4 py-2 text-sm">Chercher</button>
+    </form>
+  <% } %>
+</li>

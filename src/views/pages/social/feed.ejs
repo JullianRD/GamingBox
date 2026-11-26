@@ -1,0 +1,17 @@
+<div class="mx-auto flex max-w-3xl flex-col gap-8">
+  <section class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <h1 class="m-0 text-4xl">Fil d'activité</h1>
+      <p class="m-0 text-muted">Ce que toi et tes amis avez joué, vu, lu et noté.</p>
+    </div>
+    <a href="/amis" class="btn-ghost">Mes amis</a>
+  </section>
+
+  <% if (activities.length) { %>
+    <ul class="m-0 flex list-none flex-col gap-3 p-0">
+      <%- include('../../partials/social/feed-items', { activities, nextCursor }) %>
+    </ul>
+  <% } else { %>
+    <%- include('../../components/empty-state', { title: "Ton fil est encore calme", text: "Ajoute des œuvres à ta bibliothèque ou suis des amis pour voir leur activité ici.", ctaHref: "/recherche", ctaLabel: "Trouver des amis" }) %>
+  <% } %>
+</div>

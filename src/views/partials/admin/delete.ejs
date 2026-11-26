@@ -1,0 +1,5 @@
+<%# Bouton de suppression admin. Paramètre : action %>
+<form action="<%= action %>" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <button type="submit" class="bg-transparent p-0 text-sm font-semibold text-[#9b2c2c] underline">Supprimer</button>
+</form>

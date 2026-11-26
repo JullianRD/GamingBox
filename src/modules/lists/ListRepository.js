@@ -79,6 +79,10 @@ class ListRepository {
     return toList(rows[0]);
   }
 
+  static async setPublic(listId, isPublic) {
+    await db.query(`UPDATE lists SET is_public = $2 WHERE id_list = $1`, [listId, isPublic]);
+  }
+
   static async delete(userId, listId) {
     await db.query(`DELETE FROM lists WHERE user_id = $1 AND id_list = $2`, [userId, listId]);
   }

@@ -1,0 +1,35 @@
+<div class="flex flex-col gap-10">
+  <section class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <h1 class="m-0 text-4xl">Ma bibliothèque</h1>
+      <p class="m-0 text-muted">Tout ce que tu joues, regardes, lis et écoutes, rangé par catégorie.</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a href="/tags" class="btn-ghost">Mes tags</a>
+      <a href="/imports" class="btn-ghost">Importer</a>
+      <a href="/recherche" class="btn-primary">Ajouter</a>
+    </div>
+  </section>
+
+  <ul class="m-0 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
+    <% Object.values(itemTypes).forEach((t) => { const o = overview[t.code] || { count: 0, covers: [] }; %>
+      <li>
+        <% if (t.enabled) { %>
+          <a href="<%= t.path %>" class="flex items-center gap-4 rounded-3xl p-5 text-ink no-underline shadow-soft hover:text-ink <%= t.tone.chip %>">
+        <% } else { %>
+          <div class="flex items-center gap-4 rounded-3xl bg-surface p-5 opacity-70 shadow-soft">
+        <% } %>
+            <span class="flex -space-x-4">
+              <% for (let i = 0; i < 3; i++) { const cover = o.covers[i]; %>
+                <% if (cover) { %><img src="<%= cover %>" alt="" class="h-16 w-11 rounded-lg object-cover shadow-soft"><% } else { %><span class="h-16 w-11 rounded-lg border-2 border-surface <%= t.tone.cover %>"></span><% } %>
+              <% } %>
+            </span>
+            <span class="flex flex-col gap-0.5">
+              <span class="font-serif text-2xl"><%= t.plural %></span>
+              <span class="text-sm opacity-80"><%= t.enabled ? `${o.count} œuvre${o.count > 1 ? "s" : ""}` : "Bientôt" %></span>
+            </span>
+        <% if (t.enabled) { %></a><% } else { %></div><% } %>
+      </li>
+    <% }) %>
+  </ul>
+</div>

@@ -43,7 +43,7 @@ export const ITEM_TYPES = {
     label: "Livre",
     plural: "Livres",
     path: "/livres",
-    enabled: false,
+    enabled: true,
     tone: { chip: "bg-books text-books-ink", cover: "bg-books-cover", ink: "text-books-ink" },
     statusLabels: {
       planned: "À lire",
@@ -58,7 +58,7 @@ export const ITEM_TYPES = {
     label: "Série",
     plural: "Séries",
     path: "/series",
-    enabled: false,
+    enabled: true,
     tone: { chip: "bg-series text-series-ink", cover: "bg-series-cover", ink: "text-series-ink" },
     statusLabels: {
       planned: "À voir",
@@ -73,7 +73,7 @@ export const ITEM_TYPES = {
     label: "Anime",
     plural: "Anime",
     path: "/anime",
-    enabled: false,
+    enabled: true,
     tone: { chip: "bg-anime text-anime-ink", cover: "bg-anime-cover", ink: "text-anime-ink" },
     statusLabels: {
       planned: "À voir",
@@ -88,7 +88,7 @@ export const ITEM_TYPES = {
     label: "Manga",
     plural: "Manga",
     path: "/manga",
-    enabled: false,
+    enabled: true,
     tone: { chip: "bg-anime text-anime-ink", cover: "bg-anime-cover", ink: "text-anime-ink" },
     statusLabels: {
       planned: "À lire",
@@ -103,7 +103,7 @@ export const ITEM_TYPES = {
     label: "Musique",
     plural: "Musique",
     path: "/musique",
-    enabled: false,
+    enabled: true,
     tone: { chip: "bg-music text-music-ink", cover: "bg-music-cover", ink: "text-music-ink" },
     statusLabels: {
       planned: "À écouter",

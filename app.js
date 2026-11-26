@@ -10,6 +10,12 @@ import path from "path";
 import expressLayouts from "express-ejs-layouts";
 import { logger } from "./src/config/logger.js";
 import { ITEM_TYPES, STATUSES } from "./src/utils/itemTypes.js";
+import { timeAgo } from "./src/utils/timeAgo.js";
+import { navItemsFor } from "./src/utils/navigation.js";
+import { itemMeta } from "./src/utils/itemMeta.js";
+import { describeActivity } from "./src/modules/social/activityText.js";
+import ImportService from "./src/modules/imports/ImportService.js";
+import RecommendationService from "./src/modules/discover/RecommendationService.js";
 
 // Routes
 import routes from "./src/routes/index.js";
@@ -85,10 +91,26 @@ app.use(flashMiddleware);
 app.use(injectUserToLocals);
 app.use((req, res, next) => {
   res.locals.currentPath = req.path; // onglet actif dans la navigation
+  res.locals.navItems = navItemsFor(req.path);
   res.locals.itemTypes = ITEM_TYPES;
   res.locals.statuses = STATUSES;
+  res.locals.timeAgo = timeAgo;
+  res.locals.itemMeta = itemMeta;
+  res.locals.describeActivity = describeActivity;
   res.locals.section = null; // thème léger de la section courante (data-section)
   res.locals.csrfToken = generateToken(req, res); // jeton commun aux formulaires et à htmx
+  res.locals.unseenRecommendations = 0;
+  next();
+});
+
+// Pastille des recommandations reçues non lues (pages complètes seulement)
+app.use(async (req, res, next) => {
+  if (!req.session?.userId || req.method !== "GET" || req.get("HX-Request")) return next();
+  try {
+    res.locals.unseenRecommendations = await RecommendationService.unseenCount(req.session.userId);
+  } catch (error) {
+    logger.warn({ err: error }, "Compteur de recommandations indisponible");
+  }
   next();
 });
 
@@ -133,6 +155,8 @@ app.listen(PORT, () => {
     { port: PORT, env: process.env.NODE_ENV || "development" },
     `Cocon démarré sur http://localhost:${PORT}`,
   );
+  // Reprend les imports interrompus par un redémarrage
+  ImportService.resume().catch((error) => logger.error({ err: error }, "Reprise des imports impossible"));
 });
 
 // ═══════════════════════════════════════════════════════════════

@@ -1,0 +1,75 @@
+<% const c = current.counts; const toApply = c.matched ?? 0; %>
+<div class="flex flex-col gap-8">
+  <section class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <a href="/imports" class="text-sm font-semibold">Imports</a>
+      <h1 class="m-0 text-4xl">Import <%= current.sourceLabel %></h1>
+      <p class="m-0 text-muted"><% if (current.label) { %><%= current.label %> · <% } %><%= current.total %> œuvres · <%= timeAgo(current.createdAt) %></p>
+    </div>
+    <%- include('../../partials/imports/status', { status: current.status }) %>
+  </section>
+
+  <% if (["matching", "applying"].includes(current.status)) { %>
+    <%- include('../../partials/imports/progress', { current }) %>
+  <% } else if (current.status === "failed") { %>
+    <section class="card flex flex-col gap-3">
+      <h2 class="m-0 text-2xl">L'import s'est arrêté</h2>
+      <p class="m-0 text-muted"><%= current.error || "Erreur inconnue." %></p>
+    </section>
+  <% } else if (current.status === "done") { %>
+    <section class="flex flex-wrap items-center justify-between gap-6 rounded-[28px] bg-peach px-6 py-7 sm:px-10">
+      <div class="flex flex-col gap-2">
+        <h2 class="m-0 text-2xl text-accent-ink"><%= c.applied ?? 0 %> œuvre<%= (c.applied ?? 0) > 1 ? "s" : "" %> dans ta bibliothèque</h2>
+        <% const left = (c.skipped ?? 0) + (c.unmatched ?? 0) + (c.ambiguous ?? 0); %>
+        <p class="m-0 text-accent-ink/90"><%= left ? `${left} ligne${left > 1 ? "s" : ""} laissée${left > 1 ? "s" : ""} de côté.` : "Tout a été importé." %></p>
+      </div>
+      <a href="/bibliotheque" class="btn-primary">Voir ma bibliothèque</a>
+    </section>
+  <% } else { %>
+    <section class="grid grid-cols-3 gap-3">
+      <div class="card flex flex-col gap-1 text-center"><span class="font-serif text-3xl"><%= toApply %></span><span class="text-sm text-muted">reconnues</span></div>
+      <div class="card flex flex-col gap-1 text-center"><span class="font-serif text-3xl"><%= (c.ambiguous ?? 0) + (c.unmatched ?? 0) %></span><span class="text-sm text-muted">à vérifier</span></div>
+      <div class="card flex flex-col gap-1 text-center"><span class="font-serif text-3xl"><%= c.skipped ?? 0 %></span><span class="text-sm text-muted">écartées</span></div>
+    </section>
+
+    <form action="/imports/<%= current.id %>/appliquer" method="post" class="flex flex-wrap items-center gap-4 rounded-[28px] bg-peach px-6 py-5">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <p class="m-0 flex-1 text-accent-ink">Les lignes à vérifier que tu ne tranches pas seront ignorées. Tes notes et avis déjà présents ne seront pas remplacés.</p>
+      <button type="submit" class="btn-primary" <%= toApply ? "" : "disabled" %>>Ajouter <%= toApply %> œuvres</button>
+    </form>
+
+    <% if (toReview.length) { %>
+      <section aria-labelledby="a-verifier" class="flex flex-col gap-3">
+        <h2 id="a-verifier" class="m-0 text-2xl">À vérifier</h2>
+        <ul class="m-0 flex list-none flex-col gap-3 p-0">
+          <% toReview.forEach((row) => { %><%- include('../../partials/imports/row', { row, importId: current.id }) %><% }) %>
+        </ul>
+      </section>
+    <% } %>
+
+    <% if (matched.length) { %>
+      <details class="flex flex-col gap-3">
+        <summary class="cursor-pointer text-2xl font-serif">Reconnues (<%= toApply %>)</summary>
+        <ul class="m-0 mt-3 flex list-none flex-col gap-3 p-0">
+          <% matched.forEach((row) => { %><%- include('../../partials/imports/row', { row, importId: current.id }) %><% }) %>
+        </ul>
+      </details>
+    <% } %>
+
+    <% if (skipped.length) { %>
+      <details class="flex flex-col gap-3">
+        <summary class="cursor-pointer text-2xl font-serif">Écartées (<%= c.skipped %>)</summary>
+        <ul class="m-0 mt-3 flex list-none flex-col gap-3 p-0">
+          <% skipped.forEach((row) => { %><%- include('../../partials/imports/row', { row, importId: current.id }) %><% }) %>
+        </ul>
+      </details>
+    <% } %>
+  <% } %>
+
+  <% if (["review", "done", "failed"].includes(current.status)) { %>
+    <form action="/imports/<%= current.id %>/supprimer" method="post">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn-ghost text-sm">Supprimer cet import</button>
+    </form>
+  <% } %>
+</div>

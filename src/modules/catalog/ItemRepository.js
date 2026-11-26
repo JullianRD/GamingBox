@@ -24,6 +24,7 @@ export const toEntity = (row) => ({
   name: row.name,
   imageUrl: row.image_url,
   role: row.role ?? null,
+  metadata: row.metadata ?? {},
   isFavorite: Boolean(row.is_favorite),
 });
 
@@ -49,9 +50,9 @@ class ItemRepository {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         ON CONFLICT (source, external_id) DO UPDATE SET
           title = EXCLUDED.title,
-          release_date = EXCLUDED.release_date,
-          cover_url = EXCLUDED.cover_url,
-          genres = EXCLUDED.genres,
+          release_date = COALESCE(EXCLUDED.release_date, items.release_date),
+          cover_url = COALESCE(EXCLUDED.cover_url, items.cover_url),
+          genres = CASE WHEN cardinality(EXCLUDED.genres) > 0 THEN EXCLUDED.genres ELSE items.genres END,
           metadata = items.metadata || EXCLUDED.metadata
         RETURNING *
       `,
@@ -77,14 +78,15 @@ class ItemRepository {
       for (const [position, entity] of entities.entries()) {
         const { rows } = await client.query(
           `
-            INSERT INTO entities (entity_kind, source, external_id, name, image_url)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO entities (entity_kind, source, external_id, name, image_url, metadata)
+            VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (source, entity_kind, external_id) DO UPDATE SET
               name = EXCLUDED.name,
-              image_url = EXCLUDED.image_url
+              image_url = EXCLUDED.image_url,
+              metadata = EXCLUDED.metadata
             RETURNING id_entity
           `,
-          [entity.kind, source, entity.externalId, entity.name, entity.imageUrl],
+          [entity.kind, entity.source ?? source, entity.externalId, entity.name, entity.imageUrl, entity.metadata ?? {}],
         );
         await client.query(
           `

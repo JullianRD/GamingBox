@@ -1,12 +1,28 @@
-<%# Personnages de l'œuvre, chargés à la demande. Paramètres : entry, entities, unavailable %>
-<% if (entities.length) { %>
+<%# Personnages et musiques de l'œuvre, chargés à la demande. Paramètres : entry, entities, unavailable %>
+<% const characters = entities.filter((e) => e.kind !== "song"); const songs = entities.filter((e) => e.kind === "song"); %>
+<% if (characters.length) { %>
   <ul class="m-0 grid list-none grid-cols-3 gap-5 p-0 sm:grid-cols-4 lg:grid-cols-6">
-    <% entities.forEach((entity) => { %>
+    <% characters.forEach((entity) => { %>
       <%- include('character', { entry, entity }) %>
     <% }) %>
   </ul>
-<% } else if (unavailable) { %>
-  <p class="m-0 text-muted">Les personnages sont indisponibles pour le moment.</p>
-<% } else { %>
-  <p class="m-0 text-muted">Aucun personnage connu pour cette œuvre.</p>
+<% } %>
+<% if (songs.length) { %>
+  <h3 class="m-0 mt-6 text-xl">Openings et endings</h3>
+  <ul class="m-0 mt-3 flex list-none flex-col gap-2 p-0">
+    <% songs.forEach((song) => { %>
+      <li id="character-<%= song.id %>" class="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3 shadow-soft">
+        <span class="w-24 shrink-0 text-sm font-bold text-section-ink"><%= song.role %></span>
+        <span class="min-w-0 flex-1"><%= song.name %></span>
+        <button type="button" hx-post="<%= entry.href %>/personnages/<%= song.id %>/favori" hx-target="#character-<%= song.id %>" hx-swap="outerHTML"
+                aria-pressed="<%= song.isFavorite %>" aria-label="<%= song.isFavorite ? 'Retirer' : 'Ajouter' %> <%= song.name %> des favoris"
+                class="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface <%= song.isFavorite ? 'text-accent' : 'text-muted' %>">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="<%= song.isFavorite ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+        </button>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+<% if (!entities.length) { %>
+  <p class="m-0 text-muted"><%= unavailable ? "Les personnages sont indisponibles pour le moment." : "Aucun personnage connu pour cette œuvre." %></p>
 <% } %>

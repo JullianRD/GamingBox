@@ -9,15 +9,13 @@ import libraryRoutes from "../modules/library/routes.js";
 import searchRoutes from "../modules/search/routes.js";
 import importRoutes from "../modules/imports/routes.js";
 import listRoutes from "../modules/lists/routes.js";
+import socialRoutes from "../modules/social/routes.js";
+import discoverRoutes from "../modules/discover/routes.js";
+import challengeRoutes from "../modules/challenges/routes.js";
 
 // 🔐 Auth & compte
 import authRoutes from "./public/authRoutes.js";
 import profileRoutes from "./user/profileRoutes.js";
-
-// 📦 Métier
-import tagRoutes from "./user/tagRoutes.js";
-import shareRoutes from "./user/shareRoutes.js";
-import gameRoutes from "./user/gameRoutes.js";
 
 // Admin
 import adminRoutes from "./admin/adminRoutes.js";
@@ -34,23 +32,20 @@ const router = Router();
  * - ne contient AUCUNE logique métier
  */
 
-// Les modules Cocon passent avant les anciens routeurs, dont certains
-// appliquent requireAuth à tout ce qui les traverse.
+// Les modules Cocon passent avant les routeurs historiques (accueil public, auth, profil, admin).
 router.use(libraryRoutes);
 router.use(searchRoutes);
 router.use(importRoutes);
 router.use(listRoutes);
+router.use(socialRoutes);
+router.use(discoverRoutes);
+router.use(challengeRoutes);
 
 router.use(homesRoutes);
 
 // Authentification utilisateur
 router.use(authRoutes);
 router.use(profileRoutes);
-
-// Métier
-router.use(tagRoutes);
-router.use(shareRoutes);
-router.use(gameRoutes);
 
 // Administration
 router.use(adminRoutes);

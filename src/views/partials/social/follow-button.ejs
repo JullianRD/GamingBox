@@ -1,0 +1,13 @@
+<%# Bouton suivre / ne plus suivre. Paramètres : profile, relation %>
+<div id="follow-<%= profile.id %>" class="flex flex-wrap items-center gap-2">
+  <button type="button" hx-post="<%= profile.href %>/suivre" hx-target="#follow-<%= profile.id %>" hx-swap="outerHTML"
+          aria-pressed="<%= relation.following %>"
+          class="<%= relation.following ? 'btn border-[1.5px] border-line bg-surface text-ink hover:bg-cream' : 'btn-primary' %>">
+    <%= relation.following ? "Abonné" : (relation.followedBy ? "Suivre en retour" : "Suivre") %>
+  </button>
+  <% if (relation.friends) { %>
+    <span class="rounded-full bg-games px-3 py-1 text-sm font-bold text-games-ink">Amis</span>
+  <% } else if (relation.followedBy) { %>
+    <span class="text-sm text-muted">te suit</span>
+  <% } %>
+</div>

@@ -1,0 +1,3 @@
+<%# Libellé d'état d'un import. Paramètre : status %>
+<% const importStatus = { matching: ["Recherche en cours", "bg-series text-series-ink"], review: ["À vérifier", "bg-books text-books-ink"], applying: ["Ajout en cours", "bg-series text-series-ink"], done: ["Terminé", "bg-games text-games-ink"], failed: ["Échec", "bg-movies text-movies-ink"] }[status]; %>
+<span class="inline-flex self-start rounded-full px-3 py-1 text-xs font-bold <%= importStatus[1] %>"><%= importStatus[0] %></span>

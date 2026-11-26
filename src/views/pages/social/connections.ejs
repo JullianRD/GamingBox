@@ -1,0 +1,30 @@
+<% const groups = [
+  { id: "amis", title: "Amis", people: friends, empty: "Quand vous vous suivez mutuellement, vous devenez amis." },
+  { id: "abonnements", title: "Abonnements", people: following, empty: "Tu ne suis personne d'autre pour l'instant." },
+  { id: "abonnes", title: "Abonnés", people: followers, empty: "Personne d'autre ne te suit pour l'instant." },
+]; %>
+<div class="mx-auto flex max-w-3xl flex-col gap-10">
+  <section class="flex flex-col gap-2">
+    <h1 class="m-0 text-4xl">Mes amis</h1>
+    <p class="m-0 text-muted">Cherche un pseudo dans la recherche pour suivre quelqu'un.</p>
+  </section>
+  <% groups.forEach((g) => { %>
+    <section aria-labelledby="<%= g.id %>" class="flex flex-col gap-4">
+      <%- include('../../components/section-header', { id: g.id, title: `${g.title} (${g.people.length})` }) %>
+      <% if (g.people.length) { %>
+        <ul class="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2">
+          <% g.people.forEach((person) => { %>
+            <li>
+              <a href="<%= person.href %>" class="flex items-center gap-3 rounded-3xl bg-surface p-3 text-ink no-underline shadow-soft hover:text-ink">
+                <%- include('../../partials/social/avatar', { user: person, size: "h-12 w-12 text-sm" }) %>
+                <span class="font-bold"><%= person.pseudo %></span>
+              </a>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p class="m-0 text-muted"><%= g.empty %></p>
+      <% } %>
+    </section>
+  <% }) %>
+</div>

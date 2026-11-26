@@ -1,0 +1,45 @@
+<%# Une question du blindtest, avant ou après réponse. Paramètre : quiz %>
+<% const q = quiz.question; const last = quiz.answered ? quiz.last : null; %>
+<div id="quiz" class="flex flex-col gap-6">
+  <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <p class="m-0 font-serif text-2xl">Question <%= quiz.number %> <span class="font-sans text-base text-muted">sur <%= quiz.total %></span></p>
+    <span class="rounded-full bg-peach px-3 py-1 text-sm font-bold text-accent-ink">Score <%= quiz.score %></span>
+  </div>
+  <p class="m-0 text-lg font-semibold"><%= q.prompt %></p>
+
+  <% if (q.media.kind === "image") { %>
+    <div class="mx-auto w-48 overflow-hidden rounded-3xl shadow-cover sm:w-56">
+      <img src="<%= q.media.url %>" alt="Jaquette à deviner" class="aspect-[2/3] w-full object-cover transition duration-700 <%= last ? '' : 'scale-110 blur-xl' %>">
+    </div>
+  <% } else { %>
+    <div class="card flex flex-col items-center gap-3">
+      <% if (last && q.media.cover) { %><img src="<%= q.media.cover %>" alt="" class="h-28 w-28 rounded-2xl object-cover"><% } %>
+      <audio controls <%= last ? "" : "autoplay" %> preload="auto" src="<%= q.media.url %>" class="w-full max-w-md">Ton navigateur ne lit pas l'audio.</audio>
+    </div>
+  <% } %>
+
+  <% if (!last) { %>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <% q.options.forEach((option, index) => { %>
+        <form action="/defis/blindtest/reponse" method="post" hx-post="/defis/blindtest/reponse" hx-target="#quiz" hx-swap="outerHTML">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="choice" value="<%= index %>">
+          <button type="submit" class="w-full cursor-pointer rounded-2xl border-2 border-line-soft bg-surface px-5 py-4 text-left font-semibold hover:border-terracotta"><%= option %></button>
+        </form>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <ul class="m-0 grid list-none gap-3 p-0 sm:grid-cols-2" aria-label="Réponses">
+      <% q.options.forEach((option, index) => { const good = index === last.answer; const mine = index === last.choice; %>
+        <li class="rounded-2xl border-2 px-5 py-4 font-semibold <%= good ? 'border-games-ink bg-games text-games-ink' : mine ? 'border-movies-ink bg-movies text-movies-ink' : 'border-line-soft bg-surface text-muted' %>">
+          <%= option %><% if (good) { %> <span class="sr-only">(bonne réponse)</span><% } else if (mine) { %> <span class="sr-only">(ta réponse)</span><% } %>
+        </li>
+      <% }) %>
+    </ul>
+    <p class="m-0 text-lg font-bold" role="status"><%= last.correct ? "Bien vu !" : `Raté : c'était ${last.reveal}.` %></p>
+    <form action="/defis/blindtest/suivant" method="post" hx-post="/defis/blindtest/suivant" hx-target="#quiz" hx-swap="outerHTML">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn-primary" autofocus><%= quiz.number < quiz.total ? "Question suivante" : "Voir mon score" %></button>
+    </form>
+  <% } %>
+</div>

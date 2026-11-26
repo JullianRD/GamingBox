@@ -1,0 +1,99 @@
+<div class="flex flex-col gap-10">
+  <%- include('../../partials/flash') %>
+  <section class="flex max-w-2xl flex-col gap-2">
+    <h1 class="m-0 text-4xl">Défis</h1>
+    <p class="m-0 leading-relaxed text-muted">Des mini-jeux autour de ce que tu aimes. Tes résultats apparaissent dans le fil de tes amis.</p>
+  </section>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <section aria-labelledby="duel-titre" class="card flex flex-col gap-4">
+      <span class="self-start rounded-full bg-anime px-3 py-1 text-sm font-bold text-anime-ink">Duels</span>
+      <h2 id="duel-titre" class="m-0 text-2xl">Tu préfères…</h2>
+      <p class="m-0 text-sm leading-relaxed text-muted">Deux propositions, tu gardes ta préférée, jusqu'à ce qu'il n'en reste qu'une. Jeux, films, personnages, openings.</p>
+      <% if (duelInProgress) { %><a href="/defis/duel" class="btn-ghost self-start">Reprendre le duel en cours</a><% } %>
+      <form action="/defis/duel" method="post" class="mt-auto flex flex-col gap-3">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label class="flex flex-col gap-1 text-sm font-semibold">Avec
+          <select name="mode" class="field py-2 font-normal">
+            <% Object.entries(duelModes).forEach(([code, m]) => { %><option value="<%= code %>"><%= m.label %></option><% }) %>
+          </select>
+        </label>
+        <div class="flex flex-wrap gap-3">
+          <label class="flex flex-1 flex-col gap-1 text-sm font-semibold">Catégorie
+            <select name="type" class="field py-2 font-normal">
+              <option value="">Toutes</option>
+              <% Object.values(itemTypes).filter((t) => t.enabled).forEach((t) => { %><option value="<%= t.code %>"><%= t.plural %></option><% }) %>
+            </select>
+          </label>
+          <label class="flex flex-col gap-1 text-sm font-semibold">Participants
+            <select name="size" class="field py-2 font-normal">
+              <% [8, 16, 32, 4].forEach((n) => { %><option value="<%= n %>"><%= n %></option><% }) %>
+            </select>
+          </label>
+        </div>
+        <button type="submit" class="btn-primary self-start">Lancer un duel</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="blindtest-titre" class="card flex flex-col gap-4">
+      <span class="self-start rounded-full bg-music px-3 py-1 text-sm font-bold text-music-ink">Blindtest</span>
+      <h2 id="blindtest-titre" class="m-0 text-2xl">Blindtest</h2>
+      <p class="m-0 text-sm leading-relaxed text-muted">Dix questions, quatre réponses. Écoute un extrait ou devine une jaquette floutée.</p>
+      <% if (blindtestInProgress) { %><a href="/defis/blindtest" class="btn-ghost self-start">Reprendre la partie en cours</a><% } %>
+      <form action="/defis/blindtest" method="post" class="mt-auto flex flex-col gap-3">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <fieldset class="m-0 flex flex-col gap-2 border-0 p-0">
+          <legend class="mb-1 text-sm font-semibold">Mode</legend>
+          <% Object.entries(blindtestModes).forEach(([code, m], i) => { %>
+            <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-line-soft px-4 py-2.5 has-[:checked]:border-terracotta has-[:checked]:bg-peach/40">
+              <input type="radio" name="mode" value="<%= code %>" <%= i === 0 ? "checked" : "" %> class="mt-1 accent-[var(--color-terracotta)]">
+              <span class="flex flex-col"><span class="font-semibold"><%= m.label %></span><span class="text-sm text-muted"><%= m.hint %></span></span>
+            </label>
+          <% }) %>
+        </fieldset>
+        <button type="submit" class="btn-primary self-start">Jouer</button>
+      </form>
+    </section>
+  </div>
+
+  <section class="card flex flex-col gap-2 bg-cream">
+    <h2 class="m-0 text-xl">Bientôt</h2>
+    <p class="m-0 text-sm text-muted">Répliques de films et planches de manga : ces contenus sont protégés et aucune source ne les fournit librement. Ils arriveront avec une banque de contenus sous licence ou proposée par la communauté.</p>
+  </section>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <section aria-labelledby="classement" class="flex flex-col gap-3">
+      <h2 id="classement" class="m-0 text-2xl">Classement entre amis</h2>
+      <% if (!Object.keys(board).length) { %>
+        <p class="m-0 text-muted">Joue un blindtest pour ouvrir le classement.</p>
+      <% } %>
+      <% Object.entries(board).forEach(([mode, rows]) => { %>
+        <div class="card flex flex-col gap-2">
+          <h3 class="m-0 text-lg"><%= blindtestModes[mode]?.label ?? mode %></h3>
+          <ol class="m-0 flex flex-col gap-1.5 pl-5">
+            <% rows.slice(0, 5).forEach((r) => { %>
+              <li class="<%= r.isMe ? 'font-bold' : '' %>"><%= r.pseudo %> <span class="text-muted">· <%= r.score %>/<%= r.total %></span></li>
+            <% }) %>
+          </ol>
+        </div>
+      <% }) %>
+    </section>
+
+    <section aria-labelledby="historique" class="flex flex-col gap-3">
+      <h2 id="historique" class="m-0 text-2xl">Mes dernières parties</h2>
+      <% if (!recent.length) { %><p class="m-0 text-muted">Aucune partie pour l'instant.</p><% } %>
+      <ul class="m-0 flex list-none flex-col gap-2 p-0">
+        <% recent.forEach((r) => { %>
+          <li>
+            <a href="/defis/resultats/<%= r.id %>" class="flex items-center justify-between gap-3 rounded-2xl bg-surface px-5 py-3 text-ink no-underline shadow-soft hover:text-ink">
+              <span class="flex flex-col">
+                <span class="font-bold"><%= r.game === "duel" ? `Duel · ${r.title}` : `Blindtest · ${r.title}` %></span>
+                <span class="text-sm text-muted"><%= r.game === "duel" ? `Vainqueur : ${r.champion}` : `${r.score}/${r.total}` %> · <%= timeAgo(r.createdAt) %></span>
+              </span>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+    </section>
+  </div>
+</div>

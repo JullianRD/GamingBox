@@ -1,0 +1,57 @@
+<div class="flex flex-col gap-10">
+  <section class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="flex max-w-2xl flex-col gap-2">
+        <h1 class="m-0 text-4xl">Découvrir</h1>
+        <p class="m-0 leading-relaxed text-muted">Une sélection renouvelée chaque jour à partir de ce que tu as aimé, et ce qui plaît en ce moment.</p>
+      </div>
+      <a href="/recommandations" class="btn-ghost">Recommandations reçues<% if (unseenRecommendations) { %> (<%= unseenRecommendations %>)<% } %></a>
+    </div>
+    <nav aria-label="Catégories" class="flex flex-wrap gap-2">
+      <% [{ code: null, plural: "Tout" }, ...Object.values(itemTypes).filter((t) => t.enabled)].forEach((t) => { const on = currentType === t.code; %>
+        <a href="/decouvrir<%= t.code ? `?type=${t.code}` : '' %>" class="rounded-full px-4 py-2 font-semibold no-underline <%= on ? 'bg-peach text-accent-ink' : 'bg-surface text-muted hover:text-ink' %>" <%= on ? 'aria-current=page' : '' %>><%= t.plural %></a>
+      <% }) %>
+    </nav>
+  </section>
+
+  <% if (!daily.length && !(trends && (trends.cocon.length || trends.external.length)) && !(coconTrends && coconTrends.length)) { %>
+    <%- include('../../components/empty-state', { title: "Rien à proposer pour l'instant", text: "Note ou mets en favori quelques œuvres, ou reviens quand les catalogues seront joignables.", ctaHref: "/recherche", ctaLabel: "Chercher une œuvre" }) %>
+  <% } %>
+
+  <% daily.forEach(({ type, picks }) => { %>
+    <section aria-labelledby="jour-<%= type.code %>" class="flex flex-col gap-5">
+      <%- include('../../components/section-header', { id: `jour-${type.code}`, title: currentType ? "Pour toi aujourd'hui" : `${type.plural} pour toi aujourd'hui`, linkHref: currentType ? null : `/decouvrir?type=${type.code}`, linkLabel: "Tendances" }) %>
+      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+        <% picks.forEach((item) => { %><%- include('../../components/cover-card', { item }) %><% }) %>
+      </div>
+    </section>
+  <% }) %>
+
+  <% if (coconTrends && coconTrends.length) { %>
+    <section aria-labelledby="tendances-cocon" class="flex flex-col gap-5">
+      <%- include('../../components/section-header', { id: "tendances-cocon", title: "Populaire sur Cocon cette semaine" }) %>
+      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+        <% coconTrends.slice(0, 6).forEach((item) => { %><%- include('../../components/cover-card', { item }) %><% }) %>
+      </div>
+    </section>
+  <% } %>
+
+  <% if (trends) { %>
+    <% if (trends.cocon.length) { %>
+      <section aria-labelledby="tendances-cocon" class="flex flex-col gap-5">
+        <%- include('../../components/section-header', { id: "tendances-cocon", title: "Populaire sur Cocon cette semaine" }) %>
+        <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+          <% trends.cocon.slice(0, 6).forEach((item) => { %><%- include('../../components/cover-card', { item }) %><% }) %>
+        </div>
+      </section>
+    <% } %>
+    <% if (trends.external.length) { %>
+      <section aria-labelledby="tendances-source" class="flex flex-col gap-5">
+        <%- include('../../components/section-header', { id: "tendances-source", title: `Tendances de la semaine${trends.sourceLabel ? ` (${trends.sourceLabel})` : ""}` }) %>
+        <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+          <% trends.external.slice(0, 12).forEach((item) => { %><%- include('../../components/cover-card', { item }) %><% }) %>
+        </div>
+      </section>
+    <% } %>
+  <% } %>
+</div>

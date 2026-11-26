@@ -19,6 +19,7 @@ class User {
     this.settingsUser = data.settings_user;
     this.gdprConsent = data.gdpr_consent;
     this.gdprConsentDate = data.gdpr_consent_date;
+    this.isPublic = data.is_public;
     this.createdAt = data.created_at;
     this.updatedAt = data.updated_at;
 

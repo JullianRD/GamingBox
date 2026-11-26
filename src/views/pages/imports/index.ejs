@@ -1,21 +1,73 @@
-<div class="flex flex-col gap-8">
+<div class="flex flex-col gap-10">
   <section class="flex max-w-2xl flex-col gap-2">
-    <h1 class="m-0 text-4xl">Imports</h1>
-    <p class="m-0 leading-relaxed text-muted">Récupère ta collection depuis d'autres applications. Chaque import te montre les correspondances avant d'ajouter quoi que ce soit.</p>
+    <h1 class="m-0 text-4xl">Imports et exports</h1>
+    <p class="m-0 leading-relaxed text-muted">Récupère ta collection depuis d'autres applications. Chaque import te montre les correspondances avant d'ajouter quoi que ce soit, et ne remplace jamais une note ou un avis déjà saisi ici.</p>
   </section>
 
-  <div class="grid gap-6 md:grid-cols-2">
-    <section id="letterboxd" class="card flex flex-col gap-3">
-      <span class="self-start rounded-full bg-movies px-3 py-1 text-sm font-bold text-movies-ink">Films</span>
-      <h2 class="m-0 text-2xl">Letterboxd</h2>
-      <p class="m-0 text-muted">Exporte tes données depuis Letterboxd (Réglages, Données), puis dépose le fichier ZIP ici. Films vus, notes, journal et watchlist.</p>
-      <p class="m-0 font-semibold text-accent-ink">Bientôt disponible</p>
+  <% if (imports.length) { %>
+    <section aria-labelledby="mes-imports" class="flex flex-col gap-3">
+      <h2 id="mes-imports" class="m-0 text-2xl">Mes imports</h2>
+      <ul class="m-0 flex list-none flex-col gap-2 p-0">
+        <% imports.forEach((i) => { const src = sources.find((s) => s.key === i.source); %>
+          <li>
+            <a href="/imports/<%= i.id %>" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface px-5 py-3 text-ink no-underline shadow-soft hover:text-ink">
+              <span class="flex flex-col">
+                <span class="font-bold"><%= src?.label ?? i.source %><% if (i.label) { %> <span class="font-normal text-muted">· <%= i.label %></span><% } %></span>
+                <span class="text-sm text-muted"><%= i.total %> œuvres · <%= timeAgo(i.createdAt) %></span>
+              </span>
+              <%- include('../../partials/imports/status', { status: i.status }) %>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
     </section>
-    <section id="steam" class="card flex flex-col gap-3">
-      <span class="self-start rounded-full bg-games px-3 py-1 text-sm font-bold text-games-ink">Jeux</span>
-      <h2 class="m-0 text-2xl">Steam</h2>
-      <p class="m-0 text-muted">Indique ton profil Steam public pour récupérer ta bibliothèque et ton temps de jeu.</p>
-      <p class="m-0 font-semibold text-accent-ink">Bientôt disponible</p>
-    </section>
-  </div>
+  <% } %>
+
+  <section aria-labelledby="sources" class="flex flex-col gap-4">
+    <h2 id="sources" class="m-0 text-2xl">Importer</h2>
+    <div class="grid gap-6 md:grid-cols-2">
+      <% sources.forEach((s) => { %>
+        <section id="<%= s.key %>" class="card flex flex-col gap-3">
+          <div class="flex flex-wrap gap-2">
+            <% s.types.slice(0, 4).forEach((t) => { %><%- include('../../components/type-chip', { type: t }) %><% }) %>
+            <% if (s.types.length > 4) { %><span class="text-xs font-bold text-muted">toutes catégories</span><% } %>
+          </div>
+          <h3 class="m-0 text-2xl"><%= s.label %></h3>
+          <p class="m-0 text-sm leading-relaxed text-muted"><%= s.hint %></p>
+          <% if (!s.configured) { %>
+            <p class="m-0 text-sm font-semibold text-accent-ink">Pas encore activé sur ce serveur (clé d'API manquante).</p>
+          <% } else { %>
+            <form action="/imports/<%= s.key %>" method="post" <%- s.input === "file" ? 'enctype="multipart/form-data"' : "" %> class="mt-auto flex flex-col gap-3">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <% if (s.input === "file") { %>
+                <label class="sr-only" for="file-<%= s.key %>">Fichier <%= s.label %></label>
+                <input id="file-<%= s.key %>" name="file" type="file" accept="<%= s.accept %>" required class="text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-peach file:px-4 file:py-2 file:font-semibold file:text-accent-ink">
+              <% } else { %>
+                <label class="sr-only" for="user-<%= s.key %>"><%= s.placeholder %></label>
+                <input id="user-<%= s.key %>" name="username" type="text" required maxlength="200" placeholder="<%= s.placeholder %>" class="field py-2">
+              <% } %>
+              <% s.options.forEach((o) => { %>
+                <label class="flex flex-wrap items-center gap-2 text-sm">
+                  <span class="text-muted"><%= o.label %></span>
+                  <select name="options[<%= o.name %>]" class="rounded-full border border-line bg-cream px-3 py-1.5">
+                    <% o.choices.forEach(([value, text]) => { %><option value="<%= value %>"><%= text %></option><% }) %>
+                  </select>
+                </label>
+              <% }) %>
+              <button type="submit" class="btn-primary self-start">Lancer l'import</button>
+            </form>
+          <% } %>
+        </section>
+      <% }) %>
+    </div>
+  </section>
+
+  <section aria-labelledby="exports" class="card flex flex-col gap-3">
+    <h2 id="exports" class="m-0 text-2xl">Exporter</h2>
+    <p class="m-0 text-sm leading-relaxed text-muted">Tes données t'appartiennent. Le CSV Cocon contient toute ta bibliothèque et se réimporte ici. Le ZIP Letterboxd contient tes films vus et ta watchlist au format de l'import Letterboxd.</p>
+    <div class="flex flex-wrap gap-3">
+      <a href="/exports/cocon.csv" class="btn-primary">CSV Cocon</a>
+      <a href="/exports/letterboxd.zip" class="btn-ghost">ZIP Letterboxd</a>
+    </div>
+  </section>
 </div>

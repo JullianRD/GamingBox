@@ -1,8 +1,8 @@
 <div class="flex flex-col gap-8">
   <%- include('../../partials/flash') %>
+  <%- include('../../components/category-nav', { current: itemType.code }) %>
   <section class="flex flex-wrap items-end justify-between gap-6">
     <div class="flex flex-col gap-2">
-      <span class="self-start rounded-full px-3 py-1 text-sm font-bold <%= itemType.tone.chip %>"><%= itemType.plural %></span>
       <h1 class="m-0 text-4xl">Mes <%= itemType.plural.toLowerCase() %></h1>
       <p class="m-0 text-muted"><%= total %> au total</p>
     </div>
@@ -27,6 +27,6 @@
       <% }) %>
     </div>
   <% } else { %>
-    <%- include('../../components/empty-state', { title: "Rien ici pour l'instant", text: itemType.code === "movie" ? "La section Films arrive avec la recherche TMDB et l'import Letterboxd." : "Cherche un jeu et ajoute-le à ta liste.", ctaHref: itemType.code === "movie" ? "/imports" : "/recherche", ctaLabel: itemType.code === "movie" ? "Voir les imports" : "Chercher un jeu" }) %>
+    <%- include('../../components/empty-state', { title: "Rien ici pour l'instant", text: "Cherche une œuvre à ajouter, ou importe ta liste depuis un autre service.", ctaHref: `/recherche?type=${itemType.code}`, ctaLabel: "Chercher" }) %>
   <% } %>
 </div>

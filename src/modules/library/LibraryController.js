@@ -15,6 +15,16 @@ class LibraryController {
     }
   }
 
+  // Vue d'ensemble de la bibliothèque, par catégorie
+  async library(req, res, next) {
+    try {
+      const overview = await LibraryService.getOverview(req.session.userId);
+      res.render("pages/library/index", { title: "Ma bibliothèque - Cocon", overview });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Section par type : /jeux, /films
   async section(req, res, next) {
     const itemType = getItemTypeByPath(req.path);

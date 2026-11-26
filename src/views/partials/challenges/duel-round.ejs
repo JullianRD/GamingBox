@@ -1,0 +1,26 @@
+<%# Un duel : deux propositions côte à côte. Paramètre : duel { title, pair, progress } %>
+<div id="duel" class="flex flex-col gap-6">
+  <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <p class="m-0 font-serif text-2xl"><%= duel.progress.label %> <span class="font-sans text-base text-muted">· match <%= duel.progress.match %> sur <%= duel.progress.matches %></span></p>
+    <span class="text-sm font-semibold text-muted"><%= duel.progress.done %> / <%= duel.progress.total %> duels</span>
+  </div>
+  <div class="h-1.5 rounded-full bg-line-soft" aria-hidden="true"><div class="h-1.5 rounded-full bg-terracotta transition-all" style="width: <%= Math.round(duel.progress.done / duel.progress.total * 100) %>%"></div></div>
+  <div class="grid grid-cols-2 items-stretch gap-4 sm:gap-8">
+    <% duel.pair.forEach((c, index) => { %>
+      <form action="/defis/duel/choix" method="post" hx-post="/defis/duel/choix" hx-target="#duel" hx-swap="outerHTML" class="h-full">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="pick" value="<%= index %>">
+        <button type="submit" data-duel-pick="<%= index %>" class="group flex h-full w-full cursor-pointer flex-col gap-3 rounded-[28px] border-2 border-transparent bg-surface p-3 text-left shadow-soft transition hover:-translate-y-0.5 hover:border-terracotta focus-visible:border-terracotta sm:p-4">
+          <span class="relative block aspect-[3/4] w-full overflow-hidden rounded-3xl bg-peach">
+            <% if (c.imageUrl) { %><img src="<%= c.imageUrl %>" alt="" class="h-full w-full object-cover"><% } else { %><span class="absolute inset-x-4 bottom-4 font-serif text-xl leading-tight text-accent-ink"><%= c.title %></span><% } %>
+          </span>
+          <span class="flex flex-col gap-0.5 px-1">
+            <span class="text-lg font-bold leading-snug"><%= c.title %></span>
+            <% if (c.subtitle) { %><span class="text-sm text-muted"><%= c.subtitle %></span><% } %>
+          </span>
+        </button>
+      </form>
+    <% }) %>
+  </div>
+  <p class="m-0 text-center text-sm text-muted">Raccourcis : flèche gauche ou droite.</p>
+</div>

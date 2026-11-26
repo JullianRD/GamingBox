@@ -1,47 +1,46 @@
 "use strict";
 
 import { Router } from "express";
-import IgdbService from "../../services/IgdbService.js";
+import CatalogService from "../catalog/CatalogService.js";
+import SocialService from "../social/SocialService.js";
 import { requireAuth } from "../../middlewares/authMiddleware.js";
-import { logger } from "../../config/logger.js";
+import { ITEM_TYPES } from "../../utils/itemTypes.js";
 
 const router = Router();
 
 const MIN_LENGTH = 2;
 
-// Résultats de recherche (jeux via IGDB pour l'instant, films via TMDB à l'étape 7)
-const searchAll = async (query) => {
-  if (query.length < MIN_LENGTH) return { results: [], error: null };
-  try {
-    const games = await IgdbService.searchGames(query);
-    return {
-      results: games.map((game) => ({
-        type: "game",
-        title: game.gameTitle,
-        coverUrl: game.thumbnailUrl,
-        meta: [game.releaseDate?.slice(0, 4), game.gameGenre].filter(Boolean).join(" · "),
-        href: `/ajouter/igdb/${game.igdbId}`,
-      })),
-      error: null,
-    };
-  } catch (error) {
-    logger.warn({ err: error }, "Recherche IGDB indisponible");
-    return { results: [], error: "La recherche de jeux est indisponible pour le moment." };
-  }
-};
+// Résultat de catalogue vers carte de la recherche (ajout via l'aperçu)
+export const toSearchCard = (item) => ({
+  type: item.type,
+  title: item.title,
+  coverUrl: item.coverUrl,
+  meta: [item.releaseDate?.slice(0, 4), item.metadata?.artist ?? item.metadata?.authors?.[0], item.genres?.[0]]
+    .filter(Boolean)
+    .join(" · "),
+  href: `/ajouter/${item.source}/${encodeURIComponent(item.externalId)}`,
+});
 
 router.get("/recherche", requireAuth, async (req, res) => {
   const query = String(req.query.q || "").trim();
-  const { results, error } = await searchAll(query);
-  const view = req.get("HX-Request") ? "partials/search/results" : "pages/search/index";
+  const type = ITEM_TYPES[req.query.type]?.enabled ? req.query.type : null;
+  const long = query.length >= MIN_LENGTH;
 
-  res.render(view, {
+  const [catalog, people] = await Promise.all([
+    long ? CatalogService.search(query, { type }) : { results: [], unavailable: [] },
+    long && !type ? SocialService.searchUsers(query, req.session.userId) : [],
+  ]);
+
+  const htmx = Boolean(req.get("HX-Request"));
+  res.render(htmx ? "partials/search/results" : "pages/search/index", {
     title: "Recherche - Cocon",
     searchQuery: query,
-    results,
-    error,
+    searchType: type,
+    results: catalog.results.map(toSearchCard),
+    unavailable: catalog.unavailable,
+    people,
     minLength: MIN_LENGTH,
-    layout: req.get("HX-Request") ? false : undefined,
+    layout: htmx ? false : undefined,
   });
 });
 
