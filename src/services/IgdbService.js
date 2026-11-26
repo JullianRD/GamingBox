@@ -142,6 +142,42 @@ class IgdbService {
     return results.map((game) => this.mapGame(game));
   }
 
+  // Jeux similaires (recommandations)
+  static async findSimilarGames(igdbId) {
+    const body = `
+      fields similar_games.id,similar_games.name,similar_games.first_release_date,similar_games.genres.name,similar_games.cover.image_id;
+      where id = ${Number(igdbId)};
+      limit 1;
+    `;
+    const [game] = await this.request("games", body);
+    return (game?.similar_games ?? []).map((similar) => this.mapGame(similar));
+  }
+
+  // Jeux récents les mieux notés (tendances)
+  static async findTrendingGames(limit = 12) {
+    const since = Math.floor(Date.now() / 1000) - 365 * 24 * 3600;
+    const body = `
+      fields id,name,first_release_date,genres.name,cover.image_id;
+      where first_release_date > ${since} & total_rating_count > 20 & version_parent = null;
+      sort total_rating_count desc;
+      limit ${Number(limit)};
+    `;
+    return (await this.request("games", body)).map((game) => this.mapGame(game));
+  }
+
+  // Correspondance d'identifiants Steam (appid) vers les jeux IGDB
+  static async findGamesBySteamIds(appIds) {
+    if (!appIds.length) return new Map();
+    const uids = appIds.map((id) => `"${Number(id)}"`).join(",");
+    const body = `
+      fields uid,game.id,game.name,game.first_release_date,game.genres.name,game.cover.image_id;
+      where external_game_source = 1 & uid = (${uids});
+      limit 500;
+    `;
+    const results = await this.request("external_games", body);
+    return new Map(results.filter((row) => row.game?.id).map((row) => [String(row.uid), this.mapGame(row.game)]));
+  }
+
   // Récupérer un jeu précis par son ID IGDB
   static async findGameByIgdbId(igdbId) {
     const body = `

@@ -1,38 +1,23 @@
 "use strict";
 
-import IgdbService from "../../../services/IgdbService.js";
+import igdb, { igdbToItem } from "./igdb.js";
+import tmdb from "./tmdb.js";
+import anilist from "./anilist.js";
+import openlibrary from "./openlibrary.js";
+import deezer from "./deezer.js";
 
 /**
- * Fournisseurs de catalogue : chaque source sait récupérer une œuvre et,
- * si elle le peut, ses personnages. Les sections suivantes (TMDB, AniList,
- * Open Library...) s'ajoutent ici sans toucher au reste.
- *
- * Format d'une œuvre : { type, source, externalId, title, releaseDate,
- * coverUrl, genres, metadata }
+ * Registre des fournisseurs de catalogue.
+ * Chaque fournisseur expose : search, fetchItem, et selon les cas match,
+ * fetchEntities, similar, trending.
  */
+const providers = { igdb, tmdb, anilist, openlibrary, deezer };
 
-export const igdbToItem = (game) => ({
-  type: "game",
-  source: "igdb",
-  externalId: String(game.igdbId),
-  title: game.gameTitle,
-  releaseDate: game.releaseDate,
-  coverUrl: game.thumbnailUrl,
-  genres: game.gameGenre && game.gameGenre !== "Inconnu" ? [game.gameGenre] : [],
-  metadata: {},
-});
-
-const providers = {
-  igdb: {
-    type: "game",
-    async fetchItem(externalId) {
-      const game = await IgdbService.findGameByIgdbId(externalId);
-      return game ? igdbToItem(game) : null;
-    },
-    async fetchCharacters(externalId) {
-      return IgdbService.findCharactersByGame(externalId);
-    },
-  },
-};
+export { igdbToItem };
 
 export const getProvider = (source) => providers[source] ?? null;
+
+// Fournisseur principal d'une catégorie
+export const providerForType = (type) => Object.values(providers).find((p) => p.types.includes(type)) ?? null;
+
+export const allProviders = () => Object.values(providers);

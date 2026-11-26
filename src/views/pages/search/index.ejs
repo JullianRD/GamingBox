@@ -1,13 +1,24 @@
 <div class="flex flex-col gap-8">
   <section class="flex flex-col gap-4">
     <h1 class="m-0 text-4xl">Rechercher</h1>
-    <form action="/recherche" method="get" role="search" class="flex max-w-2xl flex-wrap gap-3"
-          hx-get="/recherche" hx-target="#search-results" hx-push-url="true" hx-trigger="submit, input changed delay:400ms from:#search-q">
-      <label for="search-q" class="sr-only">Titre d'un jeu ou d'un film</label>
-      <input id="search-q" name="q" type="search" value="<%= searchQuery %>" placeholder="Hades, Outer Wilds, Dune…" class="field flex-1" autofocus>
-      <button type="submit" class="btn-primary">Rechercher</button>
+    <form action="/recherche" method="get" role="search" class="flex max-w-3xl flex-col gap-3"
+          hx-get="/recherche" hx-target="#search-results" hx-push-url="true"
+          hx-trigger="submit, input changed delay:400ms from:#search-q, change from:.search-type">
+      <div class="flex flex-wrap gap-3">
+        <label for="search-q" class="sr-only">Titre, artiste, auteur ou pseudo</label>
+        <input id="search-q" name="q" type="search" value="<%= searchQuery %>" placeholder="Hades, Dune, Frieren, un pseudo…" class="field flex-1" autofocus>
+        <button type="submit" class="btn-primary">Rechercher</button>
+      </div>
+      <fieldset class="m-0 flex flex-wrap gap-2 border-0 p-0">
+        <legend class="sr-only">Catégorie</legend>
+        <% [{ code: "", plural: "Tout" }, ...Object.values(itemTypes).filter((t) => t.enabled)].forEach((t) => { const on = (searchType || "") === t.code; %>
+          <label class="cursor-pointer">
+            <input type="radio" name="type" value="<%= t.code %>" class="search-type peer sr-only" <%= on ? "checked" : "" %>>
+            <span class="inline-block rounded-full bg-surface px-4 py-2 font-semibold text-muted peer-checked:bg-peach peer-checked:text-accent-ink peer-focus-visible:outline peer-focus-visible:outline-2"><%= t.plural %></span>
+          </label>
+        <% }) %>
+      </fieldset>
     </form>
-    <p class="m-0 text-sm text-muted">Jeux via IGDB. Les films arrivent avec TMDB.</p>
   </section>
 
   <div id="search-results" aria-live="polite">

@@ -1,4 +1,4 @@
-<% const t = itemTypes[entry.type]; const year = entry.releaseDate ? new Date(entry.releaseDate).getFullYear() : null; %>
+<% const t = itemTypes[entry.type]; %>
 <div class="flex flex-col gap-8">
   <a href="<%= t.path %>" class="self-start font-bold no-underline">← <%= t.plural %></a>
 
@@ -12,14 +12,17 @@
         <% } %>
       </div>
       <%- include('../../partials/entries/favorite', { entry }) %>
+      <%- include('../../partials/entries/where', { item: entry }) %>
     </div>
 
     <div class="flex min-w-0 flex-[999_1_480px] flex-col gap-7">
       <div class="flex flex-col gap-2.5">
         <%- include('../../components/type-chip', { type: entry.type }) %>
         <h1 class="m-0 text-4xl leading-tight sm:text-5xl"><%= entry.title %></h1>
-        <p class="m-0 text-muted"><%= [year, ...entry.genres].filter(Boolean).join(" · ") %></p>
+        <p class="m-0 text-muted"><%= itemMeta(entry) %></p>
       </div>
+
+      <% if (entry.itemMetadata.overview) { %><p class="m-0 max-w-2xl leading-relaxed text-muted"><%= entry.itemMetadata.overview %></p><% } %>
 
       <p id="entry-error" role="alert" class="m-0 empty:hidden rounded-2xl bg-[#fbebeb] px-5 py-3 font-semibold text-[#9b2c2c]"></p>
 

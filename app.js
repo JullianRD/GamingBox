@@ -12,6 +12,7 @@ import { logger } from "./src/config/logger.js";
 import { ITEM_TYPES, STATUSES } from "./src/utils/itemTypes.js";
 import { timeAgo } from "./src/utils/timeAgo.js";
 import { navItemsFor } from "./src/utils/navigation.js";
+import { itemMeta } from "./src/utils/itemMeta.js";
 import { describeActivity } from "./src/modules/social/activityText.js";
 
 // Routes
@@ -92,6 +93,7 @@ app.use((req, res, next) => {
   res.locals.itemTypes = ITEM_TYPES;
   res.locals.statuses = STATUSES;
   res.locals.timeAgo = timeAgo;
+  res.locals.itemMeta = itemMeta;
   res.locals.describeActivity = describeActivity;
   res.locals.section = null; // thème léger de la section courante (data-section)
   res.locals.csrfToken = generateToken(req, res); // jeton commun aux formulaires et à htmx
