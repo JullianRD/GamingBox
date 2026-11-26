@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @fileoverview Point d'entrée principal de l'application Gamingbox
+ * @fileoverview Point d'entrée principal de l'application Cocon
  */
 import dotenv from "dotenv";
 dotenv.config();
@@ -8,6 +8,7 @@ import express from "express";
 import { fileURLToPath } from "url";
 import path from "path";
 import expressLayouts from "express-ejs-layouts";
+import { logger } from "./src/config/logger.js";
 
 // Routes
 import routes from "./src/routes/index.js";
@@ -41,7 +42,7 @@ const __dirname = path.dirname(__filename);
 // ═══════════════════════════════════════════════════════════════
 
 const app = express();
-// Railway / Reverse proxy support (OBLIGATOIRE en production)
+// Derrière le reverse proxy de l'hébergeur (OBLIGATOIRE en production)
 if(process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
@@ -114,18 +115,10 @@ app.use(globalErrorHandler);
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║   🐼 GAMINGBOX - list de jeux personelle !               ║
-║                                                           ║
-║   🚀 Serveur lancé avec succès !                         ║
-║   📍 URL: http://localhost:${PORT}                         ║
-║   🌐 Environnement: ${process.env.NODE_ENV || "development"}                      ║
-║   ⏰ Démarré le: ${new Date().toLocaleString("fr-FR")}    ║
-║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
-  `);
+  logger.info(
+    { port: PORT, env: process.env.NODE_ENV || "development" },
+    `Cocon démarré sur http://localhost:${PORT}`,
+  );
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -133,7 +126,7 @@ app.listen(PORT, () => {
 // ═══════════════════════════════════════════════════════════════
 
 process.on("SIGINT", () => {
-  console.log("\n\n👋 Arrêt du serveur GamingBox...");
+  logger.info("Arrêt du serveur Cocon");
   process.exit(0);
 });
 

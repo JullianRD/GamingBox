@@ -21,7 +21,7 @@ SELECT
     NOW() - INTERVAL '2 days'
 FROM users u
 JOIN reviews r ON r.user_id = u.id_user
-WHERE u.email = 'alex.gamer@gamingbox.dev'
+WHERE u.email = 'alex.gamer@cocon.dev'
   AND r.slug = 'une-claque-narrative'
 ON CONFLICT (id_share) DO NOTHING;
 
@@ -46,7 +46,7 @@ SELECT
     NOW() - INTERVAL '1 day'
 FROM users u
 JOIN reviews r ON r.user_id = u.id_user
-WHERE u.email = 'sara.console@gamingbox.dev'
+WHERE u.email = 'sara.console@cocon.dev'
   AND r.slug = 'un-open-world-dense'
 ON CONFLICT (id_share) DO NOTHING;
 

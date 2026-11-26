@@ -14,7 +14,7 @@ class AdminController {
       const dashboard = await AdminService.getDashboardData();
 
       return res.render("pages/admin/index", {
-        title: "Administration - GamingBox",
+        title: "Administration - Cocon",
         counts: dashboard.counts,
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},

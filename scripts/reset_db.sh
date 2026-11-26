@@ -1,7 +1,7 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # ============================================
-# 🐼 MEMORIA - DB Reset Script (Local)
+# COCON - DB Reset Script (Local)
 # ============================================
 
 set -e
@@ -18,7 +18,7 @@ NC='\033[0m'
 if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
     DB_USER=${DB_USER:-postgres}
-    DB_NAME=${DB_NAME:-gamingbox_db_dev}
+    DB_NAME=${DB_NAME:-cocon_db_dev}
 else
     echo -e "${RED}❌ Error: .env file not found!${NC}"
     exit 1
@@ -58,46 +58,10 @@ if [ "$REPLY" != "RESET" ]; then
     exit 0
 fi
 
-# Fonction d'exécution SQL tolérante
+# 4. Phase de nettoyage : on annule toutes les migrations
 # ----------------------------------------
-execute_sql() {
-    local file=$1
-    local description=$2
-    # Le 3ème argument ($db_name) est ignoré car on utilise la variable globale $DB_NAME
-
-    if [ -f "$file" ]; then
-        echo -e "${RED}➜${NC} Executing $description"
-        # On utilise || true pour ignorer les erreurs si les objets n'existent plus
-        psql -U "$DB_USER" -d "$DB_NAME" -f "$file" -q || echo -e "${BLUE}⚠️  Notice: Some reviews could not be dropped (already gone?)${NC}"
-    else
-        echo -e "${YELLOW}⚠️  File not found: $file (Skipping)${NC}"
-    fi
-}
-
-# Execute all SQL files in a directory
-# ----------------------------------------
-execute_directory() {
-    local dir=$1
-    local db_name=$2
-
-    if [ -d "$dir" ]; then
-        echo -e "${GREEN}📂 Folder: $dir${NC}"
-        # Utilisation de find pour l'ordre alphabétique correct
-        for file in $(find "$dir" -maxdepth 1 -name "*.sql" | sort); do
-            local filename=$(basename "$file")
-            execute_sql "$file" "$filename" "$db_name"
-        done
-    else
-        echo -e "${RED}❌ Directory $dir not found!${NC}"
-    fi
-}
-
-# 4. Phase de nettoyage (Drop)
-# ----------------------------------------
-echo -e "${RED}🗑️  Phase 1: Cleanup${NC}"
-
-# Correction du chemin vers le dossier 'drop' selon ton arborescence
-execute_directory "database/migrations/drop" "$DB_NAME"
+echo -e "${RED}Phase 1 : annulation des migrations${NC}"
+npm run db:migrate:down -- 0
 
 echo -e "${GREEN}✓ Database cleaned successfully.${NC}\n"
 

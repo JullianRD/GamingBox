@@ -14,7 +14,6 @@ export class AppError extends Error { // Hérite de la class Error native de JS
   }
 }
 
-const myError = new AppError("Erreur test", 400);
 
 
 // AppError permet de :

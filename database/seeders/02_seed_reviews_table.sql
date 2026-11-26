@@ -41,7 +41,7 @@ SELECT
     NOW() - INTERVAL '2 days'
 FROM users u
 JOIN games g ON g.game_title = 'The Witcher 3: Wild Hunt'
-WHERE u.email = 'alex.gamer@gamingbox.dev'
+WHERE u.email = 'alex.gamer@cocon.dev'
 ON CONFLICT (id_review) DO NOTHING;
 
 INSERT INTO reviews (
@@ -85,5 +85,5 @@ SELECT
     NOW() - INTERVAL '1 day'
 FROM users u
 JOIN games g ON g.game_title = 'Elden Ring'
-WHERE u.email = 'sara.console@gamingbox.dev'
+WHERE u.email = 'sara.console@cocon.dev'
 ON CONFLICT (id_review) DO NOTHING;

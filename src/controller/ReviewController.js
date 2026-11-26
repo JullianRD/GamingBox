@@ -44,7 +44,7 @@ class ReviewController {
       // console.log("SELECTED TAG:", selectedTag);
 
       return res.render("pages/reviews/index", {
-        title: "Mes reviews - GamingBox",
+        title: "Mes reviews - Cocon",
         reviews,
         tags: tags || [],
         selectedTagId,
@@ -90,7 +90,7 @@ class ReviewController {
       console.log("=== REVIEW SHOW END ===");
 
       return res.render("pages/reviews/show", {
-        title: "Détail de la review - GamingBox",
+        title: "Détail de la review - Cocon",
         review,
         tags: tags || [],
         availableTags: availableTags || [],
@@ -117,7 +117,7 @@ class ReviewController {
       const tags = await TagService.findByUserId(req.session.userId);
 
       return res.render("pages/reviews/new", {
-        title: "Nouvelle review - GamingBox",
+        title: "Nouvelle review - Cocon",
         csrfToken: generateToken(req, res),
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},
@@ -128,7 +128,7 @@ class ReviewController {
       console.error("REVIEW NEW ERROR:", error);
 
       return res.render("pages/reviews/new", {
-        title: "Nouvelle review - GamingBox",
+        title: "Nouvelle review - Cocon",
         csrfToken: generateToken(req, res),
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},
@@ -184,7 +184,7 @@ class ReviewController {
       const selectedTagIds = (reviewTags || []).map((tag) => tag.id);
 
       return res.render("pages/reviews/edit", {
-        title: "Modifier la review - GamingBox",
+        title: "Modifier la review - Cocon",
         review,
         tags: tags || [],
         selectedTagIds,

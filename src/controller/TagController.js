@@ -12,7 +12,7 @@ class TagController {
       const tags = await TagService.findByUserId(req.session.userId);
 
       return res.render("pages/tags/index", {
-        title: "Mes tags - GamingBox",
+        title: "Mes tags - Cocon",
         tags,
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},
@@ -34,7 +34,7 @@ class TagController {
       }
 
       return res.render("pages/tags/show", {
-        title: "Détail du tag - GamingBox",
+        title: "Détail du tag - Cocon",
         tag,
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},
@@ -49,7 +49,7 @@ class TagController {
   // Formulaire de création du tag
   new(req, res) {
     return res.render("pages/tags/new", {
-      title: "Nouveau tag - GamingBox",
+      title: "Nouveau tag - Cocon",
       user: res.locals.currentUser || null,
       flash: res.locals.flash || {},
     });
@@ -78,7 +78,7 @@ class TagController {
       }
 
       return res.render("pages/tags/edit", {
-        title: "Modifier le tag - GamingBox",
+        title: "Modifier le tag - Cocon",
         tag,
         user: res.locals.currentUser || null,
         flash: res.locals.flash || {},

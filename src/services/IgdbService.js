@@ -1,5 +1,7 @@
 "use strict";
 
+import { logger } from "../config/logger.js";
+
 /**
  * Service IGDB
  *
@@ -49,7 +51,7 @@ class IgdbService {
     this.#accessToken = data.access_token;
     this.#tokenExpiresAt = now + (data.expires_in - 60) * 1000;
 
-    console.log("IGDB TOKEN RECUPERE AVEC SUCCES");
+    logger.debug("IGDB : token récupéré");
 
     return this.#accessToken;
   }
@@ -58,10 +60,6 @@ class IgdbService {
   static async request(endpoint, body) {
     const token = await this.getAccessToken();
     const clientId = process.env.IGDB_CLIENT_ID;
-
-    console.log("=== IGDB REQUEST START ===");
-    console.log("ENDPOINT:", endpoint);
-    console.log("BODY:", body);
 
     const response = await fetch(`https://api.igdb.com/v4/${endpoint}`, {
       method: "POST",
@@ -76,15 +74,28 @@ class IgdbService {
 
     const rawText = await response.text();
 
-    console.log("IGDB STATUS:", response.status);
-    console.log("IGDB RAW RESPONSE:", rawText);
-    console.log("=== IGDB REQUEST END ===");
+    logger.debug({ endpoint, status: response.status }, "IGDB : requête terminée");
 
     if (!response.ok) {
       throw new Error(`Erreur IGDB : ${rawText}`);
     }
 
     return rawText ? JSON.parse(rawText) : [];
+  }
+
+  // Convertit un jeu IGDB brut au format utilisé par l'application
+  static mapGame(game) {
+    return {
+      igdbId: game.id,
+      gameTitle: game.name,
+      gameGenre: game.genres?.[0]?.name || "Inconnu",
+      releaseDate: game.first_release_date
+        ? new Date(game.first_release_date * 1000).toISOString().slice(0, 10)
+        : null,
+      thumbnailUrl: game.cover?.image_id
+        ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover.image_id}.jpg`
+        : null,
+    };
   }
 
   // Recherche des jeux sur IGDB
@@ -104,19 +115,7 @@ class IgdbService {
 
     const results = await this.request("games", body);
 
-    console.log("IGDB SEARCH RESULTS COUNT:", results.length);
-
-    return results.map((game) => ({
-      igdbId: game.id,
-      gameTitle: game.name,
-      gameGenre: game.genres?.[0]?.name || "Inconnu",
-      releaseDate: game.first_release_date
-        ? new Date(game.first_release_date * 1000).toISOString().slice(0, 10)
-        : null,
-      thumbnailUrl: game.cover?.image_id
-        ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover.image_id}.jpg`
-        : null,
-    }));
+    return results.map((game) => this.mapGame(game));
   }
 
   // Récupérer un jeu précis par son ID IGDB
@@ -134,17 +133,7 @@ class IgdbService {
       return null;
     }
 
-    return {
-      igdbId: game.id,
-      gameTitle: game.name,
-      gameGenre: game.genres?.[0]?.name || "Inconnu",
-      releaseDate: game.first_release_date
-        ? new Date(game.first_release_date * 1000).toISOString().slice(0, 10)
-        : null,
-      thumbnailUrl: game.cover?.image_id
-        ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover.image_id}.jpg`
-        : null,
-    };
+    return this.mapGame(game);
   }
 }
 

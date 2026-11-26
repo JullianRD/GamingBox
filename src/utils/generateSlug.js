@@ -6,7 +6,7 @@ export const generateSlug = (title) => {
     .trim()
     .replace(/[^\w\s-]/g, "")
     .replace(/[\s_-]+/g, "-")
-    .replace(/^-+ | -+$/g, "");
+    .replace(/^-+|-+$/g, "");
 
   return slugifyTitle;
 };

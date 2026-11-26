@@ -1,5 +1,5 @@
 -- ============================================================================
--- GamingBox - Base de données principale
+-- Cocon - Base de données principale
 -- Version: 1.0.0
 -- Date: 2026-02-26
 -- Description: Liste de jeu vidéo personalisé
@@ -11,6 +11,6 @@
 
 -- Création de la base avec support UTF8 complet
 
-CREATE DATABASE gamingbox_db_dev WITH ENCODING = 'UTF8';
+CREATE DATABASE cocon_db_dev WITH ENCODING = 'UTF8';
 
-COMMENT ON DATABASE gamingbox_db_dev IS 'Base de données principale du projet GamingBox - Coffre-fort numérique';
+COMMENT ON DATABASE cocon_db_dev IS 'Base de données principale du projet Cocon - Coffre-fort numérique';

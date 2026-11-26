@@ -7,7 +7,7 @@ class AuthController {
   // Affiche la page d'inscription à l'App
   async showRegister(req, res) {
     res.render("pages/auth/register", {
-      title: "Inscription à GamingBox",
+      title: "Inscription à Cocon",
       csrfToken: generateToken(req, res),
       flash: res.locals.flash || {},
     });
@@ -29,7 +29,7 @@ class AuthController {
   // Affiche la page de connexion à l'App
   async showLogin(req, res) {
     res.render("pages/auth/login", {
-      title: "Connexion à l'APP GamingBox",
+      title: "Connexion à l'APP Cocon",
       csrfToken: req.csrfToken(),
       flash: res.locals.flash || {},
       logoutSuccess: false,

@@ -1,26 +1,26 @@
--- migration/config/02_add_permissions_role_app.sql
--- À exécuter APRES la création de toutes les tables
+-- BOOTSTRAP 02 : droits du rôle applicatif
+-- À exécuter APRÈS les migrations (npm run db:migrate), avec -v app_role=...
 
 -- On donne l'accès au schéma
-GRANT USAGE ON SCHEMA public TO app_gamingbox;
+GRANT USAGE ON SCHEMA public TO :"app_role";
 
 -- On donne les droits sur les tables existantes (Lecture / Écriture)
 GRANT
 SELECT, INSERT,
-UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_gamingbox;
+UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO :"app_role";
 
 -- On donne les droits sur les séquences (indispensable pour les IDs auto-incrémentés ou UUIDs)
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_gamingbox;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO :"app_role";
 
 -- Sécurité pour les tables créées dans le futur
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT
 SELECT, INSERT,
-UPDATE, DELETE ON TABLES TO app_gamingbox;
+UPDATE, DELETE ON TABLES TO :"app_role";
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT USAGE,
-SELECT ON SEQUENCES TO app_gamingbox;
+SELECT ON SEQUENCES TO :"app_role";
 
 -- Ce fichier fait 4 choses :
 
@@ -33,16 +33,16 @@ SELECT ON SEQUENCES TO app_gamingbox;
 -- Résultat : 
 
 -- 👑 postgres → super admin (jamais utilisé par l’app)
--- 🧑‍💻 app_gamingbox → rôle applicatif sécurisé
+-- 🧑‍💻 app_cocon → rôle applicatif sécurisé
 -- 🔐 Permissions limitées au strict nécessaire
 -- 🚀 Compatible prod
 
 
--- Le role app_gamingbox est la pour le backend et postgreSQL, pas pour un humain, ce n'est pas un role applicatif, on le fait pour la sécurité de la base de données
+-- Le role app_cocon est la pour le backend et postgreSQL, pas pour un humain, ce n'est pas un role applicatif, on le fait pour la sécurité de la base de données
 -- Si un hacker :
 -- Trouve une faille SQL
 -- Ou exploite une injection
--- Il ne pourra faire que ce que app_gamingbox a le droit de faire.
+-- Il ne pourra faire que ce que app_cocon a le droit de faire.
 -- Il ne pourra pas :
 -- Supprimer la base
 -- Créer des rôles
@@ -50,7 +50,7 @@ SELECT ON SEQUENCES TO app_gamingbox;
 -- Drop le schéma
 -- Donc on limites les dégâts.
 -- postgres = le PDG
--- app_gamingbox = un employé avec accès limité
+-- app_cocon = un employé avec accès limité
 -- admin dans ta table users = manager dans ton application
 
 
