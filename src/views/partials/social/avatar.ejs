@@ -1,0 +1,7 @@
+<%# Avatar rond. Paramètres : user ({ pseudo, avatar }), size? (classe Tailwind de taille) %>
+<% const avatarSize = typeof size !== "undefined" && size ? size : "h-11 w-11 text-base"; %>
+<% if (user.avatar) { %>
+  <img src="<%= user.avatar %>" alt="" class="<%= avatarSize %> shrink-0 rounded-full object-cover">
+<% } else { %>
+  <span class="<%= avatarSize %> flex shrink-0 items-center justify-center rounded-full bg-peach font-bold text-accent-ink"><%= (user.pseudo || "?").slice(0, 2).toUpperCase() %></span>
+<% } %>

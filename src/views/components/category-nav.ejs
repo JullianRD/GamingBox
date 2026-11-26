@@ -1,0 +1,6 @@
+<%# Pastilles des catégories actives. Paramètre : current? (code) %>
+<nav aria-label="Catégories" class="flex flex-wrap gap-2">
+  <% Object.values(itemTypes).filter((t) => t.enabled).forEach((t) => { const on = typeof current !== "undefined" && current === t.code; %>
+    <a href="<%= t.path %>" class="rounded-full px-4 py-2 font-semibold no-underline <%= on ? t.tone.chip : 'bg-surface text-muted hover:text-ink' %>" <%= on ? 'aria-current=page' : '' %>><%= t.plural %></a>
+  <% }) %>
+</nav>

@@ -1,0 +1,21 @@
+<div class="flex flex-col gap-8">
+  <h1 class="m-0 text-4xl">Catalogue</h1>
+  <%- include('../../partials/admin/nav') %>
+  <%- include('../../partials/flash') %>
+  <div class="overflow-x-auto rounded-3xl bg-surface shadow-soft">
+    <table class="w-full text-left text-sm">
+      <thead class="text-muted"><tr><th class="p-4">Titre</th><th class="p-4">Catégorie</th><th class="p-4">Source</th><th class="p-4">Entrées</th><th class="p-4"></th></tr></thead>
+      <tbody>
+        <% items.forEach((i) => { %>
+          <tr class="border-t border-line-soft">
+            <td class="p-4 font-bold"><%= i.title %></td>
+            <td class="p-4"><%- include('../../components/type-chip', { type: i.item_type }) %></td>
+            <td class="p-4 text-muted"><%= i.source %> #<%= i.external_id %></td>
+            <td class="p-4"><%= i.entries %></td>
+            <td class="p-4"><%- include('../../partials/admin/delete', { action: `/admin/items/${i.id_item}/delete` }) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>

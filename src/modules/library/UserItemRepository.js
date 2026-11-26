@@ -64,6 +64,23 @@ class UserItemRepository {
     return rows.map(toEntry);
   }
 
+  // Nombre d'entrées et dernières jaquettes par catégorie
+  static async overviewByType(userId) {
+    const { rows } = await db.query(
+      `
+        SELECT i.item_type, COUNT(*)::int AS count,
+          (array_agg(i.cover_url ORDER BY COALESCE(ui.updated_at, ui.created_at) DESC) FILTER (WHERE i.cover_url IS NOT NULL))[1:3] AS covers
+        FROM user_items ui JOIN items i ON i.id_item = ui.item_id
+        WHERE ui.user_id = $1
+        GROUP BY i.item_type
+      `,
+      [userId],
+    );
+    return Object.fromEntries(
+      rows.map((row) => [row.item_type, { count: row.count, covers: row.covers ?? [] }]),
+    );
+  }
+
   // Nombre d'entrées par statut pour un type
   static async countByStatus(userId, type = null) {
     const { rows } = await db.query(
@@ -152,6 +169,45 @@ class UserItemRepository {
       `,
       [entryId, rows[0].id_tag, userId],
     );
+  }
+
+  // Tags de l'utilisateur avec le nombre d'entrées
+  static async findTags(userId) {
+    const { rows } = await db.query(
+      `
+        SELECT t.id_tag, t.tag_name, COUNT(uit.user_item_id)::int AS count
+        FROM tags t LEFT JOIN user_item_tags uit ON uit.tag_id = t.id_tag
+        WHERE t.user_id = $1
+        GROUP BY t.id_tag
+        ORDER BY t.tag_name
+      `,
+      [userId],
+    );
+    return rows.map((row) => ({
+      id: row.id_tag,
+      name: row.tag_name,
+      count: row.count,
+      href: `/tags/${row.id_tag}`,
+    }));
+  }
+
+  static async findByTag(userId, tagId) {
+    const { rows } = await db.query(
+      `${SELECT_ENTRY}
+        WHERE ui.user_id = $1
+          AND EXISTS (SELECT 1 FROM user_item_tags x WHERE x.user_item_id = ui.id_user_item AND x.tag_id = $2)
+        ORDER BY COALESCE(ui.updated_at, ui.created_at) DESC`,
+      [userId, tagId],
+    );
+    return rows.map(toEntry);
+  }
+
+  static async deleteTag(userId, tagId) {
+    const { rowCount } = await db.query(`DELETE FROM tags WHERE id_tag = $1 AND user_id = $2`, [
+      tagId,
+      userId,
+    ]);
+    return rowCount > 0;
   }
 
   static async removeTag(entryId, userId, tagId) {

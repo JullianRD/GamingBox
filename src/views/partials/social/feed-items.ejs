@@ -1,0 +1,9 @@
+<%# Page du fil et bouton « Voir plus ». Paramètres : activities, nextCursor %>
+<% activities.forEach((activity) => { %>
+  <%- include('activity', { activity }) %>
+<% }) %>
+<% if (nextCursor) { %>
+  <li class="flex justify-center">
+    <button type="button" hx-get="/fil?avant=<%= encodeURIComponent(nextCursor) %>" hx-target="closest li" hx-swap="outerHTML" class="btn-ghost">Voir plus</button>
+  </li>
+<% } %>

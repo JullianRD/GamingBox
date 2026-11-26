@@ -9,7 +9,6 @@ const databaseUrl = process.env.TEST_DATABASE_URL;
 const skip = databaseUrl ? false : "TEST_DATABASE_URL non défini";
 
 let db;
-let TagRepository;
 let userId;
 
 const migrate = (direction) =>
@@ -28,7 +27,6 @@ before(async () => {
   process.env.LOG_LEVEL = "silent";
   await migrate("up");
   ({ default: db } = await import("../../src/config/database.js"));
-  ({ default: TagRepository } = await import("../../src/repositories/PgTagRepository.js"));
   const { rows } = await db.query(
     `INSERT INTO users (email, password_hash, pseudo) VALUES ('test@cocon.dev', 'x', 'testeur') RETURNING id_user`,
   );
@@ -41,24 +39,20 @@ after(async () => {
   await migrate("down");
 });
 
-test("les migrations créent les tables et les vues attendues", { skip }, async () => {
+test("les migrations créent les tables attendues et retirent les tables héritées", { skip }, async () => {
   const { rows } = await db.query(
     `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`,
   );
   const names = rows.map((row) => row.table_name);
-  for (const name of ["users", "games", "reviews", "tags", "shares", "v_reviews_complete"]) {
+  for (const name of ["users", "tags", "items", "user_items", "lists", "follows", "activities", "entry_comments", "recommendations"]) {
     assert.ok(names.includes(name), `${name} manquant`);
+  }
+  for (const name of ["games", "reviews", "shares", "review_tags"]) {
+    assert.ok(!names.includes(name), `${name} devrait être supprimée`);
   }
 });
 
-test("TagRepository crée puis retrouve un tag", { skip }, async () => {
-  const tag = await TagRepository.create({ tagName: " RPG ", userId });
-  assert.equal(tag.tagName, "RPG");
-
-  const tags = await TagRepository.findByUserId(userId);
-  assert.deepEqual(tags.map((t) => t.tagName), ["RPG"]);
-});
-
-test("TagRepository refuse un doublon, sans tenir compte de la casse", { skip }, async () => {
-  await assert.rejects(TagRepository.create({ tagName: "rpg", userId }), /existe déjà/);
+test("un utilisateur est public par défaut", { skip }, async () => {
+  const { rows } = await db.query(`SELECT is_public FROM users WHERE id_user = $1`, [userId]);
+  assert.equal(rows[0].is_public, true);
 });

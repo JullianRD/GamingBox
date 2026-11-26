@@ -1,0 +1,23 @@
+<div class="mx-auto flex max-w-3xl flex-col gap-8">
+  <section class="flex flex-col gap-2">
+    <h1 class="m-0 text-4xl">Mes tags</h1>
+    <p class="m-0 text-muted">Les tags se posent depuis la fiche d'une œuvre.</p>
+  </section>
+  <%- include('../../partials/flash') %>
+  <% if (tags.length) { %>
+    <ul class="m-0 flex list-none flex-col gap-2 p-0">
+      <% tags.forEach((tag) => { %>
+        <li class="flex items-center gap-3 rounded-2xl bg-surface px-5 py-3 shadow-soft">
+          <a href="<%= tag.href %>" class="font-bold no-underline"><%= tag.name %></a>
+          <span class="text-sm text-muted"><%= tag.count %> œuvre<%= tag.count > 1 ? "s" : "" %></span>
+          <form action="<%= tag.href %>/supprimer" method="post" class="ml-auto">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="bg-transparent p-0 text-sm font-semibold text-muted underline hover:text-ink">Supprimer</button>
+          </form>
+        </li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <%- include('../../components/empty-state', { title: "Aucun tag", text: "Ouvre une fiche et ajoute un tag pour organiser ta bibliothèque.", ctaHref: "/bibliotheque", ctaLabel: "Ma bibliothèque" }) %>
+  <% } %>
+</div>

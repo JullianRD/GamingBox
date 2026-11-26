@@ -1,0 +1,61 @@
+<div class="mx-auto flex max-w-3xl flex-col gap-8">
+  <section class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <h1 class="m-0 text-4xl">Mon compte</h1>
+      <p class="m-0 text-muted"><%= user.email %></p>
+    </div>
+    <a href="/u/<%= encodeURIComponent(user.pseudo) %>" class="btn-ghost">Voir mon profil</a>
+  </section>
+
+  <%- include('../../partials/flash') %>
+
+  <form action="/profile/edit" method="post" enctype="multipart/form-data" class="card flex flex-col gap-5">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <h2 class="m-0 text-2xl">Profil</h2>
+    <div class="flex items-center gap-4">
+      <%- include('../../partials/social/avatar', { user, size: "h-20 w-20 text-2xl" }) %>
+      <div class="flex flex-col gap-1.5">
+        <label for="avatar" class="text-sm font-bold">Avatar</label>
+        <input id="avatar" name="avatar" type="file" accept="image/png,image/jpeg,image/webp" class="text-sm">
+      </div>
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <label for="pseudo" class="text-sm font-bold">Pseudo</label>
+      <input id="pseudo" name="pseudo" required maxlength="50" value="<%= user.pseudo %>" class="field">
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <label for="biographie" class="text-sm font-bold">Bio</label>
+      <textarea id="biographie" name="biographie" rows="3" maxlength="500" class="w-full resize-y rounded-[20px] border border-line bg-cream px-5 py-3 text-ink"><%= user.biographie || "" %></textarea>
+    </div>
+    <button type="submit" class="btn-primary self-start">Enregistrer</button>
+  </form>
+
+  <form action="/profile/confidentialite" method="post" class="card flex flex-col gap-4">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <h2 class="m-0 text-2xl">Confidentialité</h2>
+    <p class="m-0 leading-relaxed text-muted">
+      <% if (user.isPublic) { %>
+        Ton profil est <strong class="text-ink">public</strong> : les autres membres peuvent te trouver, te suivre, voir tes listes publiques, ton activité et commenter tes fiches.
+      <% } else { %>
+        Ton profil est <strong class="text-ink">privé</strong> : personne d'autre ne voit ton profil, ta bibliothèque ni ton activité.
+      <% } %>
+    </p>
+    <input type="hidden" name="isPublic" value="<%= !user.isPublic %>">
+    <button type="submit" class="btn-ghost self-start"><%= user.isPublic ? "Passer en privé" : "Rendre mon profil public" %></button>
+  </form>
+
+  <section class="card flex flex-col gap-4">
+    <h2 class="m-0 text-2xl">Mes données</h2>
+    <p class="m-0 text-muted">Télécharge toutes tes données (bibliothèque, listes, tags, commentaires…) au format JSON.</p>
+    <a href="/profile/export" class="btn-ghost self-start">Exporter mes données</a>
+    <form action="/profile/delete" method="post" class="flex flex-col gap-2 border-t border-line-soft pt-4">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <p class="m-0 text-sm text-muted">La suppression du compte est définitive.</p>
+      <button type="submit" class="btn self-start border-[1.5px] border-[#e0b4b4] bg-surface text-[#9b2c2c] hover:bg-[#fbebeb]">Supprimer mon compte</button>
+    </form>
+    <form action="/logout" method="post" class="border-t border-line-soft pt-4">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn border-[1.5px] border-line bg-surface text-ink hover:bg-cream">Se déconnecter</button>
+    </form>
+  </section>
+</div>

@@ -1,0 +1,11 @@
+<div class="flex flex-col gap-8">
+  <a href="/tags" class="self-start font-bold no-underline">← Mes tags</a>
+  <section class="flex flex-col gap-2">
+    <span class="self-start rounded-full bg-peach px-3 py-1 text-sm font-bold text-accent-ink">Tag</span>
+    <h1 class="m-0 text-4xl"><%= tag.name %></h1>
+    <p class="m-0 text-muted"><%= entries.length %> œuvre<%= entries.length > 1 ? "s" : "" %></p>
+  </section>
+  <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+    <% entries.forEach((item) => { %><%- include('../../components/cover-card', { item }) %><% }) %>
+  </div>
+</div>

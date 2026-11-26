@@ -18,8 +18,8 @@ const router = Router();
  * @see docs/user-stories.md#rgpd
  */
 
-// 🔐 Zone utilisateur connecté
-router.use(requireAuth);
+// Zone utilisateur connecté (limitée aux chemins /profile)
+router.use("/profile", requireAuth);
 
 /**
  * 👤 Affichage du profil
@@ -46,6 +46,8 @@ router.post(
  * 🗑️ Suppression du compte
  * POST /profile/delete
  */
+router.post("/profile/confidentialite", doubleCsrfProtection, ProfileController.privacy);
+
 router.post("/profile/delete", requireAuth, doubleCsrfProtection, ProfileController.destroy);
 
 /**

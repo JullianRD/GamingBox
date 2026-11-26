@@ -58,6 +58,23 @@ router.post(
 );
 
 router.post(
+  "/listes/:slug/visibilite",
+  doubleCsrfProtection,
+  wrap(async (req, res) => {
+    const list = await ListService.setPublic(
+      req.session.userId,
+      req.params.slug,
+      req.body.isPublic === "true",
+    );
+    req.flash(
+      "success",
+      list.isPublic ? "La liste est maintenant publique." : "La liste est maintenant privée.",
+    );
+    res.redirect(list.href);
+  }),
+);
+
+router.post(
   "/listes/:slug/elements/:itemId/retirer",
   requireUuidParams("itemId"),
   doubleCsrfProtection,

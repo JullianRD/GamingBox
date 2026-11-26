@@ -36,6 +36,11 @@
     </div>
   </div>
 
+  <section id="commentaires" aria-labelledby="commentaires-titre" class="flex max-w-3xl flex-col gap-5">
+    <%- include('../../components/section-header', { id: "commentaires-titre", title: "Commentaires" }) %>
+    <%- include('../../partials/social/comments', { entryId: entry.id, ownerId: currentUser.id, comments }) %>
+  </section>
+
   <section aria-labelledby="personnages" class="flex flex-col gap-5">
     <%- include('../../components/section-header', { id: "personnages", title: "Personnages" }) %>
     <div hx-get="<%= entry.href %>/personnages" hx-trigger="load" hx-swap="innerHTML">

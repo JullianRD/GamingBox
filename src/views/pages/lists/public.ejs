@@ -1,0 +1,21 @@
+<div class="flex flex-col gap-8">
+  <a href="<%= owner.href %>" class="self-start font-bold no-underline">← Profil de <%= owner.pseudo %></a>
+  <section class="flex flex-col gap-2">
+    <% if (list.type) { %><%- include('../../components/type-chip', { type: list.type }) %><% } %>
+    <h1 class="m-0 text-4xl"><%= list.title %></h1>
+    <p class="m-0 text-muted">Une liste de <a href="<%= owner.href %>"><%= owner.pseudo %></a> · <%= items.length %> élément<%= items.length > 1 ? "s" : "" %></p>
+    <% if (list.description) { %><p class="m-0 max-w-2xl leading-relaxed"><%= list.description %></p><% } %>
+  </section>
+  <% if (items.length) { %>
+    <ol class="m-0 grid list-none grid-cols-2 gap-6 p-0 sm:grid-cols-3 lg:grid-cols-5">
+      <% items.forEach((item, index) => { %>
+        <li class="flex flex-col gap-2">
+          <span class="text-sm font-bold text-muted">#<%= index + 1 %></span>
+          <%- include('../../components/cover-card', { item }) %>
+        </li>
+      <% }) %>
+    </ol>
+  <% } else { %>
+    <p class="m-0 text-muted">Cette liste est vide.</p>
+  <% } %>
+</div>

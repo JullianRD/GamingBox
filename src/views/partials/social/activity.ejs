@@ -1,0 +1,30 @@
+<%# Une ligne du fil. Paramètre : activity %>
+<% const text = describeActivity(activity); const t = activity.item ? itemTypes[activity.item.type] : null; %>
+<li class="flex gap-4 rounded-3xl bg-surface p-4 shadow-soft">
+  <a href="<%= activity.user.href %>" class="shrink-0 no-underline"><%- include('avatar', { user: activity.user, size: "h-11 w-11 text-sm" }) %></a>
+  <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+    <p class="m-0 leading-snug">
+      <a href="<%= activity.user.href %>" class="font-bold text-ink no-underline"><%= activity.user.pseudo %></a>
+      <span class="text-muted"><%= text.verb %></span>
+      <% if (activity.item) { %>
+        <a href="<%= activity.entryHref || '#' %>" class="font-bold no-underline"><%= activity.item.title %></a>
+      <% } else if (activity.kind === "followed" && activity.target) { %>
+        <a href="<%= activity.target.href %>" class="font-bold no-underline"><%= activity.target.pseudo %></a>
+      <% } %>
+      <% if (text.detail && activity.kind !== "followed") { %><span class="text-muted"><%= text.detail %></span><% } %>
+    </p>
+    <% if (text.quote) { %>
+      <blockquote class="m-0 border-l-[3px] border-line pl-3 text-muted"><%= text.quote %></blockquote>
+    <% } %>
+    <span class="text-xs text-muted"><%= timeAgo(activity.createdAt) %><% if (t) { %> · <%= t.label %><% } %></span>
+  </div>
+  <% if (activity.item) { %>
+    <a href="<%= activity.entryHref || '#' %>" class="shrink-0 no-underline" aria-hidden="true" tabindex="-1">
+      <% if (activity.item.coverUrl) { %>
+        <img src="<%= activity.item.coverUrl %>" alt="" loading="lazy" class="h-16 w-11 rounded-lg object-cover">
+      <% } else { %>
+        <span class="block h-16 w-11 rounded-lg <%= t.tone.cover %>"></span>
+      <% } %>
+    </a>
+  <% } %>
+</li>

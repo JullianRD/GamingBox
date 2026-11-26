@@ -1,88 +1,73 @@
 "use strict";
 
-import UserRepository from "../repositories/PgUserRepository.js";
-import ReviewRepository from "../repositories/PgReviewRepository.js";
-import TagRepository from "../repositories/PgTagRepository.js";
-import ShareRepository from "../repositories/PgShareRepository.js";
-import GameRepository from "../repositories/PgGameRepository.js";
+import db from "../config/database.js";
 
 /**
- * AdminService
- *
- * Centralise les actions d'administration :
- * - lecture globale des ressources
- * - suppression globale des ressources
+ * Administration : chiffres clés, utilisateurs, catalogue et modération des commentaires.
  */
 class AdminService {
-  // Dashboard admin
-  static async getDashboardData() {
-    const [users, reviews, tags, shares, games] = await Promise.all([
-      UserRepository.findAllAdmin(),
-      ReviewRepository.findAllAdmin(),
-      TagRepository.findAllAdmin(),
-      ShareRepository.findAllAdmin(),
-      GameRepository.findAllByGameId(),
-    ]);
-
-    return {
-      counts: {
-        users: users.length,
-        reviews: reviews.length,
-        tags: tags.length,
-        shares: shares.length,
-        games: games.length,
-      },
-    };
+  static async getDashboard() {
+    const { rows } = await db.query(`
+      SELECT
+        (SELECT COUNT(*)::int FROM users) AS users,
+        (SELECT COUNT(*)::int FROM items) AS items,
+        (SELECT COUNT(*)::int FROM user_items) AS entries,
+        (SELECT COUNT(*)::int FROM lists) AS lists,
+        (SELECT COUNT(*)::int FROM entry_comments) AS comments,
+        (SELECT COUNT(*)::int FROM activities WHERE created_at > now() - interval '7 days') AS activity_week
+    `);
+    const { rows: byType } = await db.query(
+      `SELECT item_type, COUNT(*)::int AS count FROM items GROUP BY item_type ORDER BY count DESC`,
+    );
+    return { counts: rows[0], byType };
   }
 
-  // Liste des utilisateurs
-  static async getAllUsers() {
-    return UserRepository.findAllAdmin();
+  static async getUsers() {
+    const { rows } = await db.query(`
+      SELECT u.id_user, u.pseudo, u.email, u.role_name, u.is_public, u.created_at,
+        (SELECT COUNT(*)::int FROM user_items ui WHERE ui.user_id = u.id_user) AS entries
+      FROM users u ORDER BY u.created_at DESC
+    `);
+    return rows;
   }
 
-  // Liste des reviews
-  static async getAllReviews() {
-    return ReviewRepository.findAllAdmin();
+  static async getItems() {
+    const { rows } = await db.query(`
+      SELECT i.id_item, i.item_type, i.source, i.external_id, i.title, i.created_at,
+        (SELECT COUNT(*)::int FROM user_items ui WHERE ui.item_id = i.id_item) AS entries
+      FROM items i ORDER BY i.created_at DESC LIMIT 500
+    `);
+    return rows;
   }
 
-  // Liste des tags
-  static async getAllTags() {
-    return TagRepository.findAllAdmin();
+  static async getComments() {
+    const { rows } = await db.query(`
+      SELECT c.id_comment, c.body, c.created_at, a.pseudo AS author, o.pseudo AS owner, i.title, c.user_item_id
+      FROM entry_comments c
+      JOIN users a ON a.id_user = c.author_id
+      JOIN user_items ui ON ui.id_user_item = c.user_item_id
+      JOIN users o ON o.id_user = ui.user_id
+      JOIN items i ON i.id_item = ui.item_id
+      ORDER BY c.created_at DESC LIMIT 200
+    `);
+    return rows;
   }
 
-  // Liste des partages
-  static async getAllShares() {
-    return ShareRepository.findAllAdmin();
+  // Un admin ne peut pas supprimer son propre compte depuis l'admin
+  static async deleteUser(userId, adminId) {
+    if (userId === adminId) return false;
+    const { rowCount } = await db.query(`DELETE FROM users WHERE id_user = $1`, [userId]);
+    return rowCount > 0;
   }
 
-  // Liste des jeux
-  static async getAllGames() {
-    return GameRepository.findAllByGameId();
+  static async deleteItem(itemId) {
+    const { rowCount } = await db.query(`DELETE FROM items WHERE id_item = $1`, [itemId]);
+    return rowCount > 0;
   }
 
-  // Suppression utilisateur
-  static async deleteUser(userId) {
-    return UserRepository.delete(userId);
-  }
-
-  // Suppression review
-  static async deleteReview(reviewId) {
-    return ReviewRepository.delete(reviewId);
-  }
-
-  // Suppression tag
-  static async deleteTag(tagId) {
-    return TagRepository.delete(tagId);
-  }
-
-  // Suppression partage
-  static async deleteShare(shareId) {
-    return ShareRepository.delete(shareId);
-  }
-
-  // Suppression jeu
-  static async deleteGame(gameId) {
-    return GameRepository.delete(gameId);
+  static async deleteComment(commentId) {
+    const { rowCount } = await db.query(`DELETE FROM entry_comments WHERE id_comment = $1`, [commentId]);
+    return rowCount > 0;
   }
 }
 

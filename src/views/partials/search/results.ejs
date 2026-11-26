@@ -1,3 +1,18 @@
+<% if (typeof people !== "undefined" && people.length) { %>
+  <section aria-labelledby="profils" class="mb-8 flex flex-col gap-3">
+    <h2 id="profils" class="m-0 text-2xl">Profils</h2>
+    <ul class="m-0 flex list-none flex-wrap gap-3 p-0">
+      <% people.forEach((person) => { %>
+        <li>
+          <a href="<%= person.href %>" class="flex items-center gap-3 rounded-full bg-surface py-2 pl-2 pr-5 text-ink no-underline shadow-soft hover:text-ink">
+            <%- include('../social/avatar', { user: person, size: "h-10 w-10 text-xs" }) %>
+            <span class="font-bold"><%= person.pseudo %></span>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+<% } %>
 <% if (error) { %>
   <p class="m-0 rounded-2xl bg-[#fbebeb] px-5 py-4 text-[#9b2c2c]"><%= error %></p>
 <% } else if (searchQuery.length < minLength) { %>

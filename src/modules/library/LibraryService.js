@@ -5,6 +5,7 @@ import CatalogService from "../catalog/CatalogService.js";
 import ItemRepository from "../catalog/ItemRepository.js";
 import { AppError } from "../../utils/AppError.js";
 import { STATUSES } from "../../utils/itemTypes.js";
+import SocialService from "../social/SocialService.js";
 
 /**
  * Bibliothèque de l'utilisateur : ce qu'il suit, tous types confondus.
@@ -57,6 +58,10 @@ class LibraryService {
     return { entries, counts: Object.fromEntries(STATUSES.map((s) => [s, counts[s] ?? 0])), total };
   }
 
+  static getOverview(userId) {
+    return UserItemRepository.overviewByType(userId);
+  }
+
   static async getDashboard(userId) {
     const [entries, counts] = await Promise.all([
       UserItemRepository.findAllByUser(userId),
@@ -91,17 +96,50 @@ class LibraryService {
   static async add(userId, source, externalId, { status = "planned" } = {}) {
     if (!STATUSES.includes(status)) throw new AppError("Statut inconnu.", 400);
     const item = await CatalogService.resolveItem(source, externalId);
-    return UserItemRepository.create(userId, item.id, { status });
+    const existing = await UserItemRepository.findByItemForUser(item.id, userId);
+    const entryId = await UserItemRepository.create(userId, item.id, { status });
+    if (!existing) {
+      await SocialService.record({
+        userId,
+        kind: "added",
+        userItemId: entryId,
+        itemId: item.id,
+        payload: { status },
+      });
+    }
+    return entryId;
+  }
+
+  // Une modification de la fiche alimente le fil d'activité
+  static async recordChanges(userId, entry, fields) {
+    const base = { userId, userItemId: entry.id, itemId: entry.itemId };
+    if (fields.status)
+      await SocialService.record({ ...base, kind: "status", payload: { status: fields.status } });
+    if (fields.rating)
+      await SocialService.record({ ...base, kind: "rated", payload: { rating: fields.rating } });
+    if (fields.review) {
+      const excerpt = fields.review.length > 180 ? `${fields.review.slice(0, 177)}…` : fields.review;
+      await SocialService.record({ ...base, kind: "reviewed", payload: { excerpt } });
+    }
+    if (fields.isFavorite) await SocialService.record({ ...base, kind: "favorited" });
   }
 
   static async update(entryId, userId, body) {
-    await this.getEntry(entryId, userId);
-    return UserItemRepository.update(entryId, userId, parseEntryFields(body));
+    const before = await this.getEntry(entryId, userId);
+    const fields = parseEntryFields(body);
+    const entry = await UserItemRepository.update(entryId, userId, fields);
+    const changed = Object.fromEntries(
+      Object.entries(fields).filter(([key, value]) => before[key] !== value),
+    );
+    await this.recordChanges(userId, entry, changed);
+    return entry;
   }
 
   static async toggleFavorite(entryId, userId) {
     const entry = await this.getEntry(entryId, userId);
-    return UserItemRepository.update(entryId, userId, { isFavorite: !entry.isFavorite });
+    const updated = await UserItemRepository.update(entryId, userId, { isFavorite: !entry.isFavorite });
+    await this.recordChanges(userId, updated, { isFavorite: updated.isFavorite });
+    return updated;
   }
 
   static async addTag(entryId, userId, tagName) {

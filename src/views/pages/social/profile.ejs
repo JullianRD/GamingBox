@@ -1,0 +1,76 @@
+<div class="flex flex-col gap-12">
+  <section class="flex flex-wrap items-center gap-6">
+    <%- include('../../partials/social/avatar', { user: profile, size: "h-24 w-24 text-3xl" }) %>
+    <div class="flex min-w-0 flex-1 flex-col gap-2">
+      <h1 class="m-0 text-4xl"><%= profile.pseudo %></h1>
+      <% if (profile.biographie) { %><p class="m-0 max-w-2xl leading-relaxed text-muted"><%= profile.biographie %></p><% } %>
+      <p class="m-0 text-sm text-muted">
+        <strong class="text-ink"><%= stats.entries %></strong> œuvres ·
+        <strong class="text-ink"><%= stats.completed %></strong> terminées ·
+        <strong class="text-ink"><%= stats.followers %></strong> abonnés ·
+        <strong class="text-ink"><%= stats.following %></strong> abonnements
+      </p>
+    </div>
+    <% if (isSelf) { %>
+      <div class="flex flex-wrap gap-2">
+        <a href="/amis" class="btn-ghost">Mes amis</a>
+        <a href="/profile/edit" class="btn border-[1.5px] border-line bg-surface text-ink hover:bg-cream">Mon compte</a>
+      </div>
+    <% } else { %>
+      <%- include('../../partials/social/follow-button', { profile, relation }) %>
+    <% } %>
+  </section>
+
+  <% if (isSelf && !profile.isPublic) { %>
+    <p class="m-0 rounded-2xl bg-books px-5 py-3 font-semibold text-books-ink">Ton profil est privé : toi seul le vois. Tu peux le rendre public dans <a href="/profile/edit">Mon compte</a>.</p>
+  <% } %>
+
+  <section aria-labelledby="favoris" class="flex flex-col gap-5">
+    <%- include('../../components/section-header', { id: "favoris", title: "Favoris" }) %>
+    <% if (favorites.length) { %>
+      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+        <% favorites.forEach((item) => { %><%- include('../../components/cover-card', { item }) %><% }) %>
+      </div>
+    <% } else { %>
+      <p class="m-0 text-muted">Pas encore de favoris.</p>
+    <% } %>
+  </section>
+
+  <section aria-labelledby="termines" class="flex flex-col gap-5">
+    <%- include('../../components/section-header', { id: "termines", title: "Terminés récemment" }) %>
+    <% if (recent.length) { %>
+      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+        <% recent.forEach((item) => { %><%- include('../../components/cover-card', { item }) %><% }) %>
+      </div>
+    <% } else { %>
+      <p class="m-0 text-muted">Rien de terminé pour l'instant.</p>
+    <% } %>
+  </section>
+
+  <% if (lists.length) { %>
+    <section aria-labelledby="listes" class="flex flex-col gap-5">
+      <%- include('../../components/section-header', { id: "listes", title: isSelf ? "Mes listes" : "Listes" }) %>
+      <ul class="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
+        <% lists.forEach((list) => { %>
+          <li>
+            <a href="<%= isSelf ? list.href : `${profile.href}/listes/${list.slug}` %>" class="flex items-center justify-between gap-3 rounded-3xl bg-surface px-5 py-4 text-ink no-underline shadow-soft hover:text-ink">
+              <span class="font-bold"><%= list.title %></span>
+              <span class="text-sm text-muted"><%= list.count %><%= isSelf && !list.isPublic ? " · privée" : "" %></span>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+    </section>
+  <% } %>
+
+  <section aria-labelledby="activite" class="flex flex-col gap-5">
+    <%- include('../../components/section-header', { id: "activite", title: "Activité récente" }) %>
+    <% if (activity.length) { %>
+      <ul class="m-0 flex max-w-3xl list-none flex-col gap-3 p-0">
+        <% activity.forEach((a) => { %><%- include('../../partials/social/activity', { activity: a }) %><% }) %>
+      </ul>
+    <% } else { %>
+      <p class="m-0 text-muted">Aucune activité récente.</p>
+    <% } %>
+  </section>
+</div>

@@ -2,6 +2,8 @@
 
 import LibraryService from "./LibraryService.js";
 import ListService from "../lists/ListService.js";
+import SocialService from "../social/SocialService.js";
+import UserItemRepository from "./UserItemRepository.js";
 
 const isHtmx = (req) => Boolean(req.get("HX-Request"));
 
@@ -39,11 +41,36 @@ class EntryController {
     res.redirect(`/entrees/${entryId}`);
   });
 
+  // Sa propre fiche (modifiable) ou celle d'un autre (lecture seule, commentaires)
   show = handle(async (req, res) => {
     const userId = req.session.userId;
-    const entry = await LibraryService.getEntry(req.params.id, userId);
-    const lists = await ListService.getListsForItem(userId, entry.itemId);
-    res.render("pages/entries/show", { title: `${entry.title} - Cocon`, section: entry.type, entry, lists });
+    const own = await UserItemRepository.findByIdForUser(req.params.id, userId);
+    const comments = await SocialService.getComments(req.params.id);
+
+    if (!own) {
+      const { owner, entry, mine } = await SocialService.getPublicEntry(req.params.id, userId);
+      return res.render("pages/entries/public", {
+        title: `${entry.title} - Cocon`,
+        section: entry.type,
+        owner,
+        entry,
+        mine,
+        comments,
+      });
+    }
+
+    const [lists, friends] = await Promise.all([
+      ListService.getListsForItem(userId, own.itemId),
+      SocialService.getFriends(userId),
+    ]);
+    res.render("pages/entries/show", {
+      title: `${own.title} - Cocon`,
+      section: own.type,
+      entry: own,
+      lists,
+      friends,
+      comments,
+    });
   });
 
   updateStatus = handle(async (req, res) => {

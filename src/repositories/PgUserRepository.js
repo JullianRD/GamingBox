@@ -27,6 +27,7 @@ class UserRepository {
         settings_user,
         gdpr_consent,
         gdpr_consent_date,
+        is_public,
         created_at,
         updated_at
       FROM users

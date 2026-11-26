@@ -1,16 +1,24 @@
 <div class="flex flex-col gap-8">
+  <%- include('../../partials/flash') %>
   <a href="/listes" class="self-start font-bold no-underline">← Mes listes</a>
 
   <section class="flex flex-wrap items-end justify-between gap-6">
     <div class="flex flex-col gap-2">
       <% if (list.type) { %><%- include('../../components/type-chip', { type: list.type }) %><% } %>
       <h1 class="m-0 text-4xl"><%= list.title %></h1>
-      <p class="m-0 text-muted"><%= items.length %> élément<%= items.length > 1 ? "s" : "" %></p>
+      <p class="m-0 text-muted"><%= items.length %> élément<%= items.length > 1 ? "s" : "" %> · <%= list.isPublic ? `publique, visible sur ton profil` : "privée" %></p>
     </div>
-    <form action="<%= list.href %>/supprimer" method="post">
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <button type="submit" class="btn border-[1.5px] border-line bg-surface text-muted hover:text-ink">Supprimer la liste</button>
-    </form>
+    <div class="flex flex-wrap gap-2">
+      <form action="<%= list.href %>/visibilite" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="isPublic" value="<%= !list.isPublic %>">
+        <button type="submit" class="btn-ghost"><%= list.isPublic ? "Rendre privée" : "Rendre publique" %></button>
+      </form>
+      <form action="<%= list.href %>/supprimer" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit" class="btn border-[1.5px] border-line bg-surface text-muted hover:text-ink">Supprimer la liste</button>
+      </form>
+    </div>
   </section>
 
   <% if (items.length) { %>

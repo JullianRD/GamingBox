@@ -4,6 +4,7 @@ import { Router } from "express";
 import IgdbService from "../../services/IgdbService.js";
 import { requireAuth } from "../../middlewares/authMiddleware.js";
 import { logger } from "../../config/logger.js";
+import SocialService from "../social/SocialService.js";
 
 const router = Router();
 
@@ -32,13 +33,17 @@ const searchAll = async (query) => {
 
 router.get("/recherche", requireAuth, async (req, res) => {
   const query = String(req.query.q || "").trim();
-  const { results, error } = await searchAll(query);
+  const [{ results, error }, people] = await Promise.all([
+    searchAll(query),
+    query.length >= MIN_LENGTH ? SocialService.searchUsers(query, req.session.userId) : [],
+  ]);
   const view = req.get("HX-Request") ? "partials/search/results" : "pages/search/index";
 
   res.render(view, {
     title: "Recherche - Cocon",
     searchQuery: query,
     results,
+    people,
     error,
     minLength: MIN_LENGTH,
     layout: req.get("HX-Request") ? false : undefined,

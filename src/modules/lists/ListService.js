@@ -6,6 +6,7 @@ import ItemRepository from "../catalog/ItemRepository.js";
 import { AppError } from "../../utils/AppError.js";
 import { generateSlug } from "../../utils/generateSlug.js";
 import { ITEM_TYPES } from "../../utils/itemTypes.js";
+import SocialService from "../social/SocialService.js";
 
 export const parseListInput = (body = {}) => {
   const title = String(body.title ?? "")
@@ -69,10 +70,29 @@ class ListService {
 
     const lists = await ListRepository.findAllByUser(userId, { itemId: entry.itemId });
     const contains = lists.find((l) => l.id === list.id)?.contains;
-    if (contains) await ListRepository.removeItem(list.id, entry.itemId);
-    else await ListRepository.addItem(list.id, entry.itemId);
+    if (contains) {
+      await ListRepository.removeItem(list.id, entry.itemId);
+    } else {
+      await ListRepository.addItem(list.id, entry.itemId);
+      if (list.isPublic) {
+        await SocialService.record({
+          userId,
+          kind: "listed",
+          userItemId: entry.id,
+          itemId: entry.itemId,
+          listId: list.id,
+        });
+      }
+    }
 
     return { entry, lists: await ListRepository.findAllByUser(userId, { itemId: entry.itemId }) };
+  }
+
+  static async setPublic(userId, slug, isPublic) {
+    const list = await ListRepository.findBySlug(userId, slug);
+    if (!list) throw new AppError("Liste introuvable.", 404);
+    await ListRepository.setPublic(list.id, Boolean(isPublic));
+    return { ...list, isPublic: Boolean(isPublic) };
   }
 
   static async removeItem(userId, slug, itemId) {

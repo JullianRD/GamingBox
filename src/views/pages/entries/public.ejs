@@ -1,0 +1,49 @@
+<% const t = itemTypes[entry.type]; const year = entry.releaseDate ? new Date(entry.releaseDate).getFullYear() : null; const stars = entry.rating ? entry.rating / 2 : 0; %>
+<div class="flex flex-col gap-8">
+  <a href="<%= owner.href %>" class="self-start font-bold no-underline">← Profil de <%= owner.pseudo %></a>
+
+  <div class="flex flex-wrap items-start gap-12">
+    <div class="relative aspect-[2/3] flex-[0_1_300px] overflow-hidden rounded-[28px] shadow-cover <%= t.tone.cover %>">
+      <% if (entry.coverUrl) { %>
+        <img src="<%= entry.coverUrl %>" alt="Jaquette de <%= entry.title %>" class="h-full w-full object-cover">
+      <% } else { %>
+        <span class="absolute inset-x-6 bottom-6 font-serif text-3xl leading-tight <%= t.tone.ink %>"><%= entry.title %></span>
+      <% } %>
+    </div>
+
+    <div class="flex min-w-0 flex-[999_1_480px] flex-col gap-6">
+      <div class="flex flex-col gap-2.5">
+        <%- include('../../components/type-chip', { type: entry.type }) %>
+        <h1 class="m-0 text-4xl leading-tight sm:text-5xl"><%= entry.title %></h1>
+        <p class="m-0 text-muted"><%= [year, ...entry.genres].filter(Boolean).join(" · ") %></p>
+      </div>
+
+      <div class="card flex flex-col gap-4">
+        <div class="flex items-center gap-3">
+          <%- include('../../partials/social/avatar', { user: owner, size: "h-10 w-10 text-xs" }) %>
+          <p class="m-0"><a href="<%= owner.href %>" class="font-bold no-underline"><%= owner.pseudo %></a>
+            <span class="text-muted">· <%= t.statusLabels[entry.status] %></span></p>
+          <% if (entry.isFavorite) { %><span class="ml-auto rounded-full bg-peach px-3 py-1 text-sm font-bold text-accent-ink">Favori</span><% } %>
+        </div>
+        <% if (stars) { %>
+          <span class="text-2xl tracking-widest text-terracotta" aria-label="<%= stars %> sur 5"><%= "★".repeat(Math.floor(stars)) %><span class="text-line"><%= "★".repeat(5 - Math.floor(stars)) %></span></span>
+        <% } %>
+        <% if (entry.review) { %><p class="m-0 whitespace-pre-line leading-relaxed"><%= entry.review %></p><% } %>
+        <% if (entry.tags.length) { %>
+          <div class="flex flex-wrap gap-2"><% entry.tags.forEach((tag) => { %><%- include('../../components/tag-chip', { name: tag.name }) %><% }) %></div>
+        <% } %>
+      </div>
+
+      <% if (mine) { %>
+        <a href="<%= mine.href %>" class="btn-ghost self-start">Voir ma fiche (<%= t.statusLabels[mine.status] %>)</a>
+      <% } else { %>
+        <a href="/ajouter/<%= entry.source %>/<%= entry.externalId %>" class="btn-primary self-start">Ajouter à ma bibliothèque</a>
+      <% } %>
+    </div>
+  </div>
+
+  <section id="commentaires" aria-labelledby="commentaires-titre" class="flex max-w-3xl flex-col gap-5">
+    <%- include('../../components/section-header', { id: "commentaires-titre", title: "Commentaires" }) %>
+    <%- include('../../partials/social/comments', { entryId: entry.id, ownerId: owner.id, comments }) %>
+  </section>
+</div>
