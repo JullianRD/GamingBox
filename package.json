@@ -42,6 +42,7 @@
     "express-ejs-layouts": "^2.5.1",
     "express-rate-limit": "^8.2.1",
     "express-session": "^1.19.0",
+    "fflate": "^0.8.2",
     "helmet": "^8.1.0",
     "htmx.org": "^2.0.11",
     "multer": "^2.1.1",

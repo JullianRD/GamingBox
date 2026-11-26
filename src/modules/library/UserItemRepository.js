@@ -126,6 +126,40 @@ class UserItemRepository {
     return (await this.findByItemForUser(itemId, userId)).id;
   }
 
+  /**
+   * Entrée venue d'un import : crée ou complète sans écraser ce que l'utilisateur
+   * a déjà saisi (note, avis, dates). Le statut n'avance que depuis « à voir ».
+   */
+  static async importEntry(userId, itemId, entry) {
+    const { rows } = await db.query(
+      `
+        INSERT INTO user_items (user_id, item_id, status, rating, review, is_favorite, started_at, finished_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (user_id, item_id) DO UPDATE SET
+          status = CASE WHEN user_items.status = 'planned' THEN EXCLUDED.status ELSE user_items.status END,
+          rating = COALESCE(user_items.rating, EXCLUDED.rating),
+          review = COALESCE(user_items.review, EXCLUDED.review),
+          is_favorite = user_items.is_favorite OR EXCLUDED.is_favorite,
+          started_at = COALESCE(user_items.started_at, EXCLUDED.started_at),
+          finished_at = COALESCE(user_items.finished_at, EXCLUDED.finished_at),
+          metadata = user_items.metadata || EXCLUDED.metadata
+        RETURNING id_user_item
+      `,
+      [
+        userId,
+        itemId,
+        entry.status,
+        entry.rating ?? null,
+        entry.review ?? null,
+        Boolean(entry.favorite),
+        entry.startedAt ?? null,
+        entry.finishedAt ?? null,
+        entry.metadata ?? {},
+      ],
+    );
+    return rows[0].id_user_item;
+  }
+
   static async update(entryId, userId, fields) {
     const entries = Object.entries(fields).filter(([key]) => key in EDITABLE);
     if (!entries.length) return this.findByIdForUser(entryId, userId);

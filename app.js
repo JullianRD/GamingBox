@@ -14,6 +14,7 @@ import { timeAgo } from "./src/utils/timeAgo.js";
 import { navItemsFor } from "./src/utils/navigation.js";
 import { itemMeta } from "./src/utils/itemMeta.js";
 import { describeActivity } from "./src/modules/social/activityText.js";
+import ImportService from "./src/modules/imports/ImportService.js";
 
 // Routes
 import routes from "./src/routes/index.js";
@@ -141,6 +142,8 @@ app.listen(PORT, () => {
     { port: PORT, env: process.env.NODE_ENV || "development" },
     `Cocon démarré sur http://localhost:${PORT}`,
   );
+  // Reprend les imports interrompus par un redémarrage
+  ImportService.resume().catch((error) => logger.error({ err: error }, "Reprise des imports impossible"));
 });
 
 // ═══════════════════════════════════════════════════════════════

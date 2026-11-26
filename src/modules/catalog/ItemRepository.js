@@ -50,9 +50,9 @@ class ItemRepository {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         ON CONFLICT (source, external_id) DO UPDATE SET
           title = EXCLUDED.title,
-          release_date = EXCLUDED.release_date,
-          cover_url = EXCLUDED.cover_url,
-          genres = EXCLUDED.genres,
+          release_date = COALESCE(EXCLUDED.release_date, items.release_date),
+          cover_url = COALESCE(EXCLUDED.cover_url, items.cover_url),
+          genres = CASE WHEN cardinality(EXCLUDED.genres) > 0 THEN EXCLUDED.genres ELSE items.genres END,
           metadata = items.metadata || EXCLUDED.metadata
         RETURNING *
       `,
