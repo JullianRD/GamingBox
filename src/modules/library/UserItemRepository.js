@@ -81,6 +81,41 @@ class UserItemRepository {
     );
   }
 
+  // Bilan des 7 derniers jours pour l'accueil
+  static async weekStats(userId) {
+    const { rows } = await db.query(
+      `
+        SELECT
+          COUNT(*) FILTER (WHERE status = 'completed' AND COALESCE(finished_at::timestamptz, updated_at) > NOW() - INTERVAL '7 days')::int AS completed,
+          COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '7 days')::int AS added,
+          COUNT(*) FILTER (WHERE rating IS NOT NULL AND COALESCE(updated_at, created_at) > NOW() - INTERVAL '7 days')::int AS rated
+        FROM user_items WHERE user_id = $1
+      `,
+      [userId],
+    );
+    return rows[0];
+  }
+
+  // Deux œuvres jouées, vues ou lues de la catégorie la plus fournie, tirées au jour (teaser du défi)
+  static async challengeTeaser(userId, seed) {
+    const { rows } = await db.query(
+      `
+        WITH best AS (
+          SELECT i.item_type FROM user_items ui JOIN items i ON i.id_item = ui.item_id
+          WHERE ui.user_id = $1 AND ui.status <> 'planned'
+          GROUP BY i.item_type HAVING COUNT(*) >= 4 ORDER BY COUNT(*) DESC LIMIT 1
+        )
+        SELECT i.item_type, i.title, i.cover_url, (SELECT COUNT(*)::int FROM user_items u2 JOIN items i2 ON i2.id_item = u2.item_id
+                 WHERE u2.user_id = $1 AND u2.status <> 'planned' AND i2.item_type = best.item_type) AS pool
+        FROM user_items ui JOIN items i ON i.id_item = ui.item_id JOIN best ON best.item_type = i.item_type
+        WHERE ui.user_id = $1 AND ui.status <> 'planned'
+        ORDER BY md5(i.id_item::text || $2) LIMIT 2
+      `,
+      [userId, seed],
+    );
+    return rows;
+  }
+
   // Nombre d'entrées par statut pour un type
   static async countByStatus(userId, type = null) {
     const { rows } = await db.query(

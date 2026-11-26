@@ -40,9 +40,11 @@ router.get(
 router.get(
   "/decouvrir/du-jour",
   wrap(async (req, res) => {
-    const daily = await DiscoverService.getDailyPicks(req.session.userId);
-    const picks = daily.map((d) => d.picks[0]).filter(Boolean);
-    res.render("partials/discover/today", { layout: false, picks });
+    // Sans catégorie : la meilleure suggestion de chaque catégorie ; avec : celles de la catégorie
+    const type = ITEM_TYPES[req.query.type]?.enabled ? req.query.type : null;
+    const all = await DiscoverService.getDailyPicks(req.session.userId);
+    const picks = type ? all.find((d) => d.type.code === type)?.picks ?? [] : all.map((d) => d.picks[0]).filter(Boolean);
+    res.render("partials/discover/today", { layout: false, picks, currentType: type, types: all.map((d) => d.type) });
   }),
 );
 

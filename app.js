@@ -11,11 +11,12 @@ import expressLayouts from "express-ejs-layouts";
 import { logger } from "./src/config/logger.js";
 import { ITEM_TYPES, STATUSES } from "./src/utils/itemTypes.js";
 import { timeAgo } from "./src/utils/timeAgo.js";
-import { navItemsFor } from "./src/utils/navigation.js";
+import { navItemsFor, NAV_ICONS } from "./src/utils/navigation.js";
 import { itemMeta } from "./src/utils/itemMeta.js";
 import { describeActivity } from "./src/modules/social/activityText.js";
 import ImportService from "./src/modules/imports/ImportService.js";
 import RecommendationService from "./src/modules/discover/RecommendationService.js";
+import LibraryService from "./src/modules/library/LibraryService.js";
 
 // Routes
 import routes from "./src/routes/index.js";
@@ -92,6 +93,7 @@ app.use(injectUserToLocals);
 app.use((req, res, next) => {
   res.locals.currentPath = req.path; // onglet actif dans la navigation
   res.locals.navItems = navItemsFor(req.path);
+  res.locals.navIcons = NAV_ICONS;
   res.locals.itemTypes = ITEM_TYPES;
   res.locals.statuses = STATUSES;
   res.locals.timeAgo = timeAgo;
@@ -103,13 +105,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// Pastille des recommandations reçues non lues (pages complètes seulement)
+// Barre latérale : pastille des recommandations non lues et compteurs par catégorie (pages complètes seulement)
 app.use(async (req, res, next) => {
+  res.locals.libraryCounts = {};
   if (!req.session?.userId || req.method !== "GET" || req.get("HX-Request")) return next();
   try {
-    res.locals.unseenRecommendations = await RecommendationService.unseenCount(req.session.userId);
+    const [unseen, overview] = await Promise.all([
+      RecommendationService.unseenCount(req.session.userId),
+      LibraryService.getOverview(req.session.userId),
+    ]);
+    res.locals.unseenRecommendations = unseen;
+    res.locals.libraryCounts = Object.fromEntries(Object.entries(overview).map(([type, o]) => [type, o.count]));
   } catch (error) {
-    logger.warn({ err: error }, "Compteur de recommandations indisponible");
+    logger.warn({ err: error }, "Données de navigation indisponibles");
   }
   next();
 });

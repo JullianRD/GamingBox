@@ -63,21 +63,28 @@ class LibraryService {
   }
 
   static async getDashboard(userId) {
-    const [entries, counts] = await Promise.all([
-      UserItemRepository.findAllByUser(userId),
+    const today = new Date().toISOString().slice(0, 10);
+    const [current, counts, week, friends, teaser] = await Promise.all([
+      UserItemRepository.findAllByUser(userId, { status: "in_progress" }),
       UserItemRepository.countByStatus(userId),
+      UserItemRepository.weekStats(userId),
+      SocialService.getFriendsActivity(userId, 4),
+      UserItemRepository.challengeTeaser(userId, today),
     ]);
-    const byStatus = (status) => entries.filter((entry) => entry.status === status);
+    const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
 
-    return {
-      stats: {
-        inProgress: counts.in_progress ?? 0,
-        planned: counts.planned ?? 0,
-        completed: counts.completed ?? 0,
-      },
-      current: byStatus("in_progress").slice(0, 10),
-      recentlyCompleted: byStatus("completed").slice(0, 5),
-    };
+    // Défi du jour : un duel dans la catégorie la plus fournie, sinon une invitation
+    const challenge =
+      teaser.length === 2
+        ? {
+            mode: "library",
+            type: teaser[0].item_type,
+            size: Math.min(16, 2 ** Math.floor(Math.log2(teaser[0].pool))),
+            options: teaser.map((t) => ({ title: t.title, coverUrl: t.cover_url })),
+          }
+        : null;
+
+    return { current: current.slice(0, 6), total, week, friends, challenge };
   }
 
   static async getEntry(entryId, userId) {

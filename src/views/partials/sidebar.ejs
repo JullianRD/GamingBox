@@ -1,0 +1,44 @@
+<%# Barre latérale de l'app (ordinateur) : navigation, catégories de la bibliothèque, import et profil %>
+<% const icon = (name, size = 20, stroke = 1.8) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${navIcons[name]}</svg>`; %>
+<aside class="hidden w-64 shrink-0 border-r border-line-soft bg-surface lg:block">
+<div class="sticky top-0 flex h-screen flex-col gap-6 overflow-y-auto px-4 py-6">
+  <a href="/" class="flex items-center gap-2.5 px-2 text-ink no-underline hover:text-ink">
+    <img src="/images/cocon-logo.svg" alt="" width="32" height="32">
+    <span class="font-serif text-2xl font-semibold">Cocon</span>
+  </a>
+
+  <nav aria-label="Navigation principale" class="flex flex-col gap-0.5">
+    <% navItems.forEach((item) => { const badge = item.href === "/decouvrir" ? unseenRecommendations : 0; %>
+      <a href="<%= item.href %>" <%= item.active ? 'aria-current=page' : '' %>
+         class="flex items-center gap-3 rounded-2xl px-3 py-2.5 font-bold no-underline <%= item.active ? 'bg-peach text-accent-ink' : 'text-muted hover:bg-cream hover:text-ink' %>">
+        <%- icon(item.icon) %>
+        <span class="flex-1"><%= item.label %></span>
+        <% if (badge) { %><span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-terracotta px-1.5 text-xs font-bold text-[#ffffff]" aria-label="<%= badge %> nouvelles recommandations"><%= badge > 9 ? "9+" : badge %></span><% } %>
+      </a>
+    <% }) %>
+    <% if (isAdmin) { %>
+      <a href="/admin" class="flex items-center gap-3 rounded-2xl px-3 py-2.5 font-bold no-underline <%= currentPath.startsWith('/admin') ? 'bg-peach text-accent-ink' : 'text-muted hover:bg-cream hover:text-ink' %>"><%- icon("admin") %>Admin</a>
+    <% } %>
+  </nav>
+
+  <nav aria-labelledby="sidebar-biblio" class="flex flex-col gap-0.5">
+    <p id="sidebar-biblio" class="m-0 mb-1.5 px-3 text-xs font-extrabold uppercase tracking-wider text-muted">Ma bibliothèque</p>
+    <% Object.values(itemTypes).filter((t) => t.enabled).forEach((t) => { const on = currentPath.startsWith(t.path); %>
+      <a href="<%= t.path %>" <%= on ? 'aria-current=page' : '' %>
+         class="flex items-center gap-3 rounded-xl px-3 py-2 font-semibold no-underline <%= on ? 'bg-cream text-ink' : 'text-ink hover:bg-cream' %>">
+        <span class="h-3 w-3 rounded-full <%= t.tone.cover %>" aria-hidden="true"></span>
+        <span class="flex-1"><%= t.plural %></span>
+        <span class="text-sm text-muted"><%= libraryCounts[t.code] ?? 0 %></span>
+      </a>
+    <% }) %>
+  </nav>
+
+  <div class="mt-auto flex flex-col gap-3">
+    <a href="/imports" class="flex items-center gap-2.5 rounded-2xl bg-peach px-3 py-3 text-sm font-bold text-accent-ink no-underline hover:text-accent-ink"><%- icon("import", 18, 2) %>Importer ma collection</a>
+    <a href="/u/<%= encodeURIComponent(currentUser.pseudo || '') %>" class="flex items-center gap-2.5 rounded-2xl p-2 font-bold text-ink no-underline hover:bg-cream hover:text-ink">
+      <%- include('social/avatar', { user: currentUser, size: "h-9 w-9 text-xs" }) %>
+      <span class="min-w-0 flex-1 truncate"><%= currentUser.pseudo %></span>
+    </a>
+  </div>
+</div>
+</aside>

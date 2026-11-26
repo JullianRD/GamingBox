@@ -1,0 +1,11 @@
+<%# Barre du haut sur mobile (connecté) : logo, recherche, recommandations reçues, profil %>
+<% const icon = (name) => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${navIcons[name]}</svg>`; %>
+<div class="flex items-center gap-2 border-b border-line-soft bg-surface/95 px-4 py-2.5 backdrop-blur">
+  <a href="/" class="flex flex-1 items-center gap-2 text-ink no-underline hover:text-ink">
+    <img src="/images/cocon-logo.svg" alt="" width="28" height="28">
+    <span class="font-serif text-xl font-semibold">Cocon</span>
+  </a>
+  <a href="/recherche" aria-label="Rechercher" class="flex h-11 w-11 items-center justify-center rounded-full text-ink no-underline"><%- icon("search") %></a>
+  <%- include('inbox-button') %>
+  <a href="/u/<%= encodeURIComponent(currentUser.pseudo || '') %>" aria-label="Mon profil" class="no-underline"><%- include('social/avatar', { user: currentUser, size: "h-10 w-10 text-sm" }) %></a>
+</div>

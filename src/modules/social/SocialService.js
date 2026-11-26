@@ -73,6 +73,10 @@ class SocialService {
     return SocialRepository.getFriends(userId);
   }
 
+  static getFriendsActivity(userId, limit) {
+    return SocialRepository.getFriendsActivity(userId, limit);
+  }
+
   static getFeed(userId, before) {
     const date = before ? new Date(before) : null;
     return SocialRepository.getFeed(userId, { before: date && !Number.isNaN(date.getTime()) ? date : null });

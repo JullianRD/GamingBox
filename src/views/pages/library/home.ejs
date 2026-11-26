@@ -1,68 +1,153 @@
-<div class="flex flex-col gap-12">
+<% const svg = (name, size = 18, stroke = 2) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${navIcons[name]}</svg>`; %>
+<div class="flex flex-col gap-9">
   <%- include('../../partials/flash') %>
-  <section class="flex flex-wrap items-end justify-between gap-8">
-    <div class="flex max-w-xl flex-col gap-2">
-      <p class="m-0 font-semibold text-muted">Bonjour <%= currentUser.pseudo %></p>
-      <h1 class="m-0 text-4xl leading-tight sm:text-5xl">Ton cocon de jeux, films et lectures</h1>
-      <p class="m-0 leading-relaxed text-muted">Reprends là où tu t'es arrêté, ou ajoute ta prochaine découverte.</p>
-    </div>
-    <div class="grid min-w-[300px] grid-cols-3 gap-3">
-      <%- include('../../components/stat-tile', { value: stats.inProgress, label: "en cours" }) %>
-      <%- include('../../components/stat-tile', { value: stats.planned, label: "à découvrir" }) %>
-      <%- include('../../components/stat-tile', { value: stats.completed, label: "terminés" }) %>
-    </div>
-  </section>
 
-  <section aria-labelledby="en-ce-moment" class="flex flex-col gap-5">
-    <%- include('../../components/section-header', { id: "en-ce-moment", title: "En ce moment", linkHref: "/jeux?status=in_progress", linkLabel: "Tout voir" }) %>
+  <header class="flex flex-wrap items-center gap-4">
+    <div class="min-w-0 flex-1 basis-56">
+      <p class="m-0 text-sm font-bold text-muted"><%= today %></p>
+      <h1 class="m-0 mt-0.5 text-3xl sm:text-4xl"><%= greeting %> <%= currentUser.pseudo %></h1>
+    </div>
+    <div class="flex items-center gap-2 lg:hidden">
+      <%- include('../../partials/inbox-button') %>
+      <a href="/u/<%= encodeURIComponent(currentUser.pseudo || '') %>" aria-label="Mon profil" class="no-underline"><%- include('../../partials/social/avatar', { user: currentUser, size: "h-11 w-11 text-sm" }) %></a>
+    </div>
+    <form action="/recherche" method="get" role="search" class="flex h-12 w-full items-center gap-2.5 rounded-full border border-line-soft bg-surface px-4 sm:w-auto sm:max-w-md sm:flex-1">
+      <span class="text-muted"><%- svg("search") %></span>
+      <label for="home-search" class="sr-only">Rechercher une œuvre ou un ami</label>
+      <input id="home-search" name="q" type="search" placeholder="Une œuvre, un ami…" class="min-w-0 flex-1 border-0 bg-transparent text-ink placeholder:text-muted focus:outline-none">
+    </form>
+    <div class="hidden items-center gap-2 lg:flex">
+      <%- include('../../partials/inbox-button') %>
+      <a href="/recherche" class="btn-primary gap-2"><%- svg("add", 18, 2.4) %>Ajouter</a>
+    </div>
+  </header>
+
+  <nav aria-label="Ma bibliothèque" class="-mx-4 flex gap-2 overflow-x-auto px-4 lg:hidden">
+    <% Object.values(itemTypes).filter((t) => t.enabled).forEach((t) => { %>
+      <a href="<%= t.path %>" class="flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-extrabold no-underline <%= t.tone.chip %>"><%= t.plural %> <span class="font-semibold opacity-80"><%= libraryCounts[t.code] ?? 0 %></span></a>
+    <% }) %>
+  </nav>
+
+  <% if (!total) { %>
+    <%- include('../../components/import-banner') %>
+  <% } %>
+
+  <section aria-labelledby="reprendre" class="flex flex-col gap-4">
+    <div class="flex items-baseline justify-between gap-4">
+      <h2 id="reprendre" class="m-0 text-2xl">Reprendre</h2>
+      <% if (current.length) { %><a href="/bibliotheque" class="text-sm font-bold">Toute ma bibliothèque</a><% } %>
+    </div>
     <% if (current.length) { %>
-      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
-        <% current.forEach((item) => { %>
-          <%- include('../../components/cover-card', { item }) %>
-        <% }) %>
-      </div>
-    <% } else { %>
-      <%- include('../../components/empty-state', { title: "Rien en cours pour l'instant", text: "Cherche un jeu ou un film et passe-le en cours pour le retrouver ici.", ctaHref: "/recherche", ctaLabel: "Trouver quelque chose" }) %>
-    <% } %>
-  </section>
-
-  <section aria-labelledby="pour-toi" class="flex flex-col gap-5">
-    <%- include('../../components/section-header', { id: "pour-toi", title: "Pour toi aujourd'hui", linkHref: "/decouvrir", linkLabel: "Tout découvrir" }) %>
-    <div hx-get="/decouvrir/du-jour" hx-trigger="load" hx-swap="innerHTML" aria-busy="true">
-      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5" aria-hidden="true">
-        <% for (let i = 0; i < 5; i++) { %><div class="aspect-[2/3] animate-pulse rounded-3xl bg-line-soft"></div><% } %>
-      </div>
-    </div>
-  </section>
-
-  <%- include('../../components/import-banner') %>
-
-  <section aria-labelledby="termines" class="flex flex-col gap-5">
-    <%- include('../../components/section-header', { id: "termines", title: "Terminés récemment" }) %>
-    <% if (recentlyCompleted.length) { %>
-      <ul class="m-0 flex list-none flex-col gap-3 p-0">
-        <% recentlyCompleted.forEach((entry) => { const t = itemTypes[entry.type]; %>
-          <li>
-            <a href="<%= entry.href %>" class="flex flex-wrap items-center gap-4 rounded-2xl bg-surface px-5 py-3.5 text-ink no-underline shadow-soft hover:text-ink">
+      <div class="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-3">
+        <% current.forEach((entry) => { const t = itemTypes[entry.type]; const meta = itemMeta(entry); %>
+          <article class="flex w-[290px] shrink-0 snap-start gap-3.5 rounded-3xl bg-surface p-3 shadow-soft sm:w-auto">
+            <a href="<%= entry.href %>" class="shrink-0" tabindex="-1" aria-hidden="true">
               <% if (entry.coverUrl) { %>
-                <img src="<%= entry.coverUrl %>" alt="" class="h-16 w-11 rounded-lg object-cover">
+                <img src="<%= entry.coverUrl %>" alt="" loading="lazy" class="aspect-[2/3] w-[84px] rounded-2xl object-cover">
               <% } else { %>
-                <span class="h-16 w-11 rounded-lg <%= t.tone.cover %>"></span>
-              <% } %>
-              <span class="flex min-w-[180px] flex-1 flex-col gap-1">
-                <span class="font-bold"><%= entry.title %></span>
-                <span class="text-sm text-muted"><%= entry.genres.join(" · ") %></span>
-              </span>
-              <%- include('../../components/type-chip', { type: entry.type }) %>
-              <% if (entry.rating != null) { const stars = Math.round(entry.rating / 2); %>
-                <span class="text-lg tracking-widest text-terracotta" aria-label="<%= stars %> sur 5"><%= "★".repeat(stars) %><span class="text-line"><%= "★".repeat(5 - stars) %></span></span>
+                <span class="flex aspect-[2/3] w-[84px] items-end rounded-2xl p-2 font-serif text-sm leading-tight <%= t.tone.cover %> <%= t.tone.ink %>"><%= entry.title %></span>
               <% } %>
             </a>
-          </li>
+            <div class="flex min-w-0 flex-1 flex-col gap-1.5 py-1">
+              <%- include('../../components/type-chip', { type: entry.type }) %>
+              <a href="<%= entry.href %>" class="font-extrabold leading-snug text-ink no-underline hover:text-ink"><%= entry.title %></a>
+              <span class="text-xs text-muted"><%= meta || `${t.statusLabels.in_progress} · ${timeAgo(entry.updatedAt)}` %></span>
+              <div class="mt-auto flex flex-wrap gap-2 pt-1">
+                <a href="<%= entry.href %>" class="flex h-9 items-center rounded-full border border-line-soft bg-cream px-3 text-sm font-bold text-ink no-underline hover:text-ink">Noter</a>
+                <button type="button" hx-post="<%= entry.href %>/statut" hx-vals='{"status": "completed"}' hx-target="closest article" hx-swap="delete"
+                        class="h-9 cursor-pointer rounded-full border-0 bg-transparent px-3 text-sm font-bold text-accent-ink hover:bg-peach"><%= t.statusLabels.completed %></button>
+              </div>
+            </div>
+          </article>
         <% }) %>
-      </ul>
+      </div>
     <% } else { %>
-      <p class="m-0 text-muted">Tes derniers jeux et films terminés apparaîtront ici.</p>
+      <div class="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-dashed border-line bg-surface px-5 py-5">
+        <p class="m-0 text-muted">Rien en cours. Passe une œuvre « en cours » pour la retrouver ici.</p>
+        <a href="/recherche" class="btn-ghost">Trouver quelque chose</a>
+      </div>
     <% } %>
   </section>
+
+  <div class="flex flex-wrap items-start gap-8">
+    <section aria-labelledby="pour-toi" class="flex min-w-0 flex-[999_1_520px] flex-col gap-4">
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 id="pour-toi" class="m-0 text-2xl">Pour toi aujourd'hui</h2>
+        <a href="/decouvrir" class="text-sm font-bold">Découvrir</a>
+      </div>
+      <div id="pour-toi-bloc" hx-get="/decouvrir/du-jour" hx-trigger="load" hx-swap="outerHTML" aria-busy="true">
+        <div class="-mx-4 flex gap-4 overflow-hidden px-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 lg:grid-cols-5" aria-hidden="true">
+          <% for (let i = 0; i < 5; i++) { %><div class="aspect-[2/3] w-32 shrink-0 animate-pulse rounded-3xl bg-line-soft sm:w-auto"></div><% } %>
+        </div>
+      </div>
+    </section>
+
+    <aside class="flex w-full flex-[1_1_300px] flex-col gap-5 lg:max-w-sm">
+      <section aria-labelledby="defi" class="flex flex-col gap-3.5 rounded-3xl bg-anime p-5">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="defi" class="m-0 text-xl text-anime-ink">Défi du jour</h2>
+          <span class="text-xs font-extrabold text-anime-ink">Tu préfères…</span>
+        </div>
+        <% if (challenge) { %>
+          <div class="flex items-center gap-2.5">
+            <% challenge.options.forEach((o, i) => { %>
+              <% if (i === 1) { %><span class="font-serif text-lg text-anime-ink">ou</span><% } %>
+              <span class="relative flex h-28 flex-1 items-end overflow-hidden rounded-2xl bg-anime-cover p-2.5">
+                <% if (o.coverUrl) { %><img src="<%= o.coverUrl %>" alt="" class="absolute inset-0 h-full w-full object-cover"><span class="absolute inset-0 bg-gradient-to-t from-[#3a2f2a]/70 to-transparent"></span><% } %>
+                <span class="relative text-sm font-extrabold leading-tight <%= o.coverUrl ? 'text-[#ffffff]' : 'text-anime-ink' %>"><%= o.title %></span>
+              </span>
+            <% }) %>
+          </div>
+          <form action="/defis/duel" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="mode" value="library">
+            <input type="hidden" name="type" value="<%= challenge.type %>">
+            <input type="hidden" name="size" value="<%= challenge.size %>">
+            <button type="submit" class="h-11 cursor-pointer rounded-full border-0 bg-anime-ink px-5 font-extrabold text-[#ffffff]">Jouer · <%= challenge.size %> <%= itemTypes[challenge.type].plural.toLowerCase() %></button>
+          </form>
+        <% } else { %>
+          <p class="m-0 text-sm text-anime-ink">Duels et blindtest autour de ce que tu aimes. Ajoute quelques œuvres pour un défi taillé pour toi.</p>
+          <a href="/defis" class="flex h-11 items-center self-start rounded-full bg-anime-ink px-5 font-extrabold text-[#ffffff] no-underline hover:text-[#ffffff]">Voir les défis</a>
+        <% } %>
+      </section>
+
+      <section aria-labelledby="amis" class="flex flex-col gap-3.5 rounded-3xl bg-surface p-5 shadow-soft">
+        <div class="flex items-baseline justify-between gap-3">
+          <h2 id="amis" class="m-0 text-xl">Chez tes amis</h2>
+          <a href="/fil" class="text-sm font-bold">Le fil</a>
+        </div>
+        <% if (friends.length) { %>
+          <ul class="m-0 flex list-none flex-col gap-3 p-0">
+            <% friends.forEach((a) => { const text = describeActivity(a); %>
+              <li class="flex items-center gap-3">
+                <a href="<%= a.user.href %>" class="shrink-0 no-underline"><%- include('../../partials/social/avatar', { user: a.user, size: "h-9 w-9 text-xs" }) %></a>
+                <p class="m-0 min-w-0 flex-1 text-sm leading-snug">
+                  <a href="<%= a.user.href %>" class="font-extrabold text-ink no-underline"><%= a.user.pseudo %></a>
+                  <span class="text-muted"><%= text.verb %></span>
+                  <% if (a.item) { %><a href="<%= a.entryHref || '#' %>" class="font-extrabold no-underline"><%= a.item.title %></a><% } else if (a.target) { %><a href="<%= a.target.href %>" class="font-extrabold no-underline"><%= a.target.pseudo %></a><% } %>
+                  <% if (text.detail && a.kind !== "followed") { %><span class="text-muted"><%= text.detail %></span><% } %>
+                  <br><span class="text-xs text-muted"><%= timeAgo(a.createdAt) %></span>
+                </p>
+              </li>
+            <% }) %>
+          </ul>
+        <% } else { %>
+          <p class="m-0 text-sm text-muted">Suis des amis pour voir ce qu'ils jouent, regardent et lisent.</p>
+          <a href="/recherche" class="btn-ghost self-start text-sm">Trouver des amis</a>
+        <% } %>
+      </section>
+
+      <section aria-labelledby="semaine" class="flex flex-col gap-3 rounded-3xl border border-line-soft bg-surface p-5">
+        <h2 id="semaine" class="m-0 text-xl">Ta semaine</h2>
+        <dl class="m-0 grid grid-cols-3 gap-2">
+          <% [[week.completed, "terminés"], [week.added, "ajoutés"], [week.rated, "notés"]].forEach(([value, label]) => { %>
+            <div class="flex flex-col-reverse gap-0.5">
+              <dt class="text-sm font-semibold text-muted"><%= label %></dt>
+              <dd class="m-0 font-serif text-3xl"><%= value %></dd>
+            </div>
+          <% }) %>
+        </dl>
+      </section>
+    </aside>
+  </div>
 </div>
