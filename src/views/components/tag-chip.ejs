@@ -1,0 +1,6 @@
+<%# Tag. Paramètres : name, href? %>
+<% if (typeof href !== "undefined" && href) { %>
+  <a href="<%= href %>" class="rounded-full bg-peach px-3.5 py-1.5 text-sm font-semibold text-accent-ink no-underline"><%= name %></a>
+<% } else { %>
+  <span class="rounded-full bg-peach px-3.5 py-1.5 text-sm font-semibold text-accent-ink"><%= name %></span>
+<% } %>

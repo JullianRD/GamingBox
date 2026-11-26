@@ -1,0 +1,58 @@
+<div class="flex flex-col gap-12">
+  <section class="flex flex-wrap items-end justify-between gap-8">
+    <div class="flex max-w-xl flex-col gap-2">
+      <p class="m-0 font-semibold text-muted">Bonjour <%= currentUser.pseudo %></p>
+      <h1 class="m-0 text-4xl leading-tight sm:text-5xl">Ton cocon de jeux, films et lectures</h1>
+      <p class="m-0 leading-relaxed text-muted">Reprends là où tu t'es arrêté, ou ajoute ta prochaine découverte.</p>
+    </div>
+    <div class="grid min-w-[300px] grid-cols-3 gap-3">
+      <%- include('../../components/stat-tile', { value: stats.inProgress, label: "en cours" }) %>
+      <%- include('../../components/stat-tile', { value: stats.planned, label: "à découvrir" }) %>
+      <%- include('../../components/stat-tile', { value: stats.completed, label: "terminés" }) %>
+    </div>
+  </section>
+
+  <section aria-labelledby="en-ce-moment" class="flex flex-col gap-5">
+    <%- include('../../components/section-header', { id: "en-ce-moment", title: "En ce moment", linkHref: "/jeux?status=in_progress", linkLabel: "Tout voir" }) %>
+    <% if (current.length) { %>
+      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+        <% current.forEach((item) => { %>
+          <%- include('../../components/cover-card', { item }) %>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <%- include('../../components/empty-state', { title: "Rien en cours pour l'instant", text: "Cherche un jeu ou un film et passe-le en cours pour le retrouver ici.", ctaHref: "/recherche", ctaLabel: "Trouver quelque chose" }) %>
+    <% } %>
+  </section>
+
+  <%- include('../../components/import-banner') %>
+
+  <section aria-labelledby="termines" class="flex flex-col gap-5">
+    <%- include('../../components/section-header', { id: "termines", title: "Terminés récemment" }) %>
+    <% if (recentlyCompleted.length) { %>
+      <ul class="m-0 flex list-none flex-col gap-3 p-0">
+        <% recentlyCompleted.forEach((entry) => { const t = itemTypes[entry.type]; %>
+          <li>
+            <a href="<%= entry.href %>" class="flex flex-wrap items-center gap-4 rounded-2xl bg-surface px-5 py-3.5 text-ink no-underline shadow-soft hover:text-ink">
+              <% if (entry.coverUrl) { %>
+                <img src="<%= entry.coverUrl %>" alt="" class="h-16 w-11 rounded-lg object-cover">
+              <% } else { %>
+                <span class="h-16 w-11 rounded-lg <%= t.tone.cover %>"></span>
+              <% } %>
+              <span class="flex min-w-[180px] flex-1 flex-col gap-1">
+                <span class="font-bold"><%= entry.title %></span>
+                <span class="text-sm text-muted"><%= entry.reviewTitle %></span>
+              </span>
+              <%- include('../../components/type-chip', { type: entry.type }) %>
+              <% if (entry.rating != null) { const stars = Math.round(entry.rating / 2); %>
+                <span class="text-lg tracking-widest text-terracotta" aria-label="<%= stars %> sur 5"><%= "★".repeat(stars) %><span class="text-line"><%= "★".repeat(5 - stars) %></span></span>
+              <% } %>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <p class="m-0 text-muted">Tes derniers jeux et films terminés apparaîtront ici.</p>
+    <% } %>
+  </section>
+</div>

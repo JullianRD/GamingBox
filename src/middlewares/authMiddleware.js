@@ -57,13 +57,8 @@ export const requireAuth = (req, res, next) => {
  * @param {import('express').NextFunction} next
  */
 export const requireGuest = (req, res, next) => {
-  console.log("requireGuest hit", {
-    session: req.session,
-    userId: req.session?.userId,
-  });
-
   if (req.session.userId) {
-    return res.redirect("/reviews");
+    return res.redirect("/");
   }
 
   next();
@@ -86,7 +81,7 @@ export const requireAdmin = (req, res, next) => {
     if (req.originalUrl !== "/favicon.ico") {
       req.flash("error", "Accès réservé aux administrateurs.");
     }
-    return res.redirect("/reviews");
+    return res.redirect("/");
   }
 
   next();

@@ -1,0 +1,7 @@
+<%# En-tête de bloc. Paramètres : title, id?, linkHref?, linkLabel? %>
+<div class="flex items-baseline justify-between gap-4">
+  <h2 <%= typeof id !== "undefined" ? `id=${id}` : "" %> class="m-0 text-2xl sm:text-3xl"><%= title %></h2>
+  <% if (typeof linkHref !== "undefined" && linkHref) { %>
+    <a href="<%= linkHref %>" class="font-bold"><%= linkLabel %></a>
+  <% } %>
+</div>

@@ -1,4 +1,5 @@
 "use strict";
+import { SESSION_COOKIE_NAME } from "../../config/session.js";
 
 import AuthService from "../../services/AuthService.js";
 import { generateToken } from "../../config/security.js";
@@ -41,9 +42,6 @@ class AuthController {
     try {
       const user = await AuthService.login(req.body);
 
-      console.log("LOGIN USER:", user);
-      console.log("LOGIN USER ID:", user.id);
-      console.log("LOGIN USER ID_USER:", user.id_user);
 
       req.session.userId = user.id;
       req.session.email = user.email;
@@ -51,7 +49,6 @@ class AuthController {
       req.session.roleName = user.roleName;
       req.session.avatar = user.avatar;
 
-      console.log("SESSION USER ID SET:", req.session.userId);
 
       req.flash("success", `Bienvenue ${user.pseudo} 👋`);
 
@@ -66,7 +63,7 @@ class AuthController {
           return res.redirect("/admin");
         }
 
-        return res.redirect("/reviews");
+        return res.redirect("/");
       });
     } catch (error) {
       console.error("LOGIN ERROR:", error);
@@ -84,7 +81,7 @@ class AuthController {
           return res.redirect("/reviews");
         }
 
-        res.clearCookie("connect.sid");
+        res.clearCookie(SESSION_COOKIE_NAME);
         return res.redirect("/login");
       });
     } catch (error) {

@@ -1,0 +1,31 @@
+<div class="flex flex-col gap-8">
+  <section class="flex flex-wrap items-end justify-between gap-6">
+    <div class="flex flex-col gap-2">
+      <span class="self-start rounded-full px-3 py-1 text-sm font-bold <%= itemType.tone.chip %>"><%= itemType.plural %></span>
+      <h1 class="m-0 text-4xl">Mes <%= itemType.plural.toLowerCase() %></h1>
+      <p class="m-0 text-muted"><%= total %> au total</p>
+    </div>
+    <a href="/recherche" class="btn-primary">Ajouter</a>
+  </section>
+
+  <nav aria-label="Filtrer par statut" class="flex flex-wrap gap-2">
+    <a href="<%= itemType.path %>" class="rounded-full px-4 py-2 font-semibold no-underline <%= !status ? itemType.tone.chip : 'bg-surface text-muted hover:text-ink' %>" <%= !status ? 'aria-current=page' : '' %>>Tout</a>
+    <% statuses.forEach((s) => { %>
+      <a href="<%= itemType.path %>?status=<%= s %>"
+         class="rounded-full px-4 py-2 font-semibold no-underline <%= status === s ? itemType.tone.chip : 'bg-surface text-muted hover:text-ink' %>"
+         <%= status === s ? 'aria-current=page' : '' %>>
+        <%= itemType.statusLabels[s] %> <span class="opacity-70"><%= counts[s] %></span>
+      </a>
+    <% }) %>
+  </nav>
+
+  <% if (entries.length) { %>
+    <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+      <% entries.forEach((item) => { %>
+        <%- include('../../components/cover-card', { item }) %>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <%- include('../../components/empty-state', { title: "Rien ici pour l'instant", text: itemType.code === "movie" ? "La section Films arrive avec la recherche TMDB et l'import Letterboxd." : "Cherche un jeu et ajoute-le à ta liste.", ctaHref: itemType.code === "movie" ? "/imports" : "/recherche", ctaLabel: itemType.code === "movie" ? "Voir les imports" : "Chercher un jeu" }) %>
+  <% } %>
+</div>
