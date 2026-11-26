@@ -15,3 +15,30 @@ document.addEventListener("keydown", (event) => {
     button.click();
   }
 });
+
+// Carrousels de l'accueil : les onglets font défiler les panneaux, le défilement met à jour l'onglet
+const initCarousel = (root) => {
+  const track = root.querySelector("[data-carousel-track]");
+  const tabs = [...root.querySelectorAll("[data-carousel-tab]")];
+  if (!track || root.dataset.carouselReady) return;
+  root.dataset.carouselReady = "1";
+  const select = (index) => tabs.forEach((tab, i) => tab.setAttribute("aria-selected", String(i === index)));
+  tabs.forEach((tab, i) =>
+    tab.addEventListener("click", () => {
+      const slide = track.children[i];
+      if (slide) track.scrollTo({ left: slide.offsetLeft - track.firstElementChild.offsetLeft, behavior: "smooth" });
+      select(i);
+    }),
+  );
+  let frame;
+  track.addEventListener("scroll", () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      const width = track.firstElementChild?.offsetWidth || 1;
+      select(Math.round(track.scrollLeft / (width + 12)));
+    });
+  });
+};
+const initCarousels = (scope = document) => scope.querySelectorAll("[data-carousel]").forEach(initCarousel);
+document.addEventListener("DOMContentLoaded", () => initCarousels());
+document.addEventListener("htmx:afterSettle", (event) => initCarousels(event.target));

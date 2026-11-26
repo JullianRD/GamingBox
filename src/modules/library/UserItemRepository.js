@@ -85,15 +85,23 @@ class UserItemRepository {
   static async weekStats(userId) {
     const { rows } = await db.query(
       `
-        SELECT
-          COUNT(*) FILTER (WHERE status = 'completed' AND COALESCE(finished_at::timestamptz, updated_at) > NOW() - INTERVAL '7 days')::int AS completed,
-          COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '7 days')::int AS added,
-          COUNT(*) FILTER (WHERE rating IS NOT NULL AND COALESCE(updated_at, created_at) > NOW() - INTERVAL '7 days')::int AS rated
-        FROM user_items WHERE user_id = $1
+        SELECT i.item_type,
+          COUNT(*) FILTER (WHERE ui.status = 'completed' AND COALESCE(ui.finished_at::timestamptz, ui.updated_at) > NOW() - INTERVAL '7 days')::int AS completed,
+          COUNT(*) FILTER (WHERE ui.created_at > NOW() - INTERVAL '7 days')::int AS added,
+          COUNT(*) FILTER (WHERE ui.rating IS NOT NULL AND COALESCE(ui.updated_at, ui.created_at) > NOW() - INTERVAL '7 days')::int AS rated
+        FROM user_items ui JOIN items i ON i.id_item = ui.item_id
+        WHERE ui.user_id = $1
+        GROUP BY i.item_type
       `,
       [userId],
     );
-    return rows[0];
+    // Total de la semaine, puis une ligne par catégorie active (la plus active d'abord)
+    const sum = (key) => rows.reduce((total, row) => total + row[key], 0);
+    const byType = rows
+      .filter((row) => row.completed + row.added + row.rated > 0)
+      .sort((a, b) => b.completed + b.added + b.rated - (a.completed + a.added + a.rated))
+      .map((row) => ({ type: row.item_type, completed: row.completed, added: row.added, rated: row.rated }));
+    return { completed: sum("completed"), added: sum("added"), rated: sum("rated"), byType };
   }
 
   // Deux œuvres jouées, vues ou lues de la catégorie la plus fournie, tirées au jour (teaser du défi)

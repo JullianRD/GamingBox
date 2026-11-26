@@ -83,32 +83,58 @@
     </section>
 
     <aside class="flex w-full flex-[1_1_300px] flex-col gap-5 lg:max-w-sm">
-      <section aria-labelledby="defi" class="flex flex-col gap-3.5 rounded-3xl bg-anime p-5">
+      <section aria-labelledby="defi" data-carousel class="flex flex-col gap-3.5 rounded-3xl bg-anime p-5">
         <div class="flex items-center justify-between gap-3">
           <h2 id="defi" class="m-0 text-xl text-anime-ink">Défi du jour</h2>
-          <span class="text-xs font-extrabold text-anime-ink">Tu préfères…</span>
-        </div>
-        <% if (challenge) { %>
-          <div class="flex items-center gap-2.5">
-            <% challenge.options.forEach((o, i) => { %>
-              <% if (i === 1) { %><span class="font-serif text-lg text-anime-ink">ou</span><% } %>
-              <span class="relative flex h-28 flex-1 items-end overflow-hidden rounded-2xl bg-anime-cover p-2.5">
-                <% if (o.coverUrl) { %><img src="<%= o.coverUrl %>" alt="" class="absolute inset-0 h-full w-full object-cover"><span class="absolute inset-0 bg-gradient-to-t from-[#3a2f2a]/70 to-transparent"></span><% } %>
-                <span class="relative text-sm font-extrabold leading-tight <%= o.coverUrl ? 'text-[#ffffff]' : 'text-anime-ink' %>"><%= o.title %></span>
-              </span>
+          <div role="tablist" aria-label="Défis du jour" class="flex gap-1.5">
+            <% ["Duel", "Blindtest"].forEach((label, i) => { %>
+              <button type="button" role="tab" data-carousel-tab="<%= i %>" aria-selected="<%= i === 0 %>"
+                      class="cursor-pointer rounded-full border-0 px-3 py-1 text-xs font-extrabold text-anime-ink aria-selected:bg-anime-ink aria-selected:text-[#ffffff] bg-transparent"><%= label %></button>
             <% }) %>
           </div>
-          <form action="/defis/duel" method="post">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <input type="hidden" name="mode" value="library">
-            <input type="hidden" name="type" value="<%= challenge.type %>">
-            <input type="hidden" name="size" value="<%= challenge.size %>">
-            <button type="submit" class="h-11 cursor-pointer rounded-full border-0 bg-anime-ink px-5 font-extrabold text-[#ffffff]">Jouer · <%= challenge.size %> <%= itemTypes[challenge.type].plural.toLowerCase() %></button>
-          </form>
-        <% } else { %>
-          <p class="m-0 text-sm text-anime-ink">Duels et blindtest autour de ce que tu aimes. Ajoute quelques œuvres pour un défi taillé pour toi.</p>
-          <a href="/defis" class="flex h-11 items-center self-start rounded-full bg-anime-ink px-5 font-extrabold text-[#ffffff] no-underline hover:text-[#ffffff]">Voir les défis</a>
-        <% } %>
+        </div>
+        <div data-carousel-track class="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-5 [scrollbar-width:none]">
+          <div role="tabpanel" aria-label="Duel" class="flex w-full shrink-0 snap-center flex-col gap-3.5">
+            <p class="m-0 text-xs font-extrabold text-anime-ink">Tu préfères…</p>
+            <% if (challenge) { %>
+              <div class="flex items-center gap-2.5">
+                <% challenge.options.forEach((o, i) => { %>
+                  <% if (i === 1) { %><span class="font-serif text-lg text-anime-ink">ou</span><% } %>
+                  <span class="relative flex h-28 flex-1 items-end overflow-hidden rounded-2xl bg-anime-cover p-2.5">
+                    <% if (o.coverUrl) { %><img src="<%= o.coverUrl %>" alt="" class="absolute inset-0 h-full w-full object-cover"><span class="absolute inset-0 bg-gradient-to-t from-[#3a2f2a]/70 to-transparent"></span><% } %>
+                    <span class="relative text-sm font-extrabold leading-tight <%= o.coverUrl ? 'text-[#ffffff]' : 'text-anime-ink' %>"><%= o.title %></span>
+                  </span>
+                <% }) %>
+              </div>
+              <form action="/defis/duel" method="post" class="mt-auto">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="mode" value="library">
+                <input type="hidden" name="type" value="<%= challenge.type %>">
+                <input type="hidden" name="size" value="<%= challenge.size %>">
+                <button type="submit" class="h-11 cursor-pointer rounded-full border-0 bg-anime-ink px-5 font-extrabold text-[#ffffff]">Jouer · <%= challenge.size %> <%= itemTypes[challenge.type].plural.toLowerCase() %></button>
+              </form>
+            <% } else { %>
+              <p class="m-0 text-sm text-anime-ink">Un tournoi entre tes œuvres préférées. Ajoute-en quelques-unes pour un duel taillé pour toi.</p>
+              <a href="/defis" class="mt-auto flex h-11 items-center self-start rounded-full bg-anime-ink px-5 font-extrabold text-[#ffffff] no-underline hover:text-[#ffffff]">Voir les défis</a>
+            <% } %>
+          </div>
+          <div role="tabpanel" aria-label="Blindtest" class="flex w-full shrink-0 snap-center flex-col gap-3.5">
+            <p class="m-0 text-xs font-extrabold text-anime-ink">Devine la jaquette</p>
+            <div class="flex items-center gap-2.5">
+              <% (challenge ? challenge.options : [{}, {}]).forEach((o) => { %>
+                <span class="relative flex h-28 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-anime-cover">
+                  <% if (o.coverUrl) { %><img src="<%= o.coverUrl %>" alt="" class="absolute inset-0 h-full w-full scale-110 object-cover blur-md"><% } %>
+                  <span class="relative font-serif text-4xl text-anime-ink">?</span>
+                </span>
+              <% }) %>
+            </div>
+            <form action="/defis/blindtest" method="post" class="mt-auto">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="mode" value="covers">
+              <button type="submit" class="h-11 cursor-pointer rounded-full border-0 bg-anime-ink px-5 font-extrabold text-[#ffffff]">Jouer · blindtest jaquettes</button>
+            </form>
+          </div>
+        </div>
       </section>
 
       <section aria-labelledby="amis" class="flex flex-col gap-3.5 rounded-3xl bg-surface p-5 shadow-soft">
@@ -137,16 +163,29 @@
         <% } %>
       </section>
 
-      <section aria-labelledby="semaine" class="flex flex-col gap-3 rounded-3xl border border-line-soft bg-surface p-5">
+      <section aria-labelledby="semaine" data-carousel class="flex flex-col gap-3 rounded-3xl border border-line-soft bg-surface p-5">
+        <% const weekSlides = [{ label: "Tout", stats: week }, ...week.byType.map((s) => ({ label: itemTypes[s.type].plural, tone: itemTypes[s.type].tone, stats: s }))]; %>
         <h2 id="semaine" class="m-0 text-xl">Ta semaine</h2>
-        <dl class="m-0 grid grid-cols-3 gap-2">
-          <% [[week.completed, "terminés"], [week.added, "ajoutés"], [week.rated, "notés"]].forEach(([value, label]) => { %>
-            <div class="flex flex-col-reverse gap-0.5">
-              <dt class="text-sm font-semibold text-muted"><%= label %></dt>
-              <dd class="m-0 font-serif text-3xl"><%= value %></dd>
-            </div>
+        <% if (weekSlides.length > 1) { %>
+          <div role="tablist" aria-label="Catégories" class="-mx-5 flex gap-1.5 overflow-x-auto px-5 [scrollbar-width:none]">
+            <% weekSlides.forEach((slide, i) => { %>
+              <button type="button" role="tab" data-carousel-tab="<%= i %>" aria-selected="<%= i === 0 %>"
+                      class="shrink-0 cursor-pointer rounded-full border border-line-soft bg-transparent px-3 py-1 text-xs font-extrabold text-muted aria-selected:border-ink aria-selected:bg-ink aria-selected:text-[#ffffff]"><%= slide.label %></button>
+            <% }) %>
+          </div>
+        <% } %>
+        <div data-carousel-track class="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-5 [scrollbar-width:none]">
+          <% weekSlides.forEach((slide) => { %>
+            <dl role="tabpanel" aria-label="<%= slide.label %>" class="m-0 grid w-full shrink-0 snap-center grid-cols-3 gap-2 rounded-2xl p-3 <%= slide.tone ? slide.tone.chip : 'bg-cream' %>">
+              <% [[slide.stats.completed, "terminés"], [slide.stats.added, "ajoutés"], [slide.stats.rated, "notés"]].forEach(([value, label]) => { %>
+                <div class="flex flex-col-reverse gap-0.5">
+                  <dt class="text-sm font-semibold opacity-80"><%= label %></dt>
+                  <dd class="m-0 font-serif text-3xl"><%= value %></dd>
+                </div>
+              <% }) %>
+            </dl>
           <% }) %>
-        </dl>
+        </div>
       </section>
     </aside>
   </div>
