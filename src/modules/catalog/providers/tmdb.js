@@ -72,6 +72,7 @@ export const tmdbDetails = (data, media) => {
     seasons: data.number_of_seasons || undefined,
     watchProviders: [...new Set(streaming)].slice(0, 6),
     watchLink: providers?.link,
+    ongoing: data.status ? ["Returning Series", "In Production", "Planned", "Post Production", "Rumored"].includes(data.status) : undefined,
   };
   return item;
 };

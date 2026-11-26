@@ -2,7 +2,8 @@
 
 import ImportRepository from "./ImportRepository.js";
 import { getSource, allSources } from "./sources/index.js";
-import { pickMatch } from "./matching.js";
+import { pickMatch, normalizeTitle } from "./matching.js";
+import CatalogCacheRepository from "../catalog/CatalogCacheRepository.js";
 import CatalogService from "../catalog/CatalogService.js";
 import ItemRepository from "../catalog/ItemRepository.js";
 import UserItemRepository from "../library/UserItemRepository.js";
@@ -29,12 +30,24 @@ const running = new Set();
 
 const isDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value ?? "")) ? value : null;
 
-// Une ligne -> une œuvre du catalogue, ou des propositions
+// Clé d'une ligne pour les correspondances mémorisées : titre normalisé et année
+export const matchKey = (data) => {
+  const title = normalizeTitle(data?.title);
+  return title ? `${title}|${data.year ?? ""}`.slice(0, 250) : null;
+};
+
+/**
+ * Une ligne -> une œuvre du catalogue, ou des propositions.
+ * Ordre : identifiant connu en base, correspondance déjà validée par un
+ * utilisateur, notre catalogue, et seulement ensuite l'API de la catégorie.
+ */
 export const matchRow = async (data, preset = null) => {
   if (data.item) return { state: "matched", match: data.item, candidates: [] };
   if (preset) return { state: "matched", match: preset, candidates: [] };
 
   if (data.ids?.tmdb) {
+    const known = await ItemRepository.findBySource("tmdb", data.ids.tmdb);
+    if (known) return { state: "matched", match: known, candidates: [] };
     const tmdb = getProvider("tmdb");
     const fetched = tmdb.configured() ? await tmdb.fetchItem(data.ids.tmdb).catch(() => null) : null;
     return {
@@ -58,11 +71,32 @@ export const matchRow = async (data, preset = null) => {
     if (found) return { state: "matched", match: found, candidates: [] };
   }
 
+  const key = matchKey(data);
+  if (key) {
+    const rememberedId = await CatalogCacheRepository.findImportMatch(data.type, key);
+    const remembered = rememberedId ? await ItemRepository.findById(rememberedId) : null;
+    if (remembered) return { state: "matched", match: remembered, candidates: [] };
+  }
+
+  const local = await ItemRepository.searchLocal(data.title, { type: data.type, limit: 10 });
+  const localResult = pickMatch(data, local);
+  if (localResult.state === "matched") return localResult;
+
   const provider = providerForType(data.type);
-  if (!provider?.configured()) return { state: "unmatched", match: null, candidates: [] };
+  if (!provider?.configured()) return local.length ? localResult : { state: "unmatched", match: null, candidates: [] };
   const options = { type: data.type, year: data.year, author: data.creator, artist: data.creator };
-  const candidates = await (provider.match ? provider.match(data.title, options) : provider.search(data.title, options));
-  return pickMatch(data, candidates.filter((item) => item.type === data.type));
+  let found;
+  try {
+    found = await (provider.match ? provider.match(data.title, options) : provider.search(data.title, options));
+  } catch (error) {
+    // API indisponible ou quota atteint : on garde ce que notre base propose, à revoir
+    if (local.length) return localResult;
+    throw error;
+  }
+  // Chaque candidat rejoint le catalogue : la même ligne chez un autre utilisateur ne coûtera plus d'appel
+  const saved = await ItemRepository.upsertMany(found.filter((item) => item.type === data.type), { fresh: false });
+  const seen = new Set(saved.map((item) => item.id));
+  return pickMatch(data, [...saved, ...local.filter((item) => !seen.has(item.id))]);
 };
 
 class ImportService {
@@ -162,7 +196,9 @@ class ImportService {
 
   static async applyRow(current, row) {
     const data = row.data;
-    const item = await ItemRepository.upsert(row.match);
+    const item = (row.match.id && (await ItemRepository.findById(row.match.id))) || (await ItemRepository.upsert(row.match, { fresh: false }));
+    const key = matchKey(data);
+    if (key && item.type === data.type) await CatalogCacheRepository.recordImportMatch(data.type, key, item.id);
     const metadata = { importedFrom: current.source };
     if (data.playtime) metadata.playtimeMinutes = data.playtime;
     if (data.playcount) metadata.playcount = data.playcount;

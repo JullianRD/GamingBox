@@ -11,7 +11,7 @@ import { fetchJson } from "../http.js";
 const API = "https://graphql.anilist.co";
 
 const MEDIA_FIELDS = `
-  id idMal type format episodes chapters volumes
+  id idMal type format status episodes chapters volumes
   title { romaji english native userPreferred }
   coverImage { large }
   startDate { year month day }
@@ -46,6 +46,7 @@ export const anilistToItem = (media) => {
       episodes: media.episodes ?? undefined,
       chapters: media.chapters ?? undefined,
       volumes: media.volumes ?? undefined,
+      ongoing: media.status ? ["RELEASING", "NOT_YET_RELEASED", "HIATUS"].includes(media.status) : undefined,
       englishTitle: media.title?.english ?? undefined,
       nativeTitle: media.title?.native ?? undefined,
     },
