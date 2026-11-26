@@ -11,7 +11,7 @@
       <% } else if (activity.kind === "followed" && activity.target) { %>
         <a href="<%= activity.target.href %>" class="font-bold no-underline"><%= activity.target.pseudo %></a>
       <% } %>
-      <% if (text.detail && activity.kind !== "followed") { %><span class="text-muted"><%= text.detail %></span><% } %>
+      <% if (text.detail && activity.kind !== "followed") { %><% if (text.link) { %><a href="<%= text.link %>" class="font-bold no-underline"><%= text.detail %></a><% } else { %><span class="text-muted"><%= text.detail %></span><% } %><% } %>
     </p>
     <% if (text.quote) { %>
       <blockquote class="m-0 border-l-[3px] border-line pl-3 text-muted"><%= text.quote %></blockquote>

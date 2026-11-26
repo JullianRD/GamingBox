@@ -33,6 +33,10 @@ export const describeActivity = (activity) => {
       return { verb: "a commenté", detail: target ? `l'entrée de ${target.pseudo}` : "" };
     case "recommended":
       return { verb: "a recommandé", detail: target ? `à ${target.pseudo}` : "" };
+    case "challenged":
+      return payload.game === "blindtest"
+        ? { verb: "a fait", detail: `${payload.score}/${payload.total} au blindtest ${payload.title}`, link: payload.resultId ? `/defis/resultats/${payload.resultId}` : null }
+        : { verb: "a couronné", detail: `${payload.champion} (duel ${payload.title})`, link: payload.resultId ? `/defis/resultats/${payload.resultId}` : null };
     case "followed":
       return { verb: "suit maintenant", detail: target ? target.pseudo : "" };
     default:

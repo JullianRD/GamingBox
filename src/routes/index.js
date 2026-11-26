@@ -11,6 +11,7 @@ import importRoutes from "../modules/imports/routes.js";
 import listRoutes from "../modules/lists/routes.js";
 import socialRoutes from "../modules/social/routes.js";
 import discoverRoutes from "../modules/discover/routes.js";
+import challengeRoutes from "../modules/challenges/routes.js";
 
 // 🔐 Auth & compte
 import authRoutes from "./public/authRoutes.js";
@@ -38,6 +39,7 @@ router.use(importRoutes);
 router.use(listRoutes);
 router.use(socialRoutes);
 router.use(discoverRoutes);
+router.use(challengeRoutes);
 
 router.use(homesRoutes);
 

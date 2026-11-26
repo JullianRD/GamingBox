@@ -1,0 +1,14 @@
+<div class="mx-auto flex max-w-3xl flex-col gap-6">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <a href="/defis" class="text-sm font-semibold">Défis</a>
+      <h1 class="m-0 text-4xl">Blindtest</h1>
+      <p class="m-0 text-muted"><%= quiz.title %></p>
+    </div>
+    <form action="/defis/blindtest/abandon" method="post">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn-ghost text-sm">Abandonner</button>
+    </form>
+  </div>
+  <%- include('../../partials/challenges/question', { quiz }) %>
+</div>
