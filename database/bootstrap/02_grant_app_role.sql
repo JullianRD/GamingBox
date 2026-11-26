@@ -1,26 +1,26 @@
--- migration/config/02_add_permissions_role_app.sql
--- À exécuter APRES la création de toutes les tables
+-- BOOTSTRAP 02 : droits du rôle applicatif
+-- À exécuter APRÈS les migrations (npm run db:migrate), avec -v app_role=...
 
 -- On donne l'accès au schéma
-GRANT USAGE ON SCHEMA public TO app_gamingbox;
+GRANT USAGE ON SCHEMA public TO :"app_role";
 
 -- On donne les droits sur les tables existantes (Lecture / Écriture)
 GRANT
 SELECT, INSERT,
-UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_gamingbox;
+UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO :"app_role";
 
 -- On donne les droits sur les séquences (indispensable pour les IDs auto-incrémentés ou UUIDs)
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_gamingbox;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO :"app_role";
 
 -- Sécurité pour les tables créées dans le futur
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT
 SELECT, INSERT,
-UPDATE, DELETE ON TABLES TO app_gamingbox;
+UPDATE, DELETE ON TABLES TO :"app_role";
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT USAGE,
-SELECT ON SEQUENCES TO app_gamingbox;
+SELECT ON SEQUENCES TO :"app_role";
 
 -- Ce fichier fait 4 choses :
 

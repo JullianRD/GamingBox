@@ -33,3 +33,28 @@
 ### 🌟 Pourquoi GamingBox ?
 
 Pour avoir une liste compléte et interactive partout avec sois, simple d'utlisation, pratique à utiliser et agréable à partager.
+---
+
+## Base de données
+
+Le schéma est géré par des migrations versionnées ([node-pg-migrate](https://salsita.github.io/node-pg-migrate/)), en SQL, dans `migrations/`. PostgreSQL 18 minimum (`uuidv7()` natif).
+
+| Commande | Rôle |
+| --- | --- |
+| `bash scripts/init_db.sh` | Crée la base et le rôle applicatif, applique les migrations, donne les droits, propose les données de test |
+| `npm run db:migrate` | Applique les migrations en attente (`DATABASE_URL`) |
+| `npm run db:migrate:down` | Annule la dernière migration (`-- 0` pour tout annuler) |
+| `npm run db:migrate:create -- nom-de-la-migration` | Crée un fichier SQL avec ses sections `-- Up Migration` et `-- Down Migration` |
+
+Une migration déjà appliquée ne se modifie plus : toute évolution du schéma passe par une nouvelle migration.
+
+- `database/bootstrap/` : création de la base, du rôle applicatif et de ses droits (rôle administrateur).
+- `database/seeders/` : données de test.
+
+## Tests
+
+```bash
+npm test
+```
+
+Les tests d'intégration (`test/integration/`) ne tournent que si `TEST_DATABASE_URL` pointe vers une base PostgreSQL vide dédiée aux tests. Ils appliquent les migrations au début et les annulent à la fin.
