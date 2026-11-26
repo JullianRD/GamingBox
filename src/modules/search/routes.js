@@ -15,7 +15,7 @@ export const toSearchCard = (item) => ({
   type: item.type,
   title: item.title,
   coverUrl: item.coverUrl,
-  meta: [item.releaseDate?.slice(0, 4), item.metadata?.artist ?? item.metadata?.authors?.[0], item.genres?.[0]]
+  meta: [item.releaseDate ? String(item.releaseDate).slice(0, 4) : null, item.metadata?.artist ?? item.metadata?.authors?.[0], item.genres?.[0]]
     .filter(Boolean)
     .join(" · "),
   href: `/ajouter/${item.source}/${encodeURIComponent(item.externalId)}`,
@@ -26,8 +26,9 @@ router.get("/recherche", requireAuth, async (req, res) => {
   const type = ITEM_TYPES[req.query.type]?.enabled ? req.query.type : null;
   const long = query.length >= MIN_LENGTH;
 
+  const deep = req.query.plus === "1";
   const [catalog, people] = await Promise.all([
-    long ? CatalogService.search(query, { type }) : { results: [], unavailable: [] },
+    long ? CatalogService.search(query, { type, deep }) : { results: [], unavailable: [], canSearchDeeper: false },
     long && !type ? SocialService.searchUsers(query, req.session.userId) : [],
   ]);
 
@@ -38,6 +39,7 @@ router.get("/recherche", requireAuth, async (req, res) => {
     searchType: type,
     results: catalog.results.map(toSearchCard),
     unavailable: catalog.unavailable,
+    canSearchDeeper: catalog.canSearchDeeper,
     people,
     minLength: MIN_LENGTH,
     layout: htmx ? false : undefined,

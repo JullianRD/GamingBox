@@ -1,6 +1,7 @@
 "use strict";
 
 import { AppError } from "../../utils/AppError.js";
+import { acquire, pause, retryAfterMs, RateLimitError } from "./rateLimit.js";
 
 /**
  * Appel JSON vers une API externe, avec délai maximal.
@@ -14,7 +15,13 @@ export class ProviderError extends AppError {
   }
 }
 
-export const fetchJson = async (source, url, { method = "GET", headers = {}, body, timeout = 8000 } = {}) => {
+export const fetchJson = async (source, url, { method = "GET", headers = {}, body, timeout = 8000, maxWait } = {}) => {
+  try {
+    await acquire(source, { maxWait });
+  } catch (error) {
+    if (error instanceof RateLimitError) throw Object.assign(new ProviderError(source, "quota atteint pour le moment"), { rateLimited: true });
+    throw error;
+  }
   let response;
   try {
     response = await fetch(url, {
@@ -25,6 +32,10 @@ export const fetchJson = async (source, url, { method = "GET", headers = {}, bod
     });
   } catch (error) {
     throw new ProviderError(source, `service injoignable (${error.name})`);
+  }
+  if (response.status === 429) {
+    pause(source, retryAfterMs(response.headers.get("retry-after")));
+    throw Object.assign(new ProviderError(source, "quota atteint pour le moment"), { rateLimited: true });
   }
   if (!response.ok) {
     const text = await response.text().catch(() => "");

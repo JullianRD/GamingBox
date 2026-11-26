@@ -2,6 +2,17 @@
 
 import db from "../../config/database.js";
 
+// Date SQL (objet Date en heure locale) vers « AAAA-MM-JJ »
+const toDateString = (value) => {
+  if (!value) return null;
+  if (!(value instanceof Date)) return String(value).slice(0, 10);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+};
+
+// Caractères spéciaux de LIKE échappés
+const likeEscape = (text) => text.replace(/[\\%_]/g, (c) => `\\${c}`);
+
 // Lignes SQL vers objets JS
 export const toItem = (row) =>
   row
@@ -11,7 +22,8 @@ export const toItem = (row) =>
         source: row.source,
         externalId: row.external_id,
         title: row.title,
-        releaseDate: row.release_date,
+        releaseDate: toDateString(row.release_date),
+        fetchedAt: row.fetched_at ?? null,
         coverUrl: row.cover_url,
         genres: row.genres ?? [],
         metadata: row.metadata ?? {},
@@ -43,17 +55,19 @@ class ItemRepository {
   }
 
   // Crée l'œuvre ou rafraîchit ses infos si elle existe déjà
-  static async upsert(item) {
+  // fresh : la description vient d'être lue chez la source (sinon fetched_at ne bouge pas)
+  static async upsert(item, { fresh = true } = {}) {
     const { rows } = await db.query(
       `
         INSERT INTO items (item_type, source, external_id, title, release_date, cover_url, genres, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
         ON CONFLICT (source, external_id) DO UPDATE SET
           title = EXCLUDED.title,
           release_date = COALESCE(EXCLUDED.release_date, items.release_date),
           cover_url = COALESCE(EXCLUDED.cover_url, items.cover_url),
           genres = CASE WHEN cardinality(EXCLUDED.genres) > 0 THEN EXCLUDED.genres ELSE items.genres END,
-          metadata = items.metadata || EXCLUDED.metadata
+          metadata = items.metadata || EXCLUDED.metadata,
+          fetched_at = CASE WHEN $9::boolean THEN NOW() ELSE items.fetched_at END
         RETURNING *
       `,
       [
@@ -65,9 +79,45 @@ class ItemRepository {
         item.coverUrl || null,
         item.genres ?? [],
         item.metadata ?? {},
+        fresh,
       ],
     );
     return toItem(rows[0]);
+  }
+
+  // Enregistre une liste d'œuvres venues d'une API ; renvoie les lignes en base, dans le même ordre
+  static async upsertMany(items, options) {
+    const saved = [];
+    for (const item of items) saved.push(await ItemRepository.upsert(item, options));
+    return saved;
+  }
+
+  static async findByIds(ids) {
+    if (!ids?.length) return [];
+    const { rows } = await db.query(`SELECT * FROM items WHERE id_item = ANY($1::uuid[])`, [ids]);
+    const byId = new Map(rows.map((row) => [row.id_item, toItem(row)]));
+    return ids.map((id) => byId.get(id)).filter(Boolean);
+  }
+
+  /**
+   * Recherche dans notre catalogue : titre qui contient la requête, ou proche
+   * (trigrammes, index idx_items_title_trgm). Les titres exacts passent devant.
+   */
+  static async searchLocal(query, { type = null, limit = 30 } = {}) {
+    const text = String(query).trim().slice(0, 200);
+    if (text.length < 2) return [];
+    const { rows } = await db.query(
+      `
+        SELECT * FROM items
+        WHERE parent_item_id IS NULL
+          AND ($2::item_type_enum IS NULL OR item_type = $2)
+          AND (title ILIKE '%' || $1 || '%' OR title % $3)
+        ORDER BY (title = $3) DESC, similarity(title::text, $3) DESC, created_at
+        LIMIT $4
+      `,
+      [likeEscape(text), type, text, limit],
+    );
+    return rows.map(toItem);
   }
 
   // Rattache des entités (personnages...) à une œuvre, en une transaction

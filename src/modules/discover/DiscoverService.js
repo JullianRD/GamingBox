@@ -2,6 +2,8 @@
 
 import DiscoverRepository from "./DiscoverRepository.js";
 import { providerForType } from "../catalog/providers/index.js";
+import CatalogService from "../catalog/CatalogService.js";
+import ItemRepository from "../catalog/ItemRepository.js";
 import { ITEM_TYPES } from "../../utils/itemTypes.js";
 import { logger } from "../../config/logger.js";
 
@@ -79,7 +81,9 @@ class DiscoverService {
     const provider = providerForType(type);
     if (!provider?.configured() || !provider.trending) return cached?.items ?? [];
     try {
-      const items = (await withTimeout(provider.trending(type))).filter((i) => i.type === type).map((i) => toCard(i));
+      const found = (await withTimeout(provider.trending(type))).filter((i) => i.type === type);
+      // Les œuvres en tendance rejoignent le catalogue : les ouvrir n'appellera plus l'API
+      const items = (await ItemRepository.upsertMany(found, { fresh: false })).map((i) => toCard(i));
       await DiscoverRepository.saveTrendingCache(type, items);
       return items;
     } catch (error) {
@@ -93,7 +97,8 @@ class DiscoverService {
     const seeds = dailyShuffle(await DiscoverRepository.findSeeds(userId, type), `${userId}${date}${type}`).slice(0, SEEDS_PER_DAY);
     const groups = [];
     if (provider?.similar) {
-      const settled = await Promise.allSettled(seeds.map((seed) => withTimeout(provider.similar(seed))));
+      // Similaires gardés 30 jours par œuvre : une graine déjà vue (par n'importe qui) ne coûte plus d'appel
+      const settled = await Promise.allSettled(seeds.map((seed) => withTimeout(CatalogService.getSimilar(seed))));
       settled.forEach((outcome, index) => {
         if (outcome.status === "fulfilled") {
           groups.push({ reason: `Parce que tu as aimé ${seeds[index].title}`, items: outcome.value.filter((i) => i.type === type) });
