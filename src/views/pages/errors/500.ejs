@@ -1,14 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERROR 500</title>
-</head>
-
-<body>
-    BOUUUUUUUU ! 500
-</body>
-
-</html>
+<%- include('error', {
+  status: typeof status !== 'undefined' ? status : 500,
+  heading: "Erreur serveur",
+  message: typeof message !== 'undefined' && message ? message : "Une erreur est survenue. Veuillez réessayer plus tard.",
+  stack: typeof stack !== 'undefined' ? stack : null
+}) %>

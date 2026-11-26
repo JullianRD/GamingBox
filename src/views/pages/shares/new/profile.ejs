@@ -23,6 +23,7 @@
       method="POST"
       class="space-y-6 rounded-2xl border border-purple-500/20 bg-white/5 p-6 shadow-2xl backdrop-blur-xl"
     >
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <input type="hidden" name="userId" value="<%= profile.id %>" />
 
       <div class="rounded-xl bg-slate-900/50 border border-slate-800 p-4">

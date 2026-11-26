@@ -1,50 +1,50 @@
 "use strict";
 // src/config/database.js
-import dotenv from "dotenv";
-dotenv.config();
 import pg from "pg";
+import { env } from "./env.js";
 import { logger } from "./logger.js";
 
-const { Pool } = pg; // Import du gestionnaire de connexions, ouvre un groupe de connexions reutilisables au lieu d'une co par requêtes
-
-// Vérification de sécurité au demarrage
-if (!process.env.DATABASE_URL) {
-  if (process.env.NODE_ENV !== "test") {
-    const errorMsg =
-      "La variable DATABASE_URL est manquante dans le fichier .env ";
-    logger.fatal(errorMsg); // Log critique
-    throw new Error(errorMsg);
-  }
-}
+const { Pool } = pg;
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  // Nécessaire si la DB est en ligne (Render, Neon, Vercel, Supabase)
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
+  connectionString: env.DATABASE_URL,
+  // SSL en production : la vérification du certificat reste activée par défaut.
+  // Pour un hébergeur à certificat auto-signé, définir DB_SSL_REJECT_UNAUTHORIZED=false
+  // (ou mieux : fournir la CA via NODE_EXTRA_CA_CERTS).
+  ssl: env.isProduction ? { rejectUnauthorized: env.DB_SSL_REJECT_UNAUTHORIZED } : false,
   max: 20,
   idleTimeoutMillis: 30000,
 });
 
-// Evenements du pool pour le monitoring
-pool.on("connect", () => {
-  logger.debug("🐘 PostgreSQL connected");
+pool.on("error", (err) => {
+  logger.error({ err }, "Erreur inattendue sur un client PostgreSQL inactif");
 });
 
-pool.on("error", (err) => {
-  (logger.error({ err }), "❌ Unexpected error on idle database client");
-  process.exit(-1); // En cas de perte critique de DB, mieux vaut redémarrer l'app
-});
+/**
+ * Exécute `fn(client)` dans une transaction.
+ * COMMIT si `fn` réussit, ROLLBACK (puis relance de l'erreur) sinon.
+ *
+ * @template T
+ * @param {(client: import("pg").PoolClient) => Promise<T>} fn
+ * @returns {Promise<T>}
+ */
+export async function withTransaction(fn) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      logger.error({ err: rollbackError }, "ROLLBACK impossible");
+    }
+    throw error;
+  } finally {
+    client.release();
+  }
+}
 
 export default pool;
-
-
-// Ce fichier :
-
-// centralise la connexion DB
-// sécurise le démarrage
-// adapte SSL selon environnement
-// surveille les erreurs critiques
-// exporte un pool réutilisable

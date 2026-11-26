@@ -8,7 +8,7 @@ class UserExportService {
   static async export(userId) {
     const [user, reviews, tags, shares] = await Promise.all([
       UserRepository.findById(userId),
-      ReviewRepository.findByUserId(userId),
+      ReviewRepository.findAllByUser(userId),
       TagRepository.findByUserId(userId),
       ShareRepository.findByUserId(userId),
     ]);
@@ -19,7 +19,8 @@ class UserExportService {
       user: user.toJSON(),
       reviews,
       tags,
-      shares,
+      // Les jetons d'accès ne sont jamais exportés
+      shares: (shares || []).map(({ shareToken, share_token, ...rest }) => rest),
       exportDate: new Date().toISOString(),
     };
   }

@@ -1,140 +1,39 @@
 "use strict";
 /**
- * @fileoverview Point d'entrée principal de l'application Gamingbox
+ * Point d'entrée : démarre le serveur HTTP.
  */
-import dotenv from "dotenv";
-dotenv.config();
-import express from "express";
-import { fileURLToPath } from "url";
-import path from "path";
-import expressLayouts from "express-ejs-layouts";
+import { env } from "./src/config/env.js";
+import { logger } from "./src/config/logger.js";
+import { pool } from "./src/config/database.js";
+import { createApp } from "./src/app.js";
+import { startMaintenance, stopMaintenance } from "./src/services/MaintenanceService.js";
 
-// Routes
-import routes from "./src/routes/index.js";
+const app = createApp();
 
-// Sécurité & session
-import {
-  securityHeaders,
-  corsConfig,
-  globalLimiter,
-  cookieParserMiddleware,
-} from "./src/config/security.js";
-import { sessionMiddleware } from "./src/config/session.js";
+const server = app.listen(env.PORT, () => {
+  logger.info({ port: env.PORT, env: env.NODE_ENV }, "GamingBox démarré");
+  startMaintenance();
+});
 
-// Middlewares métier
-import { flashMiddleware } from "./src/middlewares/flashMiddleware.js";
-import { injectUserToLocals } from "./src/middlewares/authMiddleware.js";
-import {
-  notFoundHandler,
-  globalErrorHandler,
-} from "./src/middlewares/errorMiddleware.js";
+let shuttingDown = false;
 
-// ═══════════════════════════════════════════════════════════════
-// CONFIGURATION ESM
-// ═══════════════════════════════════════════════════════════════
+async function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  logger.info({ signal }, "Arrêt du serveur...");
+  stopMaintenance();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+  server.close(async () => {
+    await pool.end().catch(() => {});
+    process.exit(0);
+  });
 
-// ═══════════════════════════════════════════════════════════════
-// INITIALISATION EXPRESS
-// ═══════════════════════════════════════════════════════════════
-
-const app = express();
-// Railway / Reverse proxy support (OBLIGATOIRE en production)
-if(process.env.NODE_ENV === "production") {
-  app.set("trust proxy", 1);
+  // Filet de sécurité si des connexions restent ouvertes
+  setTimeout(() => process.exit(1), 10_000).unref();
 }
 
-// ═══════════════════════════════════════════════════════════════
-// MIDDLEWARES DE BASE
-// ═══════════════════════════════════════════════════════════════
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
-app.use(express.static(path.join(__dirname, "public")));
-
-// ═══════════════════════════════════════════════════════════════
-// SÉCURITÉ GLOBALE
-// cookieParser DOIT passer AVANT session & CSRF
-// ═══════════════════════════════════════════════════════════════
-
-app.use(cookieParserMiddleware);
-app.use(securityHeaders);
-app.use(corsConfig);
-app.use(globalLimiter);
-
-// ═══════════════════════════════════════════════════════════════
-// SESSION (PostgreSQL)
-// ═══════════════════════════════════════════════════════════════
-
-app.use(sessionMiddleware);
-
-// ═══════════════════════════════════════════════════════════════
-// FLASH & CONTEXTE UTILISATEUR
-// ═══════════════════════════════════════════════════════════════
-
-app.use(flashMiddleware);
-app.use(injectUserToLocals);
-
-// ═══════════════════════════════════════════════════════════════
-// CONFIGURATION EJS
-// ═══════════════════════════════════════════════════════════════
-
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "src", "views"));
-
-app.use(expressLayouts);
-app.set("layout", "layouts/main");
-app.set("layout extractScripts", true);
-app.set("layout extractStyles", true);
-
-// ═══════════════════════════════════════════════════════════════
-// ROUTES
-// ═══════════════════════════════════════════════════════════════
-
-app.use("/", routes);  // Définit ou les utilisateur doivent spawn
-
-// ═══════════════════════════════════════════════════════════════
-// 404
-// ═══════════════════════════════════════════════════════════════
-
-app.use(notFoundHandler);
-
-// ═══════════════════════════════════════════════════════════════
-// ERREURS GLOBALES
-// ═══════════════════════════════════════════════════════════════
-
-app.use(globalErrorHandler);
-
-// ═══════════════════════════════════════════════════════════════
-// DÉMARRAGE
-// ═══════════════════════════════════════════════════════════════
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║   🐼 GAMINGBOX - list de jeux personelle !               ║
-║                                                           ║
-║   🚀 Serveur lancé avec succès !                         ║
-║   📍 URL: http://localhost:${PORT}                         ║
-║   🌐 Environnement: ${process.env.NODE_ENV || "development"}                      ║
-║   ⏰ Démarré le: ${new Date().toLocaleString("fr-FR")}    ║
-║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
-  `);
-});
-
-// ═══════════════════════════════════════════════════════════════
-// ARRÊT PROPRE
-// ═══════════════════════════════════════════════════════════════
-
-process.on("SIGINT", () => {
-  console.log("\n\n👋 Arrêt du serveur GamingBox...");
-  process.exit(0);
-});
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("unhandledRejection", (reason) => logger.error({ err: reason }, "unhandledRejection"));
 
 export default app;

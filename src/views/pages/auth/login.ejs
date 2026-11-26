@@ -43,6 +43,8 @@
           required
           class="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white focus:border-purple-500 outline-none"
           placeholder="ton@email.com"
+          autocomplete="username"
+          value="<%= typeof oldInput !== 'undefined' && oldInput.email ? oldInput.email : '' %>"
         >
       </div>
 
@@ -55,7 +57,9 @@
           required
           class="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white focus:border-purple-500 outline-none"
           placeholder="••••••••"
+          autocomplete="current-password"
         >
+        <a href="/forgot-password" class="mt-2 inline-block text-xs text-purple-300 hover:text-purple-200">Mot de passe oublié ?</a>
       </div>
 
       <button

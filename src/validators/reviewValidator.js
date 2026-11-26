@@ -1,33 +1,37 @@
-﻿"use strict";
+"use strict";
 
 import { z } from "zod";
 
 /**
- * Validation des Reviews
- *
+ * Validation des reviews
  * @see https://zod.dev
  */
-const boolFromForm = z
-  .union([z.boolean(), z.stringbool()])
-  .transform((value) => Boolean(value));
 
-const progressionStatusEnum = z.enum(
-  ["En cour", "Terminé", "Whislist", "Dropped"],
-  { errorMap: () => ({ message: "Statut de progression invalide" }) },
-);
+/** Case à cocher HTML : absente => false ; "on" / "true" / true => true */
+const checkbox = z
+  .union([z.boolean(), z.string()])
+  .optional()
+  .transform((value) => value === true || value === "on" || value === "true" || value === "1");
 
-const gamePlatformeEnum = z.enum(
-  ["PC", "Console de jeu", "Autre"],
-  { errorMap: () => ({ message: "Plateforme invalide" }) },
-);
+const progressionStatusEnum = z.enum(["En cour", "Terminé", "Whislist", "Dropped"], {
+  error: "Statut de progression invalide",
+});
 
+const gamePlatformeEnum = z.enum(["PC", "Console de jeu", "Autre"], {
+  error: "Plateforme invalide",
+});
+
+/**
+ * tagIds : absent => undefined (ne pas toucher aux tags)
+ *          "" / [""] (formulaire sans tag coché) => [] (retirer tous les tags)
+ *          "uuid" / ["uuid", ...] => liste dédoublonnée
+ */
 const tagIdsSchema = z
-  .union([
-    z.uuid("Tag invalide"),
-    z.array(z.uuid("Tag invalide")),
-  ])
-  .transform((value) => (Array.isArray(value) ? value : [value]))
-  .optional();
+  .preprocess((value) => {
+    if (value === undefined) return undefined;
+    const list = Array.isArray(value) ? value : [value];
+    return [...new Set(list.map((v) => String(v).trim()).filter(Boolean))];
+  }, z.array(z.uuid("Tag invalide")).max(50, "Trop de tags").optional());
 
 const baseReviewSchema = z.object({
   gameId: z.uuid("Identifiant de jeu invalide"),
@@ -38,14 +42,14 @@ const baseReviewSchema = z.object({
     .min(3, "Le titre doit contenir au moins 3 caractères")
     .max(100, "Le titre ne peut pas dépasser 100 caractères"),
 
-  reviewRate: z
-    .coerce.number()
+  reviewRate: z.coerce
+    .number("La note doit être un nombre")
     .min(0, "La note ne peut pas être négative")
     .max(10, "La note ne peut pas dépasser 10"),
 
-  reviewLike: boolFromForm.default(false),
-
-  reviewPlatine: boolFromForm.default(false),
+  reviewLike: checkbox,
+  reviewPlatine: checkbox,
+  isPublic: checkbox,
 
   progressionStatus: progressionStatusEnum.default("En cour"),
 
@@ -67,6 +71,7 @@ const updateTagsSchema = z.object({
 
 export const schemas = {
   create: baseReviewSchema,
-  update: baseReviewSchema.partial(),
+  // gameId n'est pas modifiable : une review reste attachée à son jeu
+  update: baseReviewSchema.omit({ gameId: true }),
   updateTags: updateTagsSchema,
 };

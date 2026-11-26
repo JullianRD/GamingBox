@@ -19,6 +19,8 @@ class User {
     this.settingsUser = data.settings_user;
     this.gdprConsent = data.gdpr_consent;
     this.gdprConsentDate = data.gdpr_consent_date;
+    this.emailVerifiedAt = data.email_verified_at ?? null;
+    this.profilePublic = data.profile_public ?? false;
     this.createdAt = data.created_at;
     this.updatedAt = data.updated_at;
 
@@ -60,6 +62,8 @@ class User {
       authProvider: this.authProvider,
       settingsUser: this.settingsUser,
       gdprConsent: this.gdprConsent,
+      emailVerifiedAt: this.emailVerifiedAt,
+      profilePublic: this.profilePublic,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       // ❌ passwordHash exclu

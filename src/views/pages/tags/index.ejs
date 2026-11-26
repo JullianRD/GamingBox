@@ -28,6 +28,7 @@
 
         <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 mb-8">
             <form action="/tags" method="POST" class="flex flex-col sm:flex-row gap-3">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <input
                     type="text"
                     name="tagName"
@@ -62,6 +63,7 @@
                                 </a>
 
                                 <form action="/tags/<%= tag.id %>/delete" method="POST" onsubmit="return confirm('Supprimer ce tag ?');">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <button type="submit" class="text-red-300 hover:text-red-200 transition">
                                         🗑️
                                     </button>

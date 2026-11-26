@@ -2,8 +2,7 @@
 import { hash, verify, Algorithm } from "@node-rs/argon2";
 
 /**
- * Configuration Argon2 (OWASP recommendations)
- * ⚠️ À utiliser UNIQUEMENT pour les rehash automatiques
+ * Configuration Argon2id (recommandations OWASP)
  */
 const ARGON2_OPTIONS = {
   algorithm: Algorithm.Argon2id,
@@ -13,25 +12,26 @@ const ARGON2_OPTIONS = {
 };
 
 export async function hashPassword(password) {
-  return await hash(password, ARGON2_OPTIONS);
+  return hash(password, ARGON2_OPTIONS);
 }
 
 export async function verifyPassword(hashed, password) {
   try {
-    return verify(hashed, password);
-  } catch (error) {
+    return await verify(hashed, password);
+  } catch {
+    // hash illisible ou mot de passe invalide : jamais d'exception vers l'appelant
     return false;
   }
 }
 
+let dummyHashPromise = null;
 
-
-// Ce fichier sert à : 
-
-// ✔ centralise la sécurité des mots de passe
-// ✔ respecte les recommandations OWASP
-// ✔ protège contre les attaques brute-force
-// ✔ évite les erreurs dans les controllers/services
-
-
-// Avant d'être stocké en base le mot de passe de l'utilisateur est hashé pour de la sécurité
+/**
+ * Vérification factice : à appeler quand l'utilisateur n'existe pas afin que le temps
+ * de réponse ne révèle pas si un email est inscrit.
+ */
+export async function verifyDummyPassword(password) {
+  dummyHashPromise ??= hashPassword("dummy-password-for-timing-equalization");
+  await verifyPassword(await dummyHashPromise, password);
+  return false;
+}

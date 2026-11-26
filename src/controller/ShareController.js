@@ -1,262 +1,118 @@
 "use strict";
 
 import ShareService from "../services/ShareService.js";
+import { AppError } from "../utils/AppError.js";
 
 /**
- * ShareController
- * ---------------
- * Gestion HTTP des partages (SSR)
- *
- * Le controller :
- * - orchestre
- * - récupère req / res
- * - délègue toute décision au service
+ * ShareController : gestion HTTP des partages (SSR).
+ * Le contrôleur orchestre ; les règles (propriété, expiration, limite de vues) sont dans le service.
  */
 class ShareController {
-  // Liste de tous les partages de l'utilisateur connecté (profil + review)
   async index(req, res) {
-    try {
-      const userId = req.session.userId;
-      const shares = await ShareService.findByUserId(userId);
+    const shares = await ShareService.findByUserId(req.session.userId);
 
-      return res.render("pages/shares/index", {
-        title: "Mes partages",
-        shares: shares || [],
-        user: res.locals.currentUser || null,
-        flash: res.locals.flash || {},
-      });
-    } catch (error) {
-      console.error("SHARE INDEX ERROR:", error);
-      req.flash("error", "Impossible de charger les partages.");
-      return res.redirect("/reviews");
-    }
+    return res.render("pages/shares/index", {
+      title: "Mes partages",
+      shares: shares || [],
+      user: res.locals.currentUser || null,
+      flash: res.locals.flash || {},
+    });
   }
 
-  /**
-   * ➕ Formulaire de création d’un partage de profil utilisateur
-   */
   async newForProfile(req, res) {
-    const userId = req.session.userId;
+    const profile = await ShareService.prepareProfileShare(req.session.userId);
 
-    try {
-      const profile = await ShareService.prepareProfileShare(userId);
-
-      return res.render("pages/shares/new/profile", {
-        title: "Partager un profil utilisateur",
-        profile,
-        user: res.locals.currentUser || null,
-        flash: res.locals.flash || {},
-      });
-    } catch (error) {
-      console.error("SHARE NEW PROFILE ERROR:", error);
-      return res.status(403).render("pages/errors/403");
-    }
+    return res.render("pages/shares/new/profile", {
+      title: "Partager un profil utilisateur",
+      profile,
+      user: res.locals.currentUser || null,
+      flash: res.locals.flash || {},
+    });
   }
 
-  /**
-   * Alias de compatibilité si d'autres fichiers appellent encore l'ancien nom
-   */
-  async newforProfil(req, res) {
-    return this.newForProfile(req, res);
-  }
-
-  /**
-   * 💾 Création du partage de profil
-   */
   async storeForProfile(req, res) {
+    const { recipientEmail, allow_download, expiration, maxViews } = req.body;
+
     try {
-      const userId = req.session.userId;
-      const { recipientEmail, allow_download, expiration, maxViews } = req.body;
-
-      const accessConfig = {
-        allow_download: allow_download === "on",
-        expiration: expiration || null,
-        maxViews: maxViews ? Number(maxViews) : null,
-      };
-
       await ShareService.createShareForProfile({
-        userId,
+        userId: req.session.userId,
         recipientEmail,
-        accessConfig,
+        accessConfig: { allow_download, expiration, maxViews },
       });
-
-      req.flash("success", "Partage du profil créé avec succès ✅");
+      req.flash("success", "Partage du profil créé : le lien a été envoyé par email.");
       return res.redirect("/shares");
     } catch (error) {
-      console.error("SHARE STORE PROFILE ERROR:", error);
-      req.flash(
-        "error",
-        error.message || "Impossible de créer le partage du profil.",
-      );
+      if (!error?.isOperational) throw error;
+      req.flash("error", error.message);
       return res.redirect("/shares/new/profile");
     }
   }
 
-  /**
-   * Alias de compatibilité si d'autres fichiers appellent encore l'ancien nom
-   */
-  async storeForProfil(req, res) {
-    return this.storeForProfile(req, res);
-  }
-
-  /**
-   * ➕ Formulaire de création de partage pour une review
-   */
   async newForReview(req, res) {
-    const userId = req.session.userId;
-    const { reviewId } = req.query;
+    const review = await ShareService.prepareReviewShare(req.query.reviewId, req.session.userId);
 
-    try {
-      const review = await ShareService.prepareReviewShare(reviewId, userId);
-
-      return res.render("pages/shares/new/review", {
-        title: "Partager une review",
-        review,
-        user: res.locals.currentUser || null,
-        flash: res.locals.flash || {},
-      });
-    } catch (error) {
-      console.error("SHARE NEW REVIEW ERROR:", error);
-      return res.status(403).render("pages/errors/403");
-    }
+    return res.render("pages/shares/new/review", {
+      title: "Partager une review",
+      review,
+      user: res.locals.currentUser || null,
+      flash: res.locals.flash || {},
+    });
   }
 
-  /**
-   * 💾 Création du partage de la review
-   */
   async storeForReview(req, res) {
+    const { reviewId, recipientEmail, allow_download, expiration, maxViews } = req.body;
+
     try {
-      const userId = req.session.userId;
-      const { reviewId, recipientEmail, allow_download, expiration, maxViews } =
-        req.body;
-
-      const accessConfig = {
-        allow_download: allow_download === "on",
-        expiration: expiration || null,
-        maxViews: maxViews ? Number(maxViews) : null,
-      };
-
       await ShareService.createShareForReview({
-        userId,
+        userId: req.session.userId,
         reviewId,
         recipientEmail,
-        accessConfig,
+        accessConfig: { allow_download, expiration, maxViews },
       });
-
-      req.flash("success", "Partage de la review créé avec succès ✅");
+      req.flash("success", "Partage de la review créé : le lien a été envoyé par email.");
       return res.redirect("/shares");
     } catch (error) {
-      console.error("SHARE STORE REVIEW ERROR:", error);
-      req.flash(
-        "error",
-        error.message || "Impossible de créer le partage de la review.",
-      );
-
-      if (req.body.reviewId) {
-        return res.redirect(`/shares/new/review?reviewId=${req.body.reviewId}`);
-      }
-
-      return res.redirect("/shares");
+      if (!error?.isOperational || [403, 404].includes(error.statusCode)) throw error;
+      req.flash("error", error.message);
+      return res.redirect(`/shares/new/review?reviewId=${encodeURIComponent(reviewId)}`);
     }
   }
 
-  /**
-   * ✏️ Édition des droits d’un partage
-   */
-  async edit(req, res) {
-    try {
-      const { id } = req.params;
-      const userId = req.session.userId;
-
-      const share = await ShareService.findById(id);
-
-      if (!share) {
-        return res.status(404).render("pages/errors/404");
-      }
-
-      if (share.userId !== userId) {
-        return res.status(403).render("pages/errors/403");
-      }
-
-      return res.render("pages/shares/edit", {
-        title: "Modifier le partage",
-        share,
-        user: res.locals.currentUser || null,
-        flash: res.locals.flash || {},
-      });
-    } catch (error) {
-      console.error("SHARE EDIT ERROR:", error);
-      req.flash("error", "Impossible de charger le partage.");
-      return res.redirect("/shares");
-    }
-  }
-
-  /**
-   * 🔄 Mise à jour des droits pour un partage
-   */
-  async update(req, res) {
-    const { id } = req.params;
-    const { allow_download, expiration, maxViews } = req.body;
-
-    try {
-      const accessConfig = {
-        allow_download: allow_download === "on",
-        expiration: expiration || null,
-        maxViews: maxViews ? Number(maxViews) : null,
-      };
-
-      await ShareService.updateAccess(id, accessConfig);
-
-      req.flash("success", "Le partage a bien été mis à jour ✅");
-      return res.redirect("/shares");
-    } catch (error) {
-      console.error("SHARE UPDATE ERROR:", error);
-      req.flash(
-        "error",
-        error.message || "Impossible de mettre à jour le partage.",
-      );
-      return res.redirect("/shares");
-    }
-  }
-
-  /**
-   * 🗑️ Révocation d'un partage
-   */
   async destroy(req, res) {
-    try {
-      const { id } = req.params;
-
-      await ShareService.deleteShare(id);
-
-      req.flash("success", "Partage révoqué avec succès ✅");
-      return res.redirect("/shares");
-    } catch (error) {
-      console.error("SHARE DELETE ERROR:", error);
-      req.flash(
-        "error",
-        error.message || "Impossible de supprimer le partage.",
-      );
-      return res.redirect("/shares");
-    }
+    await ShareService.deleteShare(req.params.id, req.session.userId);
+    req.flash("success", "Partage révoqué avec succès");
+    return res.redirect("/shares");
   }
 
-  /**
-   * 🌍 Accès public à la ressource via un token sécurisé
-   */
+  // Accès public via un lien secret (aucune authentification)
   async access(req, res) {
-    const { token } = req.params;
+    // Le jeton est dans l'URL : pas de mise en cache, pas d'indexation, pas de Referer sortant
+    res.set({
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer",
+      "X-Robots-Tag": "noindex, nofollow",
+    });
 
-    try {
-      const share = await ShareService.accessByToken(token);
+    const share = await ShareService.accessByToken(req.params.token);
 
-      return res.render("pages/shares/public", {
-        title: "Accès partagé à la ressource",
-        share,
-      });
-    } catch (error) {
-      console.error("SHARE ACCESS ERROR:", error);
-      return res.status(403).render("pages/errors/403");
-    }
+    const og =
+      share.type === "review"
+        ? {
+            title: `${share.review.reviewTitle} - review de ${share.user.pseudo}`,
+            description: `${share.review.gameTitle} : ${share.review.reviewRate}/10`,
+            image: share.review.thumbnailUrl,
+          }
+        : {
+            title: `Profil de ${share.profile.pseudo} - GamingBox`,
+            description: `${share.profile.totalReviews} reviews, ${share.profile.finishedGames} jeux terminés`,
+            image: null,
+          };
+
+    return res.render(`pages/shares/public-${share.type}`, {
+      title: og.title,
+      og,
+      share,
+    });
   }
 }
 

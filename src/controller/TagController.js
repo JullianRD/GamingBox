@@ -1,52 +1,35 @@
 "use strict";
 
 import TagService from "../services/TagService.js";
+import { AppError } from "../utils/AppError.js";
+import { safeRedirect } from "../utils/safeRedirect.js";
 
-// TagController / Le rendu des tags sur les review se fait directement depuis le reviewController !
+// Le rendu des tags sur les reviews se fait depuis ReviewController.
 
 class TagController {
-  // Liste complète des tags de l'utilisateur
-
   async index(req, res) {
-    try {
-      const tags = await TagService.findByUserId(req.session.userId);
+    const tags = await TagService.findByUserId(req.session.userId);
 
-      return res.render("pages/tags/index", {
-        title: "Mes tags - GamingBox",
-        tags,
-        user: res.locals.currentUser || null,
-        flash: res.locals.flash || {},
-      });
-    } catch (error) {
-      console.error("TAG INDEX ERROR:", error);
-      req.flash("error", "Impossible de charger les tags.");
-      return res.redirect("/reviews");
-    }
+    return res.render("pages/tags/index", {
+      title: "Mes tags - GamingBox",
+      tags,
+      user: res.locals.currentUser || null,
+      flash: res.locals.flash || {},
+    });
   }
 
-  // Détails d'un tag
   async show(req, res) {
-    try {
-      const tag = await TagService.findByIdForUser(req.params.id, req.session.userId);
+    const tag = await TagService.findByIdForUser(req.params.id, req.session.userId);
+    if (!tag) throw AppError.notFound("Tag introuvable.");
 
-      if (!tag) {
-        return res.status(404).render("pages/errors/404");
-      }
-
-      return res.render("pages/tags/show", {
-        title: "Détail du tag - GamingBox",
-        tag,
-        user: res.locals.currentUser || null,
-        flash: res.locals.flash || {},
-      });
-    } catch (error) {
-      console.error("TAG SHOW ERROR:", error);
-      req.flash("error", "Impossible de charger le tag.");
-      return res.redirect("/tags");
-    }
+    return res.render("pages/tags/show", {
+      title: "Détail du tag - GamingBox",
+      tag,
+      user: res.locals.currentUser || null,
+      flash: res.locals.flash || {},
+    });
   }
 
-  // Formulaire de création du tag
   new(req, res) {
     return res.render("pages/tags/new", {
       title: "Nouveau tag - GamingBox",
@@ -56,66 +39,46 @@ class TagController {
   }
 
   async store(req, res) {
+    const back = safeRedirect(req.body.redirectTo, "/tags/new");
     try {
       await TagService.create(req.session.userId, req.body.tagName);
-      req.flash("success", "Tag créé avec succès ✅");
-
-      return res.redirect(req.body.redirectTo || "/reviews");
+      req.flash("success", "Tag créé avec succès");
+      return res.redirect(safeRedirect(req.body.redirectTo, "/reviews"));
     } catch (error) {
-      console.error("TAG STORE ERROR:", error);
-      req.flash("error", error.message || "Impossible de créer le tag.");
-      return res.redirect(req.body.redirectTo || "/tags/new");
+      if (!error?.isOperational) throw error;
+      req.flash("error", error.message);
+      return res.redirect(back);
     }
   }
 
-  // Formulaire de modification du tag
   async edit(req, res) {
-    try {
-      const tag = await TagService.findByIdForUser(req.params.id, req.session.userId);
+    const tag = await TagService.findByIdForUser(req.params.id, req.session.userId);
+    if (!tag) throw AppError.notFound("Tag introuvable.");
 
-      if (!tag) {
-        return res.status(404).render("pages/errors/404");
-      }
-
-      return res.render("pages/tags/edit", {
-        title: "Modifier le tag - GamingBox",
-        tag,
-        user: res.locals.currentUser || null,
-        flash: res.locals.flash || {},
-      });
-    } catch (error) {
-      console.error("TAG EDIT ERROR:", error);
-      req.flash("error", "Impossible de charger le tag.");
-      return res.redirect("/tags");
-    }
+    return res.render("pages/tags/edit", {
+      title: "Modifier le tag - GamingBox",
+      tag,
+      user: res.locals.currentUser || null,
+      flash: res.locals.flash || {},
+    });
   }
-
-  // Mise à jour d'un tag
 
   async update(req, res) {
     try {
       await TagService.update(req.params.id, req.session.userId, req.body.tagName);
-      req.flash("success", "Le tag a bien été mis à jour ✅");
-      return res.redirect(`/tags/${req.params.id}`);
+      req.flash("success", "Le tag a bien été mis à jour");
+      return res.redirect(`/tags/${encodeURIComponent(req.params.id)}`);
     } catch (error) {
-      console.error("TAG UPDATE ERROR:", error);
-      req.flash("error", error.message || "Impossible de mettre à jour le tag.");
-      return res.redirect(`/tags/${req.params.id}/edit`);
+      if (!error?.isOperational || error.statusCode === 404) throw error;
+      req.flash("error", error.message);
+      return res.redirect(`/tags/${encodeURIComponent(req.params.id)}/edit`);
     }
   }
 
-  // Suppression d'un Tag
-
   async destroy(req, res) {
-    try {
-      await TagService.delete(req.params.id, req.session.userId);
-      req.flash("success", "Le tag a été supprimé avec succès ✅");
-      return res.redirect(req.body.redirectTo || "/tags");
-    } catch (error) {
-      console.error("TAG DELETE ERROR:", error);
-      req.flash("error", error.message || "Impossible de supprimer le tag.");
-      return res.redirect(req.body.redirectTo || "/tags");
-    }
+    await TagService.delete(req.params.id, req.session.userId);
+    req.flash("success", "Le tag a été supprimé avec succès");
+    return res.redirect(safeRedirect(req.body.redirectTo, "/tags"));
   }
 }
 

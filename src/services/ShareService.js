@@ -4,191 +4,185 @@ import crypto from "node:crypto";
 import ShareRepository from "../repositories/PgShareRepository.js";
 import ReviewRepository from "../repositories/PgReviewRepository.js";
 import UserRepository from "../repositories/PgUserRepository.js";
+import MailService from "./MailService.js";
+import AppEventService from "./AppEventService.js";
+import { AppError } from "../utils/AppError.js";
 
-// ShareService : logique métier liée aux partages des ressources (profil utilisateur et review)
+const MAX_VIEWS_LIMIT = 10_000;
 
-class ShareService {
-  // Trouver un partage par son id
-  static async findById(id) {
-    return ShareRepository.findById(id);
+/** Jeton d'accès : 256 bits aléatoires, utilisable dans une URL. */
+const newToken = () => crypto.randomBytes(32).toString("base64url");
+
+/**
+ * Normalise et valide les droits d'accès d'un partage.
+ * - expiration : date valide et dans le futur (ou vide)
+ * - maxViews : entier positif (ou vide)
+ */
+export function normalizeAccessConfig({ allow_download, expiration, maxViews } = {}) {
+  let expirationIso = null;
+  if (expiration) {
+    const date = new Date(expiration);
+    if (Number.isNaN(date.getTime())) throw AppError.badRequest("Date d'expiration invalide.");
+    if (date <= new Date()) throw AppError.badRequest("La date d'expiration doit être dans le futur.");
+    expirationIso = date.toISOString();
   }
 
-  // Trouver tous les partages créés par un utilisateur
-  static async findByUserId(userId) {
+  let maxViewsNumber = null;
+  if (maxViews !== undefined && maxViews !== null && maxViews !== "") {
+    maxViewsNumber = Number(maxViews);
+    if (!Number.isInteger(maxViewsNumber) || maxViewsNumber < 1 || maxViewsNumber > MAX_VIEWS_LIMIT) {
+      throw AppError.badRequest(`Le nombre de vues doit être un entier entre 1 et ${MAX_VIEWS_LIMIT}.`);
+    }
+  }
+
+  return {
+    allow_download: allow_download === true || allow_download === "on" || allow_download === "true",
+    expiration: expirationIso,
+    maxViews: maxViewsNumber,
+  };
+}
+
+class ShareService {
+  static findByUserId(userId) {
     return ShareRepository.findByUserId(userId);
   }
 
-  // Trouver tous les partages de profil d'un utilisateur
-  static async findProfileSharesByUserId(userId) {
+  static findProfileSharesByUserId(userId) {
     return ShareRepository.findProfileSharesByUserId(userId);
   }
 
-  // Trouver tous les partages de review d'un utilisateur
-  static async findReviewSharesByUserId(userId) {
+  static findReviewSharesByUserId(userId) {
     return ShareRepository.findReviewSharesByUserId(userId);
   }
 
-  // Créer un partage vers un profil utilisateur
-  static async createShareForProfile({ userId, recipientEmail, accessConfig }) {
-    const exists = await ShareRepository.existByProfileAndEmail(
-      userId,
-      recipientEmail,
-    );
-
-    if (exists) {
-      throw new Error("Cette personne a déjà accès à cette ressource");
-    }
-
-    return ShareRepository.createShareForProfile({
-      userId,
-      recipientEmail,
-      shareToken: crypto.randomUUID(),
-      accessConfig,
-    });
-  }
-
-  /**
-   * Alias de compatibilité avec ancien nom
-   */
-  static async createShareForProfil(payload) {
-    return this.createShareForProfile(payload);
-  }
-
-  // Créer un partage vers une review d'un utilisateur
-  static async createShareForReview({
-    userId,
-    reviewId,
-    recipientEmail,
-    accessConfig,
-  }) {
-    const exists = await ShareRepository.existByReviewAndEmail(
-      reviewId,
-      recipientEmail,
-    );
-
-    if (exists) {
-      throw new Error("Cette personne a déjà accès à cette ressource");
-    }
-
-    return ShareRepository.createShareForReview({
-      userId,
-      reviewId,
-      recipientEmail,
-      shareToken: crypto.randomUUID(),
-      accessConfig,
-    });
-  }
-
-  // Formulaire de partage pour une review
-  static async prepareReviewShare(reviewId, userId) {
-    const review = await ReviewRepository.findById(reviewId);
-
-    if (!review) {
-      throw new Error("REVIEW_NOT_FOUND");
-    }
-
-    if (review.userId !== userId) {
-      throw new Error("FORBIDDEN");
-    }
-
-    return review;
-  }
-
-  // Formulaire de partage pour le profil
-  static async prepareProfileShare(userId) {
+  // Un partage envoie un email à un tiers : l'expéditeur doit avoir confirmé sa propre adresse
+  static async #requireVerifiedSender(userId) {
     const user = await UserRepository.findById(userId);
-
-    if (!user) {
-      throw new Error("USER_NOT_FOUND");
+    if (!user) throw AppError.notFound("Utilisateur introuvable.");
+    if (!user.emailVerifiedAt) {
+      throw AppError.forbidden("Confirme ton adresse email avant de partager du contenu.");
     }
-
     return user;
   }
 
+  static async createShareForProfile({ userId, recipientEmail, accessConfig }) {
+    const owner = await this.#requireVerifiedSender(userId);
+
+    if (await ShareRepository.existByProfileAndEmail(userId, recipientEmail)) {
+      throw AppError.conflict("Cette personne a déjà accès à ton profil.");
+    }
+
+    const token = newToken();
+    const share = await ShareRepository.createShareForProfile({
+      userId,
+      recipientEmail,
+      shareToken: token,
+      accessConfig: normalizeAccessConfig(accessConfig),
+    });
+
+    await MailService.sendShareInvitation({ to: recipientEmail, ownerPseudo: owner.pseudo, kind: "profile", token });
+    await AppEventService.shareCreated(userId, share.id);
+    return { share, token };
+  }
+
+  static async createShareForReview({ userId, reviewId, recipientEmail, accessConfig }) {
+    const owner = await this.#requireVerifiedSender(userId);
+    await this.prepareReviewShare(reviewId, userId);
+
+    if (await ShareRepository.existByReviewAndEmail(reviewId, recipientEmail)) {
+      throw AppError.conflict("Cette personne a déjà accès à cette review.");
+    }
+
+    const token = newToken();
+    const share = await ShareRepository.createShareForReview({
+      userId,
+      reviewId,
+      recipientEmail,
+      shareToken: token,
+      accessConfig: normalizeAccessConfig(accessConfig),
+    });
+
+    await MailService.sendShareInvitation({ to: recipientEmail, ownerPseudo: owner.pseudo, kind: "review", token });
+    await AppEventService.shareCreated(userId, share.id);
+    return { share, token };
+  }
+
+  // Une review ne peut être partagée que par son propriétaire
+  static async prepareReviewShare(reviewId, userId) {
+    const review = await ReviewRepository.findById(reviewId);
+    if (!review) throw AppError.notFound("Review introuvable.");
+    if (review.userId !== userId) throw AppError.forbidden("Cette review ne t'appartient pas.");
+    return review;
+  }
+
+  static async prepareProfileShare(userId) {
+    const user = await UserRepository.findById(userId);
+    if (!user) throw AppError.notFound("Utilisateur introuvable.");
+    return user;
+  }
+
+  // Révocation : uniquement par le propriétaire du partage
+  static async deleteShare(id, userId) {
+    const deleted = await ShareRepository.deleteForUser(id, userId);
+    if (!deleted) throw AppError.notFound("Partage introuvable.");
+    return true;
+  }
+
   /**
-   * Alias de compatibilité avec ancien nom
+   * Accès public via le lien reçu par email. Le compteur de vues, l'expiration
+   * et la limite sont contrôlés atomiquement par le repository.
    */
-  static async preprareProfilShare(userId) {
-    return this.prepareProfileShare(userId);
-  }
-
-  // Modifier les droits d'un partage pour une review
-  static async prepareEditForReview(shareId, userId) {
-    const share = await ShareRepository.findById(shareId);
-
-    if (!share) {
-      throw new Error("SHARE_NOT_FOUND");
-    }
-
-    const review = await ReviewRepository.findById(share.reviewId);
-
-    if (!review || review.userId !== userId) {
-      throw new Error("FORBIDDEN");
-    }
-
-    return { share, review };
-  }
-
-  // Modifier les droits d'un partage pour un profil
-  static async prepareEditForProfile(shareId, userId) {
-    const share = await ShareRepository.findById(shareId);
-
-    if (!share) {
-      throw new Error("SHARE_NOT_FOUND");
-    }
-
-    if (share.userId !== userId) {
-      throw new Error("FORBIDDEN");
-    }
-
-    return share;
-  }
-
-  /**
-   * Alias de compatibilité avec ancien nom
-   */
-  static async prepareEditForProfil(shareId, userId) {
-    return this.prepareEditForProfile(shareId, userId);
-  }
-
-  // Modifier les droits d'un partage
-  static async updateAccess(id, accessConfig) {
-    if (accessConfig.expiration) {
-      const expDate = new Date(accessConfig.expiration);
-
-      if (expDate < new Date()) {
-        throw new Error("INVALID_EXPIRATION_DATE");
-      }
-    }
-
-    return ShareRepository.updateAccessConfig(id, accessConfig);
-  }
-
-  // Accès à la ressource via un token
   static async accessByToken(token) {
-    throw new Error("Méthode non finalisée pour l'accès public.");
-  }
+    if (typeof token !== "string" || token.length < 20 || token.length > 128) {
+      throw AppError.notFound("Ce lien de partage est invalide, expiré ou a atteint sa limite de vues.");
+    }
 
-  // Supprimer un partage
-  static async deleteShare(id) {
-    return ShareRepository.delete(id);
-  }
+    const share = await ShareRepository.registerAccess(token);
+    if (!share) {
+      throw AppError.notFound("Ce lien de partage est invalide, expiré ou a atteint sa limite de vues.");
+    }
 
-  // Suppression en cascade pour une review
-  static async deleteSharesForReview(reviewId) {
-    return ShareRepository.deleteByReviewId(reviewId);
-  }
+    await AppEventService.shareAccessed(share.id);
 
-  // Suppression en cascade pour un profil
-  static async deleteSharesByProfile(userId) {
-    return ShareRepository.deleteByProfileId(userId);
-  }
+    if (share.reviewId) {
+      const data = await ShareRepository.findPublicReview(share.id);
+      if (!data) throw AppError.notFound("Cette review n'est plus disponible.");
+      return {
+        type: "review",
+        allowDownload: Boolean(share.accessConfig?.allow_download),
+        user: { pseudo: data.user_pseudo, avatar: data.user_avatar },
+        review: {
+          reviewTitle: data.review_title,
+          slug: data.slug,
+          avisReview: data.avis_review,
+          reviewRate: data.review_rate,
+          gamePlatforme: data.game_platforme,
+          progressionStatus: data.progression_status,
+          reviewLike: data.review_like,
+          reviewPlatine: data.review_platine,
+          gameTitle: data.game_title,
+          thumbnailUrl: data.thumbnail_url,
+          gameGenre: data.game_genre,
+          releaseDate: data.release_date,
+        },
+      };
+    }
 
-  /**
-   * Alias de compatibilité avec ancien nom
-   */
-  static async deleteSharesByProfil(userId) {
-    return this.deleteSharesByProfile(userId);
+    const data = await ShareRepository.findPublicProfile(share.id);
+    if (!data) throw AppError.notFound("Ce profil n'est plus disponible.");
+    return {
+      type: "profile",
+      allowDownload: Boolean(share.accessConfig?.allow_download),
+      profile: {
+        pseudo: data.pseudo,
+        avatar: data.avatar,
+        biographie: data.biographie,
+        totalReviews: Number(data.total_reviews),
+        finishedGames: Number(data.finished_games),
+        platineGames: Number(data.platine_games),
+        likedGames: Number(data.liked_games),
+      },
+    };
   }
 }
 

@@ -1,0 +1,6 @@
+<%- include('error', {
+  status: typeof status !== 'undefined' ? status : 403,
+  heading: "Accès interdit",
+  message: typeof message !== 'undefined' && message ? message : "Vous n'avez pas le droit d'accéder à cette ressource.",
+  stack: typeof stack !== 'undefined' ? stack : null
+}) %>

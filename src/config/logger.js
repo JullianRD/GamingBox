@@ -1,106 +1,99 @@
 "use strict";
 // src/config/logger.js
+import crypto from "node:crypto";
+import fs from "node:fs";
 import pino from "pino";
 import pinoHttp from "pino-http";
-import fs from "fs";
 
-const isDevelopment = process.env.NODE_ENV !== "production";
-
-// Création automatique du dossier logs s'il n'existe pas (en dev)
-if (isDevelopment && !fs.existsSync("./logs")) {
-  fs.mkdirSync("./logs");
-}
+const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
 
 /**
- * Options de base pour pino
- * @type {pino.LoggerOptions}
+ * Options de base pour pino.
+ * `redact` masque les données sensibles où qu'elles apparaissent dans un log.
  */
 const baseLoggerOptions = {
-  level: process.env.LOG_LEVEL || "info",
+  level: isTest ? "silent" : process.env.LOG_LEVEL || "info",
   timestamp: pino.stdTimeFunctions.isoTime,
+  redact: {
+    paths: [
+      "password",
+      "passwordHash",
+      "password_hash",
+      "*.password",
+      "*.passwordHash",
+      "*.password_hash",
+      "req.headers.cookie",
+      "req.headers.authorization",
+      'res.headers["set-cookie"]',
+    ],
+    censor: "[REDACTED]",
+  },
 };
 
-const transport = isDevelopment
-  ? pino.transport({
-      targets: [
-        // Cible 1 : console jolie
-        {
-          target: "pino-pretty",
-          options: {
-            destination: 1,
-            colorizer: true,
-            translateTime: "yyyy-mm-dd HH:MM:ss",
-            ignore: "pid,hostname",
-            messageFormat: "{level} {time} {msg}",
-          },
+/**
+ * Dev : sortie lisible + fichier JSON local. Prod/test : JSON brut sur stdout.
+ */
+function buildTransport() {
+  if (isProduction || isTest) return undefined;
+
+  if (!fs.existsSync("./logs")) fs.mkdirSync("./logs", { recursive: true });
+
+  return pino.transport({
+    targets: [
+      {
+        target: "pino-pretty",
+        options: {
+          destination: 1,
+          colorize: true,
+          translateTime: "yyyy-mm-dd HH:MM:ss",
+          ignore: "pid,hostname",
         },
-        // Cible 2 : Fichier JSON (pour garder l'historique local)
-        {
-          target: "pino/file",
-          options: {
-            destination: "./logs/app.log",
-            mkdir: true,
-          },
-        },
-      ],
-    })
-  : undefined;
+      },
+      {
+        target: "pino/file",
+        options: { destination: "./logs/app.log", mkdir: true },
+      },
+    ],
+  });
+}
+
+/** @type {pino.Logger} */
+export const logger = pino(baseLoggerOptions, buildTransport());
 
 /**
- * Créer et exporte le logger Pino principal
- * @type {pino.Logger}
+ * Logger HTTP : chaque requête reçoit un identifiant (`req.id`), repris dans
+ * l'en-tête de réponse X-Request-Id pour faciliter le support.
  */
-export const logger = pino(baseLoggerOptions, transport);
-
 export const httpLogger = pinoHttp({
-  logger: logger,
-
-  autoLogging: {
-    ignore: (req) => {
-      // Ignore les requêtes techniques (CORS)
-      if (req.method === "OPTIONS") return true;
-
-      // Ignore les fichiers statiques (images, css, js)
-      const url = req.url;
-      if (
-        url.startsWith("/css") ||
-        url.startsWith("/js") ||
-        url.startsWith("/images") ||
-        url.startsWith("/favicon.ico")
-      ) {
-        return true;
-      }
-      return false;
-    },
+  logger,
+  genReqId: (req, res) => {
+    const incoming = req.headers["x-request-id"];
+    const id =
+      typeof incoming === "string" && /^[\w-]{8,64}$/.test(incoming)
+        ? incoming
+        : crypto.randomUUID();
+    res.setHeader("X-Request-Id", id);
+    return id;
   },
-
-  customLogLevel: (res, err) => {
-    if (res.statusCode >= 400 && res.statusCode < 500) {
-      return "warn"; // Erreur client (ex: 404, 403)
-    }
-    if (res.statusCode >= 500) {
-      return "error"; // Erreur serveur (CRITIQUE)
-    }
-    return "info"; // Succès (200, 301...)
+  autoLogging: {
+    ignore: (req) =>
+      req.method === "OPTIONS" ||
+      req.url.startsWith("/css") ||
+      req.url.startsWith("/js") ||
+      req.url.startsWith("/images") ||
+      req.url.startsWith("/favicon.ico") ||
+      req.url === "/health",
+  },
+  customLogLevel: (req, res, err) => {
+    if (err || res.statusCode >= 500) return "error";
+    if (res.statusCode >= 400) return "warn";
+    return "info";
+  },
+  serializers: {
+    req: (req) => ({ id: req.id, method: req.method, url: req.url }),
+    res: (res) => ({ statusCode: res.statusCode }),
   },
 });
 
 export default logger;
-
-
-// 👉 Centraliser tout le logging de l’application
-// 👉 Avoir un comportement différent en dev et en prod
-// 👉 Logger automatiquement les requêtes HTTP
-
-// En prod :
-
-// Pas de pino-pretty
-// Pas de fichier local
-// Logs JSON purs
-
-// 👉 Optimisé pour :
-
-// Docker
-// Railway
-// Render
-// logs centralisés (Datadog, Grafana…)

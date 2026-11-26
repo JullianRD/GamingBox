@@ -1,18 +1,18 @@
 "use strict";
 /**
- * Middleware d'authentification et de gestion de session
+ * Middlewares d'authentification et d'autorisation
  *
  * @module middlewares/authMiddleware
  */
 
+const ADMIN_ROLES = ["admin", "super_admin"];
+
+export const isAdminRole = (roleName) => ADMIN_ROLES.includes(roleName);
+
 /**
  * Injecte les données de l'utilisateur connecté dans res.locals
- * Cela rend la variable `currentUser` accessible dans toutes les vues EJS
- * Doit être placé après le middleware de session et avant les routes.
- *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
+ * (variable `currentUser` disponible dans toutes les vues EJS).
+ * À placer après le middleware de session et avant les routes.
  */
 export const injectUserToLocals = (req, res, next) => {
   const isLoggedIn = Boolean(req.session?.userId);
@@ -24,65 +24,38 @@ export const injectUserToLocals = (req, res, next) => {
         pseudo: req.session.pseudo,
         role: req.session.roleName,
         avatar: req.session.avatar,
+        emailVerified: req.session.emailVerified !== false,
       }
     : null;
 
-  res.locals.isAdmin = isLoggedIn && req.session.roleName === "admin";
+  res.locals.isAdmin = isLoggedIn && isAdminRole(req.session.roleName);
 
   next();
 };
 
-/**
- * Vérifie si l'utilisateur est connecté
- * Si non, redirige vers la page de connexion
- *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
- */
+/** Redirige vers /login si l'utilisateur n'est pas connecté. */
 export const requireAuth = (req, res, next) => {
-  if (!req.session.userId) {
+  if (!req.session?.userId) {
     return res.redirect("/login");
   }
   next();
 };
 
-/**
- * Vérifie si l'utilisateur est un visiteur (non connecté)
- * Si connecté, redirige vers les reviews
- * Utile pour les pages login/register
- *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
- */
+/** Réservé aux visiteurs : un utilisateur connecté est renvoyé vers ses reviews. */
 export const requireGuest = (req, res, next) => {
-  console.log("requireGuest hit", {
-    session: req.session,
-    userId: req.session?.userId,
-  });
-
-  if (req.session.userId) {
+  if (req.session?.userId) {
     return res.redirect("/reviews");
   }
-
   next();
 };
 
-/**
- * Vérifie si l'utilisateur est admin
- * Si non, redirige vers les reviews
- *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
- */
+/** Réservé aux administrateurs. */
 export const requireAdmin = (req, res, next) => {
-  if (!req.session.userId) {
+  if (!req.session?.userId) {
     return res.redirect("/login");
   }
 
-  if (req.session.roleName !== "admin") {
+  if (!isAdminRole(req.session.roleName)) {
     if (req.originalUrl !== "/favicon.ico") {
       req.flash("error", "Accès réservé aux administrateurs.");
     }

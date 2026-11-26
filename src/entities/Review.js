@@ -24,6 +24,7 @@ class Review {
     this.progressionStatus = data.progression_status;
     this.avisReview = data.avis_review;
     this.gamePlatforme = data.game_platforme;
+    this.isPublic = data.is_public ?? false;
     this.createdAt = data.created_at;
     this.updatedAt = data.updated_at;
 

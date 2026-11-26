@@ -19,7 +19,7 @@ const router = Router();
  */
 
 // 🔐 Zone utilisateur connecté
-router.use(requireAuth);
+router.use("/tags", requireAuth);
 
 /**
  * 📋 Liste des tags

@@ -2,7 +2,7 @@
 
 import { Router } from "express";
 
-import homesRoutes from "./public/homeController.js";
+import homesRoutes from "./public/homeRoutes.js";
 
 // 🔐 Auth & compte
 import authRoutes from "./public/authRoutes.js";
@@ -16,6 +16,7 @@ import gameRoutes from "./user/gameRoutes.js";
 
 // Admin
 import adminRoutes from "./admin/adminRoutes.js";
+import appEventRoutes from "./admin/appEventRoutes.js";
 
 // Router principal de l'application gamingbox
 const router = Router();
@@ -42,6 +43,7 @@ router.use(shareRoutes);
 router.use(gameRoutes);
 
 // Administration
+router.use(appEventRoutes);
 router.use(adminRoutes);
 
 export default router;

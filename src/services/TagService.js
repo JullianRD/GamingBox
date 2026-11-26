@@ -1,4 +1,5 @@
 "use strict";
+import { AppError } from "../utils/AppError.js";
 import TagRepository from "../repositories/PgTagRepository.js";
 
 // TagService : Logique métier lié aux tags utilisateurs (centralise les règles métiers liées aux tags)
@@ -9,7 +10,7 @@ class TagService {
 
   static async create(userId, tagName) {
     if (!userId) {
-      throw new Error("UserId requis");
+      throw AppError.badRequest("UserId requis");
     }
 
     return TagRepository.create({
@@ -20,25 +21,25 @@ class TagService {
 
   static async findByUserId(userId) {
     if (!userId) {
-      throw new Error("UserId requis");
+      throw AppError.badRequest("UserId requis");
     }
     return await TagRepository.findByUserId(userId);
   }
 
   static async findById(tagId) {
     if (!tagId) {
-      throw new Error("TagId requis");
+      throw AppError.badRequest("TagId requis");
     }
     return await TagRepository.findById(tagId);
   }
 
   static async findByIdForUser(tagId, userId) {
     if (!tagId) {
-      throw new Error("TagId requis");
+      throw AppError.badRequest("TagId requis");
     }
 
     if (!userId) {
-      throw new Error("UserId requis");
+      throw AppError.badRequest("UserId requis");
     }
 
     return await TagRepository.findByIdForUser(tagId, userId);
@@ -49,7 +50,7 @@ class TagService {
     const tag = await TagRepository.findByIdForUser(tagId, userId);
 
     if (!tag) {
-      throw new Error("Tag introuvable.");
+      throw AppError.notFound("Tag introuvable.");
     }
 
     return TagRepository.update(tagId, userId, { tagName });
@@ -61,7 +62,7 @@ class TagService {
     const tag = await TagRepository.findByIdForUser(tagId, userId);
 
     if (!tag) {
-      throw new Error("Tag introuvable.");
+      throw AppError.notFound("Tag introuvable.");
     }
 
     return TagRepository.delete(tagId, userId);

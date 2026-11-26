@@ -19,7 +19,11 @@ export const deleteFile = async (relativePath) => {
   try {
     // Construction du chemin absolu système
     // process.cwd() renvoie la racine du projet
+    const uploadsRoot = path.join(process.cwd(), "public", "uploads") + path.sep;
     const fullPath = path.join(process.cwd(), "public", relativePath);
+
+    // Garde-fou : jamais de suppression hors de public/uploads (../)
+    if (!fullPath.startsWith(uploadsRoot)) return;
 
     await fs.unlink(fullPath);
     logger.info({ file: relativePath }, "Fichier supprimé avec succès");

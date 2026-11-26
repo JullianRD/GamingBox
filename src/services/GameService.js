@@ -56,7 +56,12 @@ class GameService {
       throw new Error("Jeu introuvable sur IGDB.");
     }
 
-    const createdGame = await GameRepository.create(igdbGame);
+    // game_title est limité à 100 caractères en base
+    const createdGame = await GameRepository.create({
+      ...igdbGame,
+      gameTitle: igdbGame.gameTitle.slice(0, 100),
+      gameGenre: igdbGame.gameGenre.slice(0, 50),
+    });
 
     return {
       game: createdGame,

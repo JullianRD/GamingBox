@@ -1,14 +1,16 @@
-// src/utils/generateSlug.js
 "use strict";
-export const generateSlug = (title) => {
-  const slugifyTitle = title
+
+/**
+ * Transforme un titre en slug d'URL : minuscules, sans accents, tirets.
+ * « Pokémon : Édition Rouge ! » -> « pokemon-edition-rouge »
+ * Retourne une chaîne vide si le titre ne contient aucun caractère latin/chiffre.
+ */
+export const generateSlug = (title) =>
+  String(title ?? "")
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
     .replace(/[\s_-]+/g, "-")
-    .replace(/^-+ | -+$/g, "");
-
-  return slugifyTitle;
-};
-
-// De ce que je comprend on fait un regex pour faire la mise en forme des texte inséré par l'utilisateur (genre les titres des reviews)
+    .replace(/^-+|-+$/g, "");

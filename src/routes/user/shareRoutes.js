@@ -8,67 +8,26 @@ import { schemas as shareSchemas } from "../../validators/shareValidator.js";
 
 const router = Router();
 
-/**
- * Routes SHARES
- *
- * - Gestion : utilisateur connecté
- * - Accès public : via token
- */
-
-/**
- * 🌍 ROUTE PUBLIQUE (token)
- * 🔓 Accès public à un partage
- * GET /shares/access/:token
- */
+// Accès public (lien secret reçu par email)
 router.get("/shares/access/:token", ShareController.access);
 
-/**
- * 🔐 ZONE UTILISATEUR CONNECTÉ
- */
-router.use(requireAuth);
+// Gestion des partages : utilisateur connecté
+router.use("/shares", requireAuth);
 
-/**
- * 📄 Liste des partages
- * GET /shares
- */
 router.get("/shares", ShareController.index);
-
-/**
- * ➕ Formulaire création pour un profil
- * GET /shares/new/profile
- */
 router.get("/shares/new/profile", ShareController.newForProfile);
-
-/**
- * ➕ Formulaire création pour une review
- * GET /shares/new/review
- */
 router.get("/shares/new/review", ShareController.newForReview);
 
-/**
- * 💾 Création pour un profil
- * POST /shares/profile
- */
 router.post(
   "/shares/profile",
-  validate(shareSchemas.createProfile),
+  validate(shareSchemas.createProfile, { fallback: "/shares/new/profile" }),
   ShareController.storeForProfile,
 );
-
-/**
- * 💾 Création pour une review
- * POST /shares/review
- */
 router.post(
   "/shares/review",
-  validate(shareSchemas.createReview),
+  validate(shareSchemas.createReview, { fallback: "/shares" }),
   ShareController.storeForReview,
 );
-
-/**
- * 🗑️ Révocation
- * POST /shares/:id/delete
- */
 router.post("/shares/:id/delete", ShareController.destroy);
 
 export default router;

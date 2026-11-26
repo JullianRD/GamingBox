@@ -167,6 +167,7 @@
                 <form action="/reviews/<%= review.slug %>/tags" method="POST" class="rounded-2xl border border-white/10 bg-slate-900/30 p-4">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
+                    <input type="hidden" name="tagIds" value="">
                     <p class="text-sm text-slate-300 mb-3">Modifier les tags associés à cette review :</p>
 
                     <% if (availableTags && availableTags.length > 0) { %>
@@ -229,6 +230,7 @@
                     </a>
 
                     <form action="/reviews/<%= review.slug %>/delete" method="POST" onsubmit="return confirm('Supprimer cette review ?');">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <button type="submit"
                                 class="w-full inline-flex items-center justify-center px-5 py-3 rounded-xl
                                        border border-red-500/20 bg-red-500/10 text-red-300

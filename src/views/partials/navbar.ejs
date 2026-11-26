@@ -1,1 +1,38 @@
-<Navbar></Navbar>
+<nav class="border-b border-white/10 bg-slate-950/90 backdrop-blur" aria-label="Navigation principale">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+    <a href="/" class="text-lg font-bold text-white">GamingBox</a>
+
+    <ul class="flex items-center gap-4 text-sm text-slate-300">
+      <% if (typeof currentUser !== "undefined" && currentUser) { %>
+        <li><a class="hover:text-white" href="/reviews">Reviews</a></li>
+        <li><a class="hover:text-white" href="/lists">Listes</a></li>
+        <li><a class="hover:text-white" href="/stats">Stats</a></li>
+        <li><a class="hover:text-white" href="/tags">Tags</a></li>
+        <li><a class="hover:text-white" href="/shares">Partages</a></li>
+        <% if (typeof isAdmin !== "undefined" && isAdmin) { %>
+          <li><a class="hover:text-white" href="/admin">Admin</a></li>
+        <% } %>
+        <li><a class="hover:text-white" href="/profile"><%= currentUser.pseudo %></a></li>
+        <li>
+          <form action="/logout" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="hover:text-white">Déconnexion</button>
+          </form>
+        </li>
+      <% } else { %>
+        <li><a class="hover:text-white" href="/login">Connexion</a></li>
+        <li><a class="rounded-lg bg-purple-600 px-3 py-1.5 text-white hover:bg-purple-500" href="/register">Inscription</a></li>
+      <% } %>
+    </ul>
+  </div>
+</nav>
+
+<% if (typeof currentUser !== "undefined" && currentUser && !currentUser.emailVerified) { %>
+  <div role="status" class="border-b border-amber-500/20 bg-amber-500/10 px-4 py-2 text-center text-sm text-amber-200">
+    Ton adresse email n'est pas encore confirmée.
+    <form action="/verify-email/resend" method="POST" class="inline">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="underline hover:text-white">Renvoyer l'email</button>
+    </form>
+  </div>
+<% } %>

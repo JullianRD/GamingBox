@@ -2,246 +2,144 @@
 
 import db from "../config/database.js";
 import User from "../entities/Users.js";
+import { AppError } from "../utils/AppError.js";
 
 /**
  * UserRepository
- *
- * Règles :
  * - Écriture : table `users`
- * - Lecture UI / Admin : vues SQL ou table directe
+ * - Lecture : table directe (colonnes explicites, jamais `SELECT *`)
  */
 
+const PUBLIC_COLUMNS = `
+  id_user, email, pseudo, biographie, avatar, role_name, auth_provider,
+  settings_user, gdpr_consent, gdpr_consent_date, email_verified_at,
+  profile_public, created_at, updated_at`;
+
+const FULL_COLUMNS = `password_hash, ${PUBLIC_COLUMNS}`;
+
 class UserRepository {
-  // Retourne un utilisateur par son identifiant (usage interne)
   static async findById(id) {
-    const query = /*SQL*/ `
-      SELECT
-        id_user,
-        email,
-        password_hash,
-        pseudo,
-        biographie,
-        avatar,
-        role_name,
-        auth_provider,
-        settings_user,
-        gdpr_consent,
-        gdpr_consent_date,
-        created_at,
-        updated_at
-      FROM users
-      WHERE id_user = $1;
-    `;
-
-    const { rows } = await db.query(query, [id]);
+    const { rows } = await db.query(`SELECT ${FULL_COLUMNS} FROM users WHERE id_user = $1`, [id]);
     return rows[0] ? new User(rows[0]) : null;
   }
 
-  // Retourne un utilisateur par son email (sert pour l'authentification)
   static async findByEmail(email) {
-    const query = /*SQL*/ `
-      SELECT
-        id_user,
-        email,
-        password_hash,
-        pseudo,
-        biographie,
-        avatar,
-        role_name,
-        auth_provider,
-        settings_user,
-        gdpr_consent,
-        gdpr_consent_date,
-        created_at,
-        updated_at
-      FROM users
-      WHERE LOWER(email) = LOWER($1);
-    `;
-
-    const { rows } = await db.query(query, [email]);
+    const { rows } = await db.query(`SELECT ${FULL_COLUMNS} FROM users WHERE email = $1`, [email]);
     return rows[0] ? new User(rows[0]) : null;
   }
 
-  // Liste des utilisateurs de l'application (reservé aux admins)
-  static async findAllAdmin() {
-    const query = /*SQL*/ `
-      SELECT
-        id_user,
-        email,
-        pseudo,
-        biographie,
-        avatar,
-        role_name,
-        auth_provider,
-        settings_user,
-        gdpr_consent,
-        gdpr_consent_date,
-        created_at,
-        updated_at
-      FROM users
-      ORDER BY created_at DESC;
-    `;
+  static async findByPseudo(pseudo) {
+    const { rows } = await db.query(`SELECT ${PUBLIC_COLUMNS} FROM users WHERE pseudo = $1`, [pseudo]);
+    return rows[0] ? new User(rows[0]) : null;
+  }
 
-    const { rows } = await db.query(query);
+  static async findAllAdmin() {
+    const { rows } = await db.query(`SELECT ${PUBLIC_COLUMNS} FROM users ORDER BY created_at DESC`);
     return rows.map((row) => new User(row));
   }
 
-  // Vérifie si un email existe (pour l'authentification)
+  // email et pseudo sont CITEXT : la comparaison est déjà insensible à la casse (et indexée)
   static async existByEmail(email) {
-    const query = /*SQL*/ `
-      SELECT EXISTS (
-        SELECT 1 FROM users
-        WHERE LOWER(email) = LOWER($1)
-      ) AS exists;
-    `;
-
-    const { rows } = await db.query(query, [email]);
+    const { rows } = await db.query("SELECT EXISTS (SELECT 1 FROM users WHERE email = $1) AS exists", [email]);
     return rows[0].exists;
   }
 
-  // Vérifier si un pseudo existe (pour l'authentification)
   static async existByPseudo(pseudo) {
-    const query = /*SQL*/ `
-      SELECT EXISTS (
-        SELECT 1 FROM users
-        WHERE LOWER(pseudo) = LOWER($1)
-      ) AS exists;
-    `;
-
-    const { rows } = await db.query(query, [pseudo]);
+    const { rows } = await db.query("SELECT EXISTS (SELECT 1 FROM users WHERE pseudo = $1) AS exists", [pseudo]);
     return rows[0].exists;
   }
 
-  // Créer un nouvel utilisateur
   static async create(data) {
-    const query = /*SQL*/ `
-      INSERT INTO users (
-        email,
-        password_hash,
-        pseudo,
-        biographie,
-        avatar,
-        auth_provider,
-        settings_user,
-        gdpr_consent
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING
-        id_user,
-        email,
-        pseudo,
-        biographie,
-        avatar,
-        role_name,
-        auth_provider,
-        settings_user,
-        gdpr_consent,
-        gdpr_consent_date,
-        created_at,
-        updated_at
-    `;
-
-    const values = [
-      data.email?.toLowerCase().trim(),
-      data.passwordHash,
-      data.pseudo?.trim(),
-      data.biographie ?? null,
-      data.avatar ?? null,
-      data.authProvider || "local",
-      JSON.stringify(data.settingsUser || {}),
-      data.gdprConsent,
-    ];
+    const gdprConsent = Boolean(data.gdprConsent);
 
     try {
-      const { rows } = await db.query(query, values);
+      const { rows } = await db.query(
+        /*sql*/ `
+          INSERT INTO users (email, password_hash, pseudo, biographie, avatar, auth_provider,
+                             settings_user, gdpr_consent, gdpr_consent_date)
+          VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, CASE WHEN $8 THEN now() ELSE NULL END)
+          RETURNING ${PUBLIC_COLUMNS}`,
+        [
+          data.email?.toLowerCase().trim(),
+          data.passwordHash,
+          data.pseudo?.trim(),
+          data.biographie ?? null,
+          data.avatar ?? null,
+          data.authProvider || "local",
+          JSON.stringify(data.settingsUser || {}),
+          gdprConsent,
+        ],
+      );
       return new User(rows[0]);
     } catch (error) {
       if (error.code === "23505") {
-        throw new Error("Email ou pseudo déjà utilisé.");
+        throw AppError.conflict("Email ou pseudo déjà utilisé.");
       }
-
       throw error;
     }
   }
 
-  // Met à jour un utilisateur
   static async update(id, data) {
-    const query = /*SQL*/ `
-      UPDATE users
-      SET
-        email = COALESCE($1, email),
-        password_hash = COALESCE($2, password_hash),
-        pseudo = COALESCE($3, pseudo),
-        biographie = COALESCE($4, biographie),
-        avatar = COALESCE($5, avatar),
-        settings_user = COALESCE($6, settings_user)::jsonb,
-        updated_at = NOW()
-      WHERE id_user = $7
-      RETURNING
-        id_user,
-        email,
-        pseudo,
-        biographie,
-        avatar,
-        role_name,
-        auth_provider,
-        settings_user,
-        gdpr_consent,
-        gdpr_consent_date,
-        created_at,
-        updated_at;
-    `;
-
-    const values = [
-      data.email?.toLowerCase().trim(),
-      data.passwordHash,
-      data.pseudo?.trim(),
-      data.biographie ?? null,
-      data.avatar ?? null,
-      data.settingsUser ? JSON.stringify(data.settingsUser) : null,
-      id,
-    ];
-
-    const { rows } = await db.query(query, values);
-    return rows[0] ? new User(rows[0]) : null;
+    try {
+      const { rows } = await db.query(
+        /*sql*/ `
+          UPDATE users SET
+            email = COALESCE($1, email),
+            password_hash = COALESCE($2, password_hash),
+            pseudo = COALESCE($3, pseudo),
+            biographie = COALESCE($4, biographie),
+            avatar = COALESCE($5, avatar),
+            settings_user = COALESCE($6::jsonb, settings_user),
+            profile_public = COALESCE($7, profile_public),
+            updated_at = NOW()
+          WHERE id_user = $8
+          RETURNING ${PUBLIC_COLUMNS}`,
+        [
+          data.email?.toLowerCase().trim() ?? null,
+          data.passwordHash ?? null,
+          data.pseudo?.trim() ?? null,
+          data.biographie ?? null,
+          data.avatar ?? null,
+          data.settingsUser ? JSON.stringify(data.settingsUser) : null,
+          data.profilePublic ?? null,
+          id,
+        ],
+      );
+      return rows[0] ? new User(rows[0]) : null;
+    } catch (error) {
+      if (error.code === "23505") throw AppError.conflict("Ce pseudo est déjà utilisé.");
+      throw error;
+    }
   }
 
-  // Met à jour les préférences de l'utilisateur
   static async updateSettings(id, settings) {
-    const query = /*sql*/ `
-      UPDATE users
-      SET
-        settings_user = settings_user || $1::jsonb,
-        updated_at = NOW()
-      WHERE id_user = $2
-      RETURNING
-        id_user,
-        email,
-        pseudo,
-        biographie,
-        avatar,
-        role_name,
-        auth_provider,
-        settings_user,
-        gdpr_consent,
-        created_at,
-        updated_at;
-    `;
-
-    const { rows } = await db.query(query, [JSON.stringify(settings), id]);
+    const { rows } = await db.query(
+      /*sql*/ `
+        UPDATE users SET settings_user = settings_user || $1::jsonb, updated_at = NOW()
+        WHERE id_user = $2 RETURNING ${PUBLIC_COLUMNS}`,
+      [JSON.stringify(settings), id],
+    );
     return rows[0] ? new User(rows[0]) : null;
   }
 
-  // Supprimer un utilisateur (RGPD ou admin)
-  static async delete(id) {
+  static async markEmailVerified(id) {
     const result = await db.query(
-      /*SQL*/ `
-        DELETE FROM users
-        WHERE id_user = $1;
-      `,
+      "UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()) WHERE id_user = $1",
       [id],
     );
+    return result.rowCount > 0;
+  }
 
+  static async updatePassword(id, passwordHash) {
+    const result = await db.query(
+      "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id_user = $2",
+      [passwordHash, id],
+    );
+    return result.rowCount > 0;
+  }
+
+  static async delete(id) {
+    const result = await db.query("DELETE FROM users WHERE id_user = $1", [id]);
     return result.rowCount > 0;
   }
 }

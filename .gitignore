@@ -139,3 +139,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Données utilisateurs (avatars uploadés) : ne jamais versionner
+public/uploads/*
+!public/uploads/.gitkeep

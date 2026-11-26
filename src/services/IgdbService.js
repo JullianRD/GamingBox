@@ -1,5 +1,13 @@
 "use strict";
 
+import { env } from "../config/env.js";
+import logger from "../config/logger.js";
+import { AppError } from "../utils/AppError.js";
+
+const SEARCH_TTL_MS = 5 * 60 * 1000;
+const SEARCH_CACHE_MAX = 200;
+const FETCH_TIMEOUT_MS = 8000;
+
 /**
  * Service IGDB
  *
@@ -9,6 +17,8 @@
  * - la récupération d'un jeu précis par son igdb_id
  */
 class IgdbService {
+  // Cache mémoire des recherches (protège le quota Twitch/IGDB)
+  static #searchCache = new Map();
   static #accessToken = null;
   static #tokenExpiresAt = 0;
 
@@ -20,8 +30,8 @@ class IgdbService {
       return this.#accessToken;
     }
 
-    const clientId = process.env.IGDB_CLIENT_ID;
-    const clientSecret = process.env.IGDB_CLIENT_SECRET;
+    const clientId = env.IGDB_CLIENT_ID;
+    const clientSecret = env.IGDB_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
       throw new Error("Configuration IGDB manquante dans le fichier .env");
@@ -29,6 +39,7 @@ class IgdbService {
 
     const response = await fetch("https://id.twitch.tv/oauth2/token", {
       method: "POST",
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
@@ -40,8 +51,8 @@ class IgdbService {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Impossible de récupérer le token IGDB : ${errorText}`);
+      logger.error({ status: response.status }, "Échec de récupération du token IGDB");
+      throw new AppError("Service de recherche de jeux indisponible.", 502, "IGDB_UNAVAILABLE");
     }
 
     const data = await response.json();
@@ -49,22 +60,17 @@ class IgdbService {
     this.#accessToken = data.access_token;
     this.#tokenExpiresAt = now + (data.expires_in - 60) * 1000;
 
-    console.log("IGDB TOKEN RECUPERE AVEC SUCCES");
-
     return this.#accessToken;
   }
 
   // Appel générique à l'API IGDB
   static async request(endpoint, body) {
     const token = await this.getAccessToken();
-    const clientId = process.env.IGDB_CLIENT_ID;
-
-    console.log("=== IGDB REQUEST START ===");
-    console.log("ENDPOINT:", endpoint);
-    console.log("BODY:", body);
+    const clientId = env.IGDB_CLIENT_ID;
 
     const response = await fetch(`https://api.igdb.com/v4/${endpoint}`, {
       method: "POST",
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       headers: {
         "Client-ID": clientId,
         Authorization: `Bearer ${token}`,
@@ -76,12 +82,9 @@ class IgdbService {
 
     const rawText = await response.text();
 
-    console.log("IGDB STATUS:", response.status);
-    console.log("IGDB RAW RESPONSE:", rawText);
-    console.log("=== IGDB REQUEST END ===");
-
     if (!response.ok) {
-      throw new Error(`Erreur IGDB : ${rawText}`);
+      logger.error({ status: response.status, endpoint }, "Erreur IGDB");
+      throw new AppError("Service de recherche de jeux indisponible.", 502, "IGDB_UNAVAILABLE");
     }
 
     return rawText ? JSON.parse(rawText) : [];
@@ -89,7 +92,12 @@ class IgdbService {
 
   // Recherche des jeux sur IGDB
   static async searchGames(query) {
-    const safeQuery = String(query || "").trim().replace(/"/g, '\\"');
+    // Échappement de \ puis de " : une saisie ne peut pas fermer la chaîne APIcalypse
+    const safeQuery = String(query || "")
+      .trim()
+      .slice(0, 100)
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"');
 
     if (!safeQuery || safeQuery.length < 2) {
       return [];
@@ -102,11 +110,13 @@ class IgdbService {
       limit 10;
     `;
 
+    const cacheKey = safeQuery.toLowerCase();
+    const cached = this.#searchCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.value;
+
     const results = await this.request("games", body);
 
-    console.log("IGDB SEARCH RESULTS COUNT:", results.length);
-
-    return results.map((game) => ({
+    const mapped = results.map((game) => ({
       igdbId: game.id,
       gameTitle: game.name,
       gameGenre: game.genres?.[0]?.name || "Inconnu",

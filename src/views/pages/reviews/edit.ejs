@@ -115,6 +115,7 @@
 
         <% if (tags && tags.length > 0) { %>
           <div class="flex flex-wrap gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <input type="hidden" name="tagIds" value="">
             <% tags.forEach(tag => { %>
               <label class="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 cursor-pointer">
                 <input
@@ -152,6 +153,10 @@
             class="accent-purple-600"
             <%= (review.reviewPlatine ?? review.review_platine) === true ? "checked" : "" %>>
           Platine 🏆
+        </label>
+        <label class="inline-flex items-center gap-2 text-sm text-slate-200">
+          <input type="checkbox" name="isPublic" class="accent-purple-600" <%= review.isPublic ? "checked" : "" %>>
+          Review publique (visible sur mon profil public)
         </label>
       </div>
 

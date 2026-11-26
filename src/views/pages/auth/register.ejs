@@ -20,6 +20,17 @@
       </p>
     </div>
 
+    <% if (flash && flash.error) { %>
+      <div role="alert" class="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300 relative z-10">
+        <%= flash.error %>
+        <% if (typeof errors !== "undefined" && Object.keys(errors).length) { %>
+          <ul class="mt-2 list-disc pl-5 text-sm">
+            <% Object.values(errors).forEach((message) => { %><li><%= message %></li><% }) %>
+          </ul>
+        <% } %>
+      </div>
+    <% } %>
+
     <!-- Form -->
     <form action="/register" method="POST" class="space-y-5 relative z-10">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
@@ -31,6 +42,8 @@
           type="text"
           name="pseudo"
           required
+          autocomplete="username"
+          value="<%= typeof oldInput !== 'undefined' && oldInput.pseudo ? oldInput.pseudo : '' %>"
           class="w-full px-4 py-2 rounded-lg bg-slate-900/70 border border-slate-700 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
         />
       </div>
@@ -42,6 +55,8 @@
           type="email"
           name="email"
           required
+          autocomplete="email"
+          value="<%= typeof oldInput !== 'undefined' && oldInput.email ? oldInput.email : '' %>"
           class="w-full px-4 py-2 rounded-lg bg-slate-900/70 border border-slate-700 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
         />
       </div>
@@ -53,6 +68,8 @@
           type="password"
           name="password"
           required
+          minlength="8"
+          autocomplete="new-password"
           class="w-full px-4 py-2 rounded-lg bg-slate-900/70 border border-slate-700 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
         />
       </div>

@@ -1,5 +1,6 @@
 "use strict";
 
+import { AppError } from "../utils/AppError.js";
 import UserRepository from "../repositories/PgUserRepository.js";
 
 // Gestion du compte utilisateur (profil de l'utilisateur connecté)
@@ -30,36 +31,24 @@ class UserService {
     return UserRepository.findAllAdmin(userId);
   }
 
-  // Mettre à jour une info ou plusieurs du profil utilisateur
+  // Mettre à jour le profil (les données arrivent déjà validées par Zod)
   static async updateProfile(userId, data, avatarPath = null) {
     const currentUser = await UserRepository.findById(userId);
 
     if (!currentUser) {
-      throw new Error("Utilisateur introuvable.");
+      throw AppError.notFound("Utilisateur introuvable.");
     }
 
-    const pseudo = data.pseudo?.trim();
-    const biographie = data.biographie?.trim() || null;
-
-    if (!pseudo) {
-      throw new Error("Le pseudo est requis.");
+    // CITEXT : la comparaison est insensible à la casse ; on exclut l'utilisateur lui-même
+    if (data.pseudo !== currentUser.pseudo && (await UserRepository.existByPseudo(data.pseudo))) {
+      throw AppError.conflict("Ce pseudo est déjà utilisé.");
     }
-
-    const pseudoAlreadyUsed = await UserRepository.existByPseudo(pseudo);
-
-    if (
-      pseudoAlreadyUsed &&
-      pseudo.toLowerCase() !== currentUser.pseudo?.toLowerCase()
-    ) {
-      throw new Error("Ce pseudo est déjà utilisé.");
-    }
-
-    const avatar = avatarPath || currentUser.avatar || null;
 
     return UserRepository.update(userId, {
-      pseudo,
-      avatar,
-      biographie,
+      pseudo: data.pseudo,
+      avatar: avatarPath || currentUser.avatar || null,
+      biographie: data.biographie ?? "",
+      profilePublic: Boolean(data.profilePublic),
     });
   }
 

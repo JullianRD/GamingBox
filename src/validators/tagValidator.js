@@ -14,5 +14,5 @@ const baseTagSchema = z.object({
 
 export const schemas = {
   create: baseTagSchema,
-  update: baseTagSchema.partial(),
+  update: baseTagSchema,
 };

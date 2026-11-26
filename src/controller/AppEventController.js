@@ -1,135 +1,39 @@
 "use strict";
 
 import AppEventAdminService from "../services/AppEventAdminService.js";
+import AppEventService from "../services/AppEventService.js";
 
 /**
- * AppEventController
- * ------------------
- * Controller ADMIN pour l’exploitation des événements applicatifs
- *
- * ⚠️ Aucune émission d’événement ici
- * ⚠️ Accès réservé aux administrateurs
- *
+ * Controller ADMIN : exploitation des événements applicatifs (API JSON).
+ * Les erreurs (AppError) sont traduites par le handler global.
  */
 class AppEventController {
-  /**
-   * 📊 Statistiques globales
-   * GET /admin/events/stats
-   */
   async stats(req, res) {
-    try {
-      const stats = await AppEventAdminService.getStats();
-
-      res.status(200).json(stats);
-    } catch (error) {
-      console.error("❌ AppEventController.stats", error);
-      res.status(500).json({
-        error: "Erreur lors du chargement des statistiques",
-      });
-    }
+    res.json(await AppEventAdminService.getStats());
   }
 
-  /**
-   * 📜 Liste paginée des événements
-   * GET /admin/events
-   */
   async index(req, res) {
-    try {
-      const limit = Number(req.query.limit) || 50;
-      const offset = Number(req.query.offset) || 0;
-
-      const events = await AppEventAdminService.listEvents({ limit, offset });
-
-      res.status(200).json({
-        limit,
-        offset,
-        count: events.length,
-        events,
-      });
-    } catch (error) {
-      console.error("❌ AppEventController.index", error);
-      res.status(500).json({
-        error: "Erreur lors du chargement des événements",
-      });
-    }
+    const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
+    const offset = Math.max(Number(req.query.offset) || 0, 0);
+    const events = await AppEventAdminService.listEvents({ limit, offset });
+    res.json({ limit, offset, count: events.length, events });
   }
 
-  /**
-   * 🔎 Détail d’un événement
-   * GET /admin/events/:id
-   */
   async show(req, res) {
-    try {
-      const { id } = req.params;
-
-      const event = await AppEventAdminService.getEventById(id);
-
-      res.status(200).json(event);
-    } catch (error) {
-      console.error("❌ AppEventController.show", error);
-
-      if (error.code === "NOT_FOUND") {
-        return res.status(404).json({ error: error.message });
-      }
-
-      res.status(500).json({
-        error: "Erreur lors du chargement de l’événement",
-      });
-    }
+    res.json(await AppEventAdminService.getEventById(req.params.id));
   }
 
-  /**
-   * 🗑️ Suppression exceptionnelle d’un événement
-   * DELETE /admin/events/:id
-   */
   async destroy(req, res) {
-    try {
-      const { id } = req.params;
-
-      await AppEventAdminService.deleteEvent({
-        eventId: id,
-        actorUserId: req.user?.id || null,
-      });
-
-      res.status(200).json({
-        message: "Événement supprimé avec succès",
-      });
-    } catch (error) {
-      console.error("❌ AppEventController.destroy", error);
-
-      if (error.code === "NOT_FOUND") {
-        return res.status(404).json({ error: error.message });
-      }
-
-      res.status(500).json({
-        error: "Erreur lors de la suppression",
-      });
-    }
+    await AppEventAdminService.deleteEvent({ eventId: req.params.id });
+    await AppEventService.adminAction(req.session.userId, "event_deleted", { eventId: req.params.id });
+    res.json({ message: "Événement supprimé avec succès" });
   }
 
-  /**
-   * 🧹 Nettoyage des événements anciens
-   * POST /admin/events/cleanup
-   */
   async cleanup(req, res) {
-    try {
-      const { days = 90 } = req.body;
-
-      const result = await AppEventAdminService.cleanupOldEvents({
-        days: Number(days),
-      });
-
-      res.status(200).json({
-        message: `${result.deletedCount} événements supprimés.`,
-        cutoffDate: result.cutoffDate,
-      });
-    } catch (error) {
-      console.error("❌ AppEventController.cleanup", error);
-
-      res.status(500).json({
-        error: "Erreur lors du nettoyage : " + error.message,
-      });
-    }
+    const days = Number(req.body?.days ?? 90);
+    const result = await AppEventAdminService.cleanupOldEvents({ days });
+    await AppEventService.adminAction(req.session.userId, "events_cleanup", { days, deleted: result.deletedCount });
+    res.json({ message: `${result.deletedCount} événements supprimés.`, cutoffDate: result.cutoffDate });
   }
 }
 

@@ -10,6 +10,16 @@
         <%= typeof title !== 'undefined' ? title : 'GamingBox' %>
     </title>
 
+    <% if (typeof og !== 'undefined' && og) { %>
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<%= og.title %>">
+    <meta property="og:description" content="<%= og.description %>">
+    <% if (og.image) { %><meta property="og:image" content="<%= og.image %>"><% } %>
+    <meta name="twitter:card" content="<%= og.image ? 'summary_large_image' : 'summary' %>">
+    <% } %>
+    <meta name="theme-color" content="#7c3aed">
+    <link rel="manifest" href="/manifest.webmanifest">
+
     <!-- Favicon -->
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
@@ -25,13 +35,15 @@
 
 <body class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
 
+    <a href="#contenu" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-purple-600 focus:px-3 focus:py-2 focus:text-white">Aller au contenu</a>
+
     <!-- Navbar -->
     <header class="sticky top-0 z-50">
         <%- include('../partials/navbar') %>
     </header>
 
     <!-- Contenu principal -->
-    <main class="
+    <main id="contenu" class="
         flex-1
         w-full
         max-w-7xl

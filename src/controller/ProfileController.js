@@ -1,40 +1,32 @@
 "use strict";
 
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import UserService from "../services/UserService.js";
 import UserExportService from "../services/UserExportService.js";
 import ShareService from "../services/ShareService.js";
-import { generateToken } from "../config/security.js";
-// import UserDTO from "../dto/UserDTO.js";
+import AppEventService from "../services/AppEventService.js";
+import { regenerateSession, saveSession } from "../config/session.js";
+import { AppError } from "../utils/AppError.js";
+import { deleteFile } from "../utils/uploadHelper.js";
 
-// Gestion du profil de l'utilisateur connecté
+const AVATAR_DIR = path.join(process.cwd(), "public", "uploads", "avatars");
 
+/** Gestion du profil de l'utilisateur connecté. */
 class ProfileController {
-  // Permet d'afficher le profil de l'utilisateur
   async index(req, res) {
-    try {
-      const user = await UserService.getProfileById(req.session.userId);
-      const profileShares = await ShareService.findProfileSharesByUserId(
-        req.session.userId,
-      );
+    const userId = req.session.userId;
+    const user = await UserService.getProfileById(userId);
+    const profileShares = await ShareService.findProfileSharesByUserId(userId);
 
-      return res.render("pages/profile/index", {
-        title: "Mon profil - GamingBox",
-        user,
-        profileShares: profileShares || [],
-        csrfToken: generateToken(req, res),
-        flash: res.locals.flash || {},
-      });
-    } catch (error) {
-      console.error("PROFILE INDEX ERROR:", error);
-      req.flash("error", error.message || "Impossible de charger le profil.");
-      return res.redirect("/reviews");
-    }
+    return res.render("pages/profile/index", {
+      title: "Mon profil - GamingBox",
+      user,
+      profileShares: profileShares || [],
+      flash: res.locals.flash || {},
+    });
   }
-
-  // Affiche le formulaire de modification du profil
 
   async edit(req, res) {
     const user = await UserService.getProfileById(req.session.userId);
@@ -42,106 +34,84 @@ class ProfileController {
     res.render("pages/profile/edit", {
       title: "Modifier mon profil",
       user,
-      csrfToken: generateToken(req, res),
       flash: res.locals.flash || {},
     });
   }
 
-  // Mettre à jour le profil de l'utilisateur
-
   async update(req, res) {
+    const userId = req.session.userId;
+    let avatarPath = null;
+    let newAvatarFile = null;
+
     try {
-      const userId = req.session.userId;
-      let avatarPath = null;
-
-      // Traitement de l'avatar uploadé
+      // Le fichier est ré-encodé par sharp : seul un vrai fichier image est conservé (WebP, 400x400)
       if (req.file) {
-        const uploadDir = path.join(process.cwd(), "public", "uploads", "avatars");
-
-        if (!fs.existsSync(uploadDir)) {
-          fs.mkdirSync(uploadDir, { recursive: true });
-        }
+        await fs.mkdir(AVATAR_DIR, { recursive: true });
 
         const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
-        const outputPath = path.join(uploadDir, filename);
-
-        await sharp(req.file.buffer)
-          .resize(400, 400, {
-            fit: "cover",
-            position: "center",
-          })
-          .webp({ quality: 82 })
-          .toFile(outputPath);
-
-        avatarPath = `/uploads/avatars/${filename}`;
-      }
-
-      const updatedUser = await UserService.updateProfile(
-        userId,
-        req.body,
-        avatarPath,
-      );
-
-      req.session.email = updatedUser.email;
-      req.session.pseudo = updatedUser.pseudo;
-      req.session.roleName = updatedUser.roleName;
-      req.session.avatar = updatedUser.avatar;
-
-      req.flash("success", "Profil mis à jour ✅");
-
-      return req.session.save((err) => {
-        if (err) {
-          console.error("SESSION SAVE ERROR:", err);
-          req.flash(
-            "error",
-            "Le profil a été modifié, mais la session n'a pas pu être mise à jour.",
-          );
-          return res.redirect("/profile");
+        try {
+          await sharp(req.file.buffer)
+            .resize(400, 400, { fit: "cover", position: "center" })
+            .webp({ quality: 82 })
+            .toFile(path.join(AVATAR_DIR, filename));
+        } catch {
+          throw AppError.badRequest("Le fichier envoyé n'est pas une image valide.");
         }
 
-        return res.redirect("/profile");
-      });
+        avatarPath = `/uploads/avatars/${filename}`;
+        newAvatarFile = avatarPath;
+      }
+
+      const previous = await UserService.getProfileById(userId);
+      const updatedUser = await UserService.updateProfile(userId, req.body, avatarPath);
+
+      // Ancien avatar supprimé du disque une fois le nouveau enregistré
+      if (avatarPath && previous?.avatar && previous.avatar !== avatarPath) {
+        await deleteFile(previous.avatar);
+      }
+
+      req.session.pseudo = updatedUser.pseudo;
+      req.session.avatar = updatedUser.avatar;
+
+      req.flash("success", "Profil mis à jour");
+      await saveSession(req);
+      return res.redirect("/profile");
     } catch (error) {
-      console.error("PROFILE UPDATE ERROR:", error);
-      req.flash("error", error.message || "Impossible de mettre à jour le profil.");
+      if (newAvatarFile) await deleteFile(newAvatarFile);
+      if (!error?.isOperational) throw error;
+      req.flash("error", error.message);
       return res.redirect("/profile/edit");
     }
   }
 
   async destroy(req, res) {
-    try {
-      const userId = req.session.userId;
-
-      await UserService.deleteAccount(userId);
-
-      req.session.destroy(() => {
-        res.redirect("pages/auth/register");
-      });
-    } catch (error) {
-      req.flash("error", error.message);
-      res.redirect("pages/profile");
-    }
-  }
-
-  /**
-   * Export RGPD des données utilisateur
-   */
-  async export(req, res) {
     const userId = req.session.userId;
 
+    const user = await UserService.getProfileById(userId);
+    await UserService.deleteAccount(userId);
+
+    // RGPD : le fichier d'avatar est supprimé avec le compte
+    if (user?.avatar) await deleteFile(user.avatar);
+    await AppEventService.gdprDelete(userId);
+
+    // Nouvelle session vide (la session de l'ancien compte est détruite)
+    await regenerateSession(req);
+    req.flash("success", "Ton compte et tes données ont été supprimés.");
+    await saveSession(req);
+    return res.redirect("/register");
+  }
+
+  /** Export RGPD des données personnelles (JSON). */
+  async export(req, res) {
+    const userId = req.session.userId;
     const data = await UserExportService.export(userId);
 
-    if (!data) {
-      return res.status(404).render("pages/errors/404");
-    }
+    if (!data) throw AppError.notFound("Compte introuvable.");
 
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=memoria-export-${userId}.json`,
-    );
-    res.setHeader("Content-Type", "application/json");
+    await AppEventService.gdprExport(userId);
 
-    res.send(JSON.stringify(data, null, 2));
+    res.setHeader("Content-Disposition", `attachment; filename=gamingbox-export-${userId}.json`);
+    res.type("application/json").send(JSON.stringify(data, null, 2));
   }
 }
 

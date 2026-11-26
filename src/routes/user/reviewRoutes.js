@@ -5,49 +5,32 @@ import ReviewController from "../../controller/ReviewController.js";
 import { requireAuth } from "../../middlewares/authMiddleware.js";
 import { validate } from "../../middlewares/validationMiddleware.js";
 import { schemas as reviewSchemas } from "../../validators/reviewValidator.js";
-// import { doubleCsrfProtection } from "../../config/security.js";
 
-const router = Router(); // Créer un objet grâce à express qui contiens toutes les routes lié aux reviews
+const router = Router();
 
-// Routes pour les reviews (l'utilisateur doit être connecté à son compte)
+// Reviews : l'utilisateur doit être connecté (le CSRF est vérifié globalement)
+router.use("/reviews", requireAuth);
 
-router.use(requireAuth);
-
-// Liste des reviews (la page principal avec le feed des reviews de l'utilisateur)
 router.get("/reviews", ReviewController.index);
-
-// Formulaire de création de la review
 router.get("/reviews/new", ReviewController.new);
-
-// Création d'une nouvelle review
 router.post(
   "/reviews",
-  (req, res, next) => {
-    console.log("POST /reviews HIT");
-    console.log("BODY BEFORE VALIDATE:", req.body);
-    next();
-  },
-  validate(reviewSchemas.create),
+  validate(reviewSchemas.create, { fallback: "/reviews/new" }),
   ReviewController.store,
 );
 
-// Formulaire d'édition de la review
 router.get("/reviews/:slug/edit", ReviewController.edit);
-
-// Mise à jour de la review
-router.post("/reviews/:slug", validate(reviewSchemas.update), ReviewController.update);
-
-// Mise à jour des tags depuis la page détail
+router.post(
+  "/reviews/:slug",
+  validate(reviewSchemas.update),
+  ReviewController.update,
+);
 router.post(
   "/reviews/:slug/tags",
   validate(reviewSchemas.updateTags),
   ReviewController.updateTags,
 );
-
-// Afficher les détails d'une review
 router.get("/reviews/:slug", ReviewController.show);
-
-// Suppression d'une review
 router.post("/reviews/:slug/delete", ReviewController.destroy);
 
 export default router;

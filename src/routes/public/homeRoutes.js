@@ -37,5 +37,6 @@ router.get("/contact", HomeController.contact);
  * GET /documentation
  */
 router.get("/documentation", HomeController.documentation);
+router.get("/privacy", HomeController.privacy);
 
 export default router;

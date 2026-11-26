@@ -1,95 +1,149 @@
 "use strict";
 
 import AuthService from "../../services/AuthService.js";
-import { generateToken } from "../../config/security.js";
+import AppEventService from "../../services/AppEventService.js";
+import {
+  regenerateSession,
+  saveSession,
+  destroySession,
+  SESSION_COOKIE_NAME,
+} from "../../config/session.js";
+
+/**
+ * Les AppError (erreurs métier) sont affichées à l'utilisateur ; toute autre
+ * erreur remonte au handler global (500 générique, détails dans les logs).
+ */
+const flashOrThrow = (req, error, fallbackRedirect, res) => {
+  if (!error?.isOperational) throw error;
+  req.flash("error", error.message);
+  return res.redirect(fallbackRedirect);
+};
 
 class AuthController {
-  // Affiche la page d'inscription à l'App
-  async showRegister(req, res) {
+  showRegister(req, res) {
     res.render("pages/auth/register", {
       title: "Inscription à GamingBox",
-      csrfToken: generateToken(req, res),
       flash: res.locals.flash || {},
     });
   }
 
-  // Traite la réussite ou l'echec de l'inscription
   async handleRegister(req, res) {
     try {
       await AuthService.register(req.body);
-
-      req.flash("success", "Compte créé avec succès ✅");
-      res.redirect("/login");
+      res.locals.authOk = true;
+      req.flash("success", "Compte créé. Un email de confirmation vient de t'être envoyé.");
+      return res.redirect("/login");
     } catch (error) {
-      req.flash("error", error.message);
-      res.redirect("/register");
+      return flashOrThrow(req, error, "/register", res);
     }
   }
 
-  // Affiche la page de connexion à l'App
-  async showLogin(req, res) {
+  showLogin(req, res) {
     res.render("pages/auth/login", {
-      title: "Connexion à l'APP GamingBox",
-      csrfToken: req.csrfToken(),
+      title: "Connexion à GamingBox",
       flash: res.locals.flash || {},
       logoutSuccess: false,
     });
   }
 
-  // Traite la connexion à l'App
   async handleLogin(req, res) {
+    let user;
     try {
-      const user = await AuthService.login(req.body);
-
-      console.log("LOGIN USER:", user);
-      console.log("LOGIN USER ID:", user.id);
-      console.log("LOGIN USER ID_USER:", user.id_user);
-
-      req.session.userId = user.id;
-      req.session.email = user.email;
-      req.session.pseudo = user.pseudo;
-      req.session.roleName = user.roleName;
-      req.session.avatar = user.avatar;
-
-      console.log("SESSION USER ID SET:", req.session.userId);
-
-      req.flash("success", `Bienvenue ${user.pseudo} 👋`);
-
-      return req.session.save((err) => {
-        if (err) {
-          console.error("SESSION SAVE ERROR:", err);
-          req.flash("error", "Impossible d'enregistrer la session.");
-          return res.redirect("/login");
-        }
-
-        if (user.roleName === "admin") {
-          return res.redirect("/admin");
-        }
-
-        return res.redirect("/reviews");
-      });
+      user = await AuthService.login(req.body);
     } catch (error) {
-      console.error("LOGIN ERROR:", error);
-      req.flash("error", error.message || "Erreur lors de la connexion.");
-      return res.redirect("/login");
+      await AppEventService.authFailure({ ip: req.ip });
+      return flashOrThrow(req, error, "/login", res);
     }
+
+    // Nouvelle session à chaque connexion : empêche la fixation de session
+    await regenerateSession(req);
+
+    req.session.userId = user.id;
+    req.session.email = user.email;
+    req.session.pseudo = user.pseudo;
+    req.session.roleName = user.roleName;
+    req.session.avatar = user.avatar;
+    req.session.emailVerified = Boolean(user.emailVerifiedAt);
+    req.session.csrfBound = true;
+
+    req.flash("success", `Bienvenue ${user.pseudo}`);
+    await saveSession(req);
+
+    res.locals.authOk = true;
+    await AppEventService.authSuccess(user.id, { ip: req.ip });
+
+    return res.redirect(["admin", "super_admin"].includes(user.roleName) ? "/admin" : "/reviews");
   }
 
-  // Déconnexion à l'App
   async logout(req, res) {
-    try {
-      req.session.destroy((error) => {
-        if (error) {
-          console.error("LOGOUT ERROR:", error);
-          return res.redirect("/reviews");
-        }
+    await destroySession(req);
+    res.clearCookie(SESSION_COOKIE_NAME);
+    return res.redirect("/login");
+  }
 
-        res.clearCookie("connect.sid");
-        return res.redirect("/login");
-      });
+  // --- Vérification de l'adresse email ---------------------------------------
+
+  async verifyEmail(req, res) {
+    try {
+      const userId = await AuthService.verifyEmail(req.params.token);
+      if (req.session?.userId === userId) req.session.emailVerified = true;
+      req.flash("success", "Adresse email confirmée.");
     } catch (error) {
-      console.error("LOGOUT ERROR:", error);
-      return res.redirect("/reviews");
+      if (!error?.isOperational) throw error;
+      req.flash("error", error.message);
+    }
+    return res.redirect(req.session?.userId ? "/profile" : "/login");
+  }
+
+  async resendVerification(req, res) {
+    const sent = await AuthService.resendVerification(req.session.userId);
+    req.flash(
+      "success",
+      sent ? "Email de confirmation renvoyé." : "Ton adresse est déjà confirmée.",
+    );
+    return res.redirect("/profile");
+  }
+
+  // --- Mot de passe oublié ----------------------------------------------------
+
+  showForgotPassword(req, res) {
+    res.render("pages/auth/forgot-password", {
+      title: "Mot de passe oublié - GamingBox",
+      flash: res.locals.flash || {},
+    });
+  }
+
+  async handleForgotPassword(req, res) {
+    await AuthService.requestPasswordReset(req.body.email);
+    // Même réponse que l'email existe ou non
+    req.flash(
+      "success",
+      "Si un compte correspond à cette adresse, un email de réinitialisation vient d'être envoyé.",
+    );
+    return res.redirect("/login");
+  }
+
+  async showResetPassword(req, res) {
+    const valid = await AuthService.isResetTokenValid(req.params.token);
+    if (!valid) {
+      req.flash("error", "Lien de réinitialisation invalide ou expiré.");
+      return res.redirect("/forgot-password");
+    }
+    return res.render("pages/auth/reset-password", {
+      title: "Nouveau mot de passe - GamingBox",
+      token: req.params.token,
+      flash: res.locals.flash || {},
+    });
+  }
+
+  async handleResetPassword(req, res) {
+    try {
+      await AuthService.resetPassword(req.params.token, req.body.password);
+      res.locals.authOk = true;
+      req.flash("success", "Mot de passe modifié. Tu peux te connecter.");
+      return res.redirect("/login");
+    } catch (error) {
+      return flashOrThrow(req, error, `/reset-password/${encodeURIComponent(req.params.token)}`, res);
     }
   }
 }

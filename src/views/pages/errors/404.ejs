@@ -1,14 +1,6 @@
-<!DOCTYPE html><!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERROR 404</title>
-</head>
-
-<body>
-    BOUUUUUUUU ! 404
-</body>
-
-</html>
+<%- include('error', {
+  status: typeof status !== 'undefined' ? status : 404,
+  heading: "Page introuvable",
+  message: typeof message !== 'undefined' && message ? message : "La page demandée n'existe pas.",
+  stack: typeof stack !== 'undefined' ? stack : null
+}) %>

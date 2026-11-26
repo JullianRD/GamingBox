@@ -317,6 +317,84 @@ class ShareRepository {
   static async deleteByProfilId(userId) {
     return this.deleteByProfileId(userId);
   }
+
+  // Un partage appartenant à un utilisateur donné (jamais sans filtre de propriétaire)
+  static async findByIdForUser(id, userId) {
+    const { rows } = await db.query(
+      /* SQL */ `
+        SELECT id_share, user_id, review_id, recipient_email, share_token,
+               access_config, created_at, updated_at
+        FROM shares
+        WHERE id_share = $1 AND user_id = $2`,
+      [id, userId],
+    );
+    return rows[0] ? new Share(rows[0]) : null;
+  }
+
+  // Révocation : seul le propriétaire du partage peut le supprimer
+  static async deleteForUser(id, userId) {
+    const result = await db.query(
+      "DELETE FROM shares WHERE id_share = $1 AND user_id = $2",
+      [id, userId],
+    );
+    return result.rowCount > 0;
+  }
+
+  /**
+   * Enregistre un accès public de façon atomique : le partage doit exister, ne pas
+   * être expiré et n'avoir pas atteint sa limite de vues (le compteur est incrémenté
+   * dans la même requête, donc deux accès simultanés ne dépassent jamais la limite).
+   *
+   * @param {string} token Jeton d'accès (secret de 256 bits, présent dans le lien envoyé)
+   */
+  static async registerAccess(token) {
+    const { rows } = await db.query(
+      /* SQL */ `
+        UPDATE shares
+        SET access_config = jsonb_set(
+              access_config,
+              '{view_count}',
+              to_jsonb(COALESCE((access_config->>'view_count')::int, 0) + 1),
+              true)
+        WHERE share_token = $1
+          AND (
+            COALESCE(access_config->>'expiration', '') = ''
+            OR (access_config->>'expiration')::timestamptz > now()
+          )
+          AND (
+            access_config->>'maxViews' IS NULL
+            OR COALESCE((access_config->>'view_count')::int, 0) < (access_config->>'maxViews')::int
+          )
+        RETURNING id_share, user_id, review_id, recipient_email, share_token,
+                  access_config, created_at, updated_at`,
+      [token],
+    );
+    return rows[0] ? new Share(rows[0]) : null;
+  }
+
+  // Données publiques d'une review partagée
+  static async findPublicReview(shareId) {
+    const { rows } = await db.query(
+      /* SQL */ `
+        SELECT review_title, slug, avis_review, review_rate, game_platforme, progression_status,
+               review_like, review_platine, game_title, thumbnail_url, game_genre, release_date,
+               user_pseudo, user_avatar
+        FROM v_share_public_review WHERE id_share = $1`,
+      [shareId],
+    );
+    return rows[0] || null;
+  }
+
+  // Données publiques d'un profil partagé
+  static async findPublicProfile(shareId) {
+    const { rows } = await db.query(
+      /* SQL */ `
+        SELECT pseudo, avatar, biographie, total_reviews, finished_games, platine_games, liked_games
+        FROM v_share_public_profile WHERE id_share = $1`,
+      [shareId],
+    );
+    return rows[0] || null;
+  }
 }
 
 export default ShareRepository;

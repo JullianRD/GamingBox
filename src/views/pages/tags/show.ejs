@@ -37,6 +37,7 @@
                 </a>
 
                 <form action="/tags/<%= tag.id %>/delete" method="POST" onsubmit="return confirm('Supprimer ce tag ?');">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <button type="submit"
                             class="inline-flex items-center justify-center px-5 py-3 rounded-xl
                                    border border-red-500/20 bg-red-500/10 text-red-300

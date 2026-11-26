@@ -73,6 +73,7 @@
                 </p>
 
                 <form action="/tags" method="POST" class="flex flex-col sm:flex-row gap-3">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <input type="hidden" name="redirectTo" value="/reviews">
 
                     <input
@@ -102,6 +103,7 @@
                                 </a>
 
                                 <form action="/tags/<%= tag.id || tag.id_tag %>/delete" method="POST" class="inline">
+<input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="redirectTo" value="/reviews">
                                     <button type="submit" class="text-red-300 hover:text-red-200 transition" onclick="return confirm('Supprimer ce tag ?');">
                                         ✕
@@ -118,6 +120,50 @@
             </div>
 
         </div>
+    </div>
+
+    <!-- Recherche et filtres -->
+    <div class="max-w-6xl mx-auto mb-6">
+        <form action="/reviews" method="GET" role="search"
+              class="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 sm:grid-cols-2 lg:grid-cols-6">
+            <% if (selectedTagId) { %><input type="hidden" name="tag" value="<%= selectedTagId %>"><% } %>
+            <div class="lg:col-span-2">
+                <label for="q" class="mb-1 block text-xs text-slate-400">Recherche</label>
+                <input id="q" name="q" type="search" maxlength="100" value="<%= filters.q || '' %>" placeholder="Jeu ou titre..."
+                       class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+            </div>
+            <div>
+                <label for="status" class="mb-1 block text-xs text-slate-400">Statut</label>
+                <select id="status" name="status" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+                    <option value="">Tous</option>
+                    <% ["En cour", "Terminé", "Whislist", "Dropped"].forEach((v) => { %>
+                        <option value="<%= v %>" <%= filters.status === v ? "selected" : "" %>><%= v %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div>
+                <label for="platform" class="mb-1 block text-xs text-slate-400">Plateforme</label>
+                <select id="platform" name="platform" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+                    <option value="">Toutes</option>
+                    <% ["PC", "Console de jeu", "Autre"].forEach((v) => { %>
+                        <option value="<%= v %>" <%= filters.platform === v ? "selected" : "" %>><%= v %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div>
+                <label for="sort" class="mb-1 block text-xs text-slate-400">Tri</label>
+                <select id="sort" name="sort" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+                    <% [["recent", "Plus récentes"], ["oldest", "Plus anciennes"], ["rating", "Meilleures notes"], ["title", "Titre du jeu"]].forEach(([v, label]) => { %>
+                        <option value="<%= v %>" <%= (filters.sort || "recent") === v ? "selected" : "" %>><%= label %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="flex items-end gap-2">
+                <button type="submit" class="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-500">Filtrer</button>
+                <a href="/reviews" class="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">Réinitialiser</a>
+            </div>
+        </form>
+        <p class="mt-2 text-xs text-slate-500" aria-live="polite"><%= pagination.total %> review<%= pagination.total > 1 ? "s" : "" %></p>
     </div>
 
     <!-- Filter by tag -->
@@ -306,6 +352,26 @@
                 <% }) %>
             </div>
 
+        <% } %>
+
+        <% if (pagination.totalPages > 1) { %>
+            <%
+              const pageUrl = (n) => {
+                const params = new URLSearchParams();
+                Object.entries(filters).forEach(([k, v]) => { if (v !== undefined && v !== "" && k !== "page") params.set(k, v); });
+                params.set("page", n);
+                return "/reviews?" + params.toString();
+              };
+            %>
+            <nav class="mt-8 flex items-center justify-center gap-3 text-sm" aria-label="Pagination">
+                <% if (pagination.page > 1) { %>
+                    <a class="rounded-lg border border-slate-700 px-3 py-2 text-slate-200 hover:bg-slate-800" href="<%= pageUrl(pagination.page - 1) %>" rel="prev">Précédent</a>
+                <% } %>
+                <span class="text-slate-400">Page <%= pagination.page %> / <%= pagination.totalPages %></span>
+                <% if (pagination.page < pagination.totalPages) { %>
+                    <a class="rounded-lg border border-slate-700 px-3 py-2 text-slate-200 hover:bg-slate-800" href="<%= pageUrl(pagination.page + 1) %>" rel="next">Suivant</a>
+                <% } %>
+            </nav>
         <% } %>
     </div>
 </div>

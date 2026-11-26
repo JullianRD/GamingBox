@@ -41,6 +41,10 @@ class HomeController {
   /**
    * Documentation
    */
+  privacy(req, res) {
+    res.render("pages/privacy", { title: "Données personnelles - GamingBox" });
+  }
+
   documentation(req, res) {
     res.render("pages/documentation", {
       title: "Documentation - GamingBox",

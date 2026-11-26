@@ -12,8 +12,7 @@ const router = Router();
  * Accès réservé aux administrateurs de l'app
  */
 
-router.use(requireAuth);
-router.use(requireAdmin);
+router.use("/admin", requireAuth, requireAdmin);
 
 // Dashboard
 router.get("/admin", AdminController.index);
