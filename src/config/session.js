@@ -7,7 +7,7 @@ import logger from "./logger.js"; // pour loguer les erreurs éventuelles du sto
 
 const PgSession = connectPgSession(session);
 
-export const SESSION_COOKIE_NAME = "gamingbox.sid";
+export const SESSION_COOKIE_NAME = "cocon.sid";
 
 /**
  * Middleware express-session configuré avec PostgreSQL

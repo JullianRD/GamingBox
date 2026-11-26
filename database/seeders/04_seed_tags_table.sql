@@ -14,7 +14,7 @@ SELECT
     NOW() - INTERVAL '12 days',
     NOW() - INTERVAL '3 days'
 FROM users u
-WHERE u.email = 'alex.gamer@gamingbox.dev'
+WHERE u.email = 'alex.gamer@cocon.dev'
 ON CONFLICT (id_tag) DO NOTHING;
 
 INSERT INTO tags (
@@ -31,7 +31,7 @@ SELECT
     NOW() - INTERVAL '10 days',
     NOW() - INTERVAL '2 days'
 FROM users u
-WHERE u.email = 'sara.console@gamingbox.dev'
+WHERE u.email = 'sara.console@cocon.dev'
 ON CONFLICT (id_tag) DO NOTHING;
 
 INSERT INTO tags (
@@ -48,6 +48,6 @@ SELECT
     NOW() - INTERVAL '8 days',
     NOW() - INTERVAL '1 day'
 FROM users u
-WHERE u.email = 'alex.gamer@gamingbox.dev'
+WHERE u.email = 'alex.gamer@cocon.dev'
 ON CONFLICT (id_tag) DO NOTHING;
 

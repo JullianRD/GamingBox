@@ -33,16 +33,16 @@ SELECT ON SEQUENCES TO :"app_role";
 -- Résultat : 
 
 -- 👑 postgres → super admin (jamais utilisé par l’app)
--- 🧑‍💻 app_gamingbox → rôle applicatif sécurisé
+-- 🧑‍💻 app_cocon → rôle applicatif sécurisé
 -- 🔐 Permissions limitées au strict nécessaire
 -- 🚀 Compatible prod
 
 
--- Le role app_gamingbox est la pour le backend et postgreSQL, pas pour un humain, ce n'est pas un role applicatif, on le fait pour la sécurité de la base de données
+-- Le role app_cocon est la pour le backend et postgreSQL, pas pour un humain, ce n'est pas un role applicatif, on le fait pour la sécurité de la base de données
 -- Si un hacker :
 -- Trouve une faille SQL
 -- Ou exploite une injection
--- Il ne pourra faire que ce que app_gamingbox a le droit de faire.
+-- Il ne pourra faire que ce que app_cocon a le droit de faire.
 -- Il ne pourra pas :
 -- Supprimer la base
 -- Créer des rôles
@@ -50,7 +50,7 @@ SELECT ON SEQUENCES TO :"app_role";
 -- Drop le schéma
 -- Donc on limites les dégâts.
 -- postgres = le PDG
--- app_gamingbox = un employé avec accès limité
+-- app_cocon = un employé avec accès limité
 -- admin dans ta table users = manager dans ton application
 
 

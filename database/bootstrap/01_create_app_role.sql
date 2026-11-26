@@ -2,7 +2,7 @@
 -- BOOTSTRAP 01 : rôle applicatif (à exécuter avec un rôle administrateur)
 -- ============================================================================
 -- Le mot de passe n'est plus écrit en dur : il est passé par psql
---   psql -v app_role=app_gamingbox -v app_password="$DB_APP_PASSWORD" -v db_name=gamingbox_db_dev -f ...
+--   psql -v app_role=app_cocon -v app_password="$DB_APP_PASSWORD" -v db_name=cocon_db_dev -f ...
 -- scripts/init_db.sh le fait à partir du .env.
 
 SELECT format('CREATE ROLE %I WITH LOGIN PASSWORD %L', :'app_role', :'app_password')

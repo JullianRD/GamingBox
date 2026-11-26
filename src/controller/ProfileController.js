@@ -21,7 +21,7 @@ class ProfileController {
       );
 
       return res.render("pages/profile/index", {
-        title: "Mon profil - GamingBox",
+        title: "Mon profil - Cocon",
         user,
         profileShares: profileShares || [],
         csrfToken: generateToken(req, res),

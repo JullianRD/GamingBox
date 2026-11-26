@@ -17,15 +17,32 @@ if (!process.env.DATABASE_URL) {
   }
 }
 
+/**
+ * SSL : obligatoire sur Neon et la plupart des hébergeurs managés.
+ * - DB_SSL=true force le SSL, DB_SSL=false le désactive
+ * - sinon, il est activé si l'URL contient sslmode=require (cas des URL Neon)
+ * Les certificats sont vérifiés (rejectUnauthorized: true), sauf si
+ * DB_SSL_REJECT_UNAUTHORIZED=false est défini explicitement.
+ */
+export const resolveSsl = (env = process.env) => {
+  const url = env.DATABASE_URL || "";
+  const enabled =
+    env.DB_SSL !== undefined
+      ? env.DB_SSL === "true"
+      : /sslmode=(require|verify-ca|verify-full)/.test(url);
+
+  if (!enabled) return false;
+  return { rejectUnauthorized: env.DB_SSL_REJECT_UNAUTHORIZED !== "false" };
+};
+
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  // Nécessaire si la DB est en ligne (Render, Neon, Vercel, Supabase)
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
-  max: 20,
+  ssl: resolveSsl(),
+  // Neon fournit un pooler (URL en -pooler) : un petit pool local suffit
+  max: Number(process.env.DB_POOL_MAX) || 10,
   idleTimeoutMillis: 30000,
+  // Laisse le temps à une base Neon en veille de se réveiller
+  connectionTimeoutMillis: 10000,
 });
 
 // Evenements du pool pour le monitoring
@@ -34,7 +51,7 @@ pool.on("connect", () => {
 });
 
 pool.on("error", (err) => {
-  (logger.error({ err }), "❌ Unexpected error on idle database client");
+  logger.error({ err }, "❌ Unexpected error on idle database client");
   process.exit(-1); // En cas de perte critique de DB, mieux vaut redémarrer l'app
 });
 

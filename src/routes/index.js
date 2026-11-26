@@ -17,7 +17,7 @@ import gameRoutes from "./user/gameRoutes.js";
 // Admin
 import adminRoutes from "./admin/adminRoutes.js";
 
-// Router principal de l'application gamingbox
+// Router principal de l'application Cocon
 const router = Router();
 
 /**

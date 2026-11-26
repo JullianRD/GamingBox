@@ -12,11 +12,23 @@ html {
   font-size: 16px;
 }
 
+/* Palette Cocon (voir aussi public/css/theme.css pour Tailwind) */
+:root {
+  --cocon-bg: #fbf7f2;
+  --cocon-surface: #fffdfa;
+  --cocon-ink: #3a2f2a;
+  --cocon-muted: #6b5f57;
+  --cocon-line: #e6dacd;
+  --cocon-accent: #a9573a;
+  --cocon-accent-soft: #f4e1d6;
+  --cocon-accent-ink: #7e3f28;
+}
+
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #020617;
-  color: #f8fafc;
+  font-family: "Nunito", system-ui, sans-serif;
+  background: var(--cocon-bg);
+  color: var(--cocon-ink);
   line-height: 1.5;
 }
 
@@ -40,8 +52,9 @@ a {
   justify-content: center;
   gap: 2rem;
   padding: 2rem 0;
-  background: linear-gradient(135deg, #0F172B 0%, #8200DB 50%, #0F172B 100%);
-  border-radius: 1.5rem;
+  background: linear-gradient(160deg, var(--cocon-surface) 0%, var(--cocon-accent-soft) 100%);
+  border-radius: 2rem;
+  box-shadow: 0 12px 40px rgba(120, 90, 60, 0.08);
 }
 
 .home-content {
@@ -67,14 +80,15 @@ a {
 .home-title {
   margin: 0;
   font-size: 2.5rem;
-  font-weight: 700;
-  color: #ffffff;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 500;
+  color: var(--cocon-ink);
 }
 
 .home-subtitle {
   margin: 1.5rem 0 0;
   font-size: 1rem;
-  color: #cbd5e1;
+  color: var(--cocon-muted);
 }
 
 .home-actions {
@@ -90,16 +104,16 @@ a {
   width: 100%;
   max-width: 240px;
   padding: 0.9rem 1.25rem;
-  border-radius: 0.75rem;
+  border-radius: 999px;
   font-weight: 700;
   text-align: center;
   transition: all 0.2s ease;
 }
 
 .home-button--primary {
-  background: linear-gradient(90deg, #9333ea 0%, #4f46e5 100%);
+  background: var(--cocon-accent);
   color: #ffffff;
-  box-shadow: 0 10px 24px rgba(147, 51, 234, 0.25);
+  box-shadow: 0 10px 24px rgba(169, 87, 58, 0.25);
 }
 
 .home-button--primary:hover,
@@ -108,14 +122,14 @@ a {
 }
 
 .home-button--secondary {
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  color: #e2e8f0;
-  background: rgba(15, 23, 42, 0.4);
+  border: 1.5px solid var(--cocon-accent);
+  color: var(--cocon-accent-ink);
+  background: transparent;
 }
 
 .home-button--secondary:hover,
 .home-button--secondary:focus {
-  background: rgba(30, 41, 59, 0.8);
+  background: var(--cocon-accent-soft);
 }
 
 .home-description {
@@ -124,7 +138,7 @@ a {
   margin: 0 auto;
   padding: 0 1rem;
   text-align: center;
-  color: #cbd5e1;
+  color: var(--cocon-muted);
 }
 
 .home-description p {
@@ -133,7 +147,7 @@ a {
 
 .home-description__small {
   font-size: 0.95rem;
-  color: #94a3b8;
+  color: var(--cocon-muted);
 }
 
 /* =========================
@@ -141,7 +155,7 @@ a {
 ========================= */
 
 .home-button:focus-visible {
-  outline: 3px solid #ffffff;
+  outline: 3px solid var(--cocon-accent);
   outline-offset: 3px;
 }
 

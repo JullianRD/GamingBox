@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ============================================
-# GAMINGBOX - Initialisation de la base locale
+# COCON - Initialisation de la base locale
 # ============================================
 # 1. Crée la base et le rôle applicatif (bootstrap, rôle administrateur)
 # 2. Applique le schéma via les migrations versionnées (migrations/)
@@ -23,8 +23,8 @@ fi
 export $(grep -v '^#' .env | xargs)
 
 DB_SUPERUSER=${DB_SUPERUSER:-postgres}
-DB_APP_USER=${DB_APP_USER:-app_gamingbox}
-DB_NAME=${DB_NAME:-gamingbox_db_dev}
+DB_APP_USER=${DB_APP_USER:-app_cocon}
+DB_NAME=${DB_NAME:-cocon_db_dev}
 
 if [ -z "$DB_APP_PASSWORD" ]; then
     echo -e "${RED}Erreur : DB_APP_PASSWORD manquant dans le .env${NC}"

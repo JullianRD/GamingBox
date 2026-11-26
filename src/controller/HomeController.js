@@ -12,10 +12,10 @@ class HomeController {
    * 🏠 Page d'accueil
    */
 
-  // La page d'accueil principale de l'app elle permet d'accéder au inscription et login et elle contients quelques explications sur GamingBox
+  // La page d'accueil principale de l'app elle permet d'accéder au inscription et login et elle contients quelques explications sur Cocon
   async home(req, res) {
     res.render("pages/home", {
-      title: "Gamingbox",
+      title: "Cocon",
       user: req.session.userId ?? null,
     });
   }
@@ -25,7 +25,7 @@ class HomeController {
    */
   about(req, res) {
     res.render("pages/about", {
-      title: "À propos - GamingBox",
+      title: "À propos - Cocon",
     });
   }
 
@@ -34,7 +34,7 @@ class HomeController {
    */
   contact(req, res) {
     res.render("pages/contact", {
-      title: "Contact - GamingBox",
+      title: "Contact - Cocon",
     });
   }
 
@@ -43,7 +43,7 @@ class HomeController {
    */
   documentation(req, res) {
     res.render("pages/documentation", {
-      title: "Documentation - GamingBox",
+      title: "Documentation - Cocon",
     });
   }
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # ============================================
-# 🐼 GAMINGBOX - FULL NUKE SCRIPT
+# COCON - FULL NUKE SCRIPT
 # Action: Supprime entièrement la base ET le rôle
 # ============================================
 
@@ -17,8 +17,8 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
     # Pour nuke, on a besoin du compte super-utilisateur (souvent postgres)
     DB_SUPERUSER=${POSTGRES_USER:-postgres}
-    DB_NAME=${POSTGRES_DB:-gamingbox_db_dev}
-    APP_ROLE="app_gamingbox"
+    DB_NAME=${POSTGRES_DB:-cocon_db_dev}
+    APP_ROLE="app_cocon"
 else
     echo -e "${RED}❌ .env file missing!${NC}"
     exit 1

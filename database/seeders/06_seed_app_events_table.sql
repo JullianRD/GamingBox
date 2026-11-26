@@ -20,7 +20,7 @@ SELECT
     '{"ip":"127.0.0.1","user_agent":"seed-script","duration_ms":55}'::jsonb,
     NOW() - INTERVAL '2 days'
 FROM users u
-WHERE u.email = 'alex.gamer@gamingbox.dev'
+WHERE u.email = 'alex.gamer@cocon.dev'
 ON CONFLICT (id_event) DO NOTHING;
 
 INSERT INTO app_events (
@@ -43,7 +43,7 @@ SELECT
     '{"entity":"reviews","source":"seed-script"}'::jsonb,
     NOW() - INTERVAL '1 day'
 FROM users u
-WHERE u.email = 'sara.console@gamingbox.dev'
+WHERE u.email = 'sara.console@cocon.dev'
 ON CONFLICT (id_event) DO NOTHING;
 
 INSERT INTO app_events (

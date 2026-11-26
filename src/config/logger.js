@@ -101,6 +101,6 @@ export default logger;
 // 👉 Optimisé pour :
 
 // Docker
-// Railway
+// Render, Koyeb, Fly.io
 // Render
 // logs centralisés (Datadog, Grafana…)

@@ -2,7 +2,7 @@
 /**
  * SearchService
  *
- * Recherche métier dans GamingBox
+ * Recherche métier dans Cocon
  *
  */
 import ReviewRepository from "../repositories/PgReviewRepository.js";
