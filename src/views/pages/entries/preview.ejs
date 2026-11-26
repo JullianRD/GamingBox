@@ -2,21 +2,22 @@
 <div class="flex flex-col gap-8">
   <a href="/recherche" class="self-start font-bold no-underline">← Recherche</a>
 
-  <div class="flex flex-wrap items-start gap-12">
-    <div class="relative aspect-[2/3] flex-[0_1_300px] overflow-hidden rounded-[28px] shadow-cover <%= t.tone.cover %>">
+  <div class="grid grid-cols-[7rem_1fr] gap-x-5 gap-y-6 [grid-template-areas:'cover_head'_'main_main'] sm:grid-cols-[10rem_1fr] lg:grid-cols-[300px_1fr] lg:grid-rows-[auto_1fr] lg:gap-x-12 lg:[grid-template-areas:'cover_head'_'cover_main']">
+    <div class="relative aspect-[2/3] self-start overflow-hidden rounded-2xl shadow-cover [grid-area:cover] lg:rounded-[28px] <%= t.tone.cover %>">
       <% if (item.coverUrl) { %>
         <img src="<%= item.coverUrl %>" alt="Jaquette de <%= item.title %>" class="h-full w-full object-cover">
       <% } else { %>
-        <span class="absolute inset-x-6 bottom-6 font-serif text-3xl leading-tight <%= t.tone.ink %>"><%= item.title %></span>
+        <span class="absolute inset-x-3 bottom-3 font-serif text-base leading-tight lg:inset-x-6 lg:bottom-6 lg:text-3xl <%= t.tone.ink %>"><%= item.title %></span>
       <% } %>
     </div>
 
-    <div class="flex min-w-0 flex-[999_1_480px] flex-col gap-7">
-      <div class="flex flex-col gap-2.5">
-        <%- include('../../components/type-chip', { type: item.type }) %>
-        <h1 class="m-0 text-4xl leading-tight sm:text-5xl"><%= item.title %></h1>
-        <p class="m-0 text-muted"><%= itemMeta(item) %></p>
-      </div>
+    <div class="flex flex-col gap-2 self-end [grid-area:head] lg:gap-2.5 lg:self-start">
+      <%- include('../../components/type-chip', { type: item.type }) %>
+      <h1 class="m-0 text-2xl leading-tight sm:text-4xl lg:text-5xl"><%= item.title %></h1>
+      <p class="m-0 text-sm text-muted sm:text-base"><%= itemMeta(item) %></p>
+    </div>
+
+    <div class="flex min-w-0 flex-col gap-7 [grid-area:main]">
 
       <form action="/entrees" method="post" class="card flex flex-col gap-4">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">

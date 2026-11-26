@@ -19,7 +19,7 @@ class AuthController {
     try {
       await AuthService.register(req.body);
 
-      req.flash("success", "Compte créé avec succès ✅");
+      req.flash("success", "Compte créé, tu peux te connecter.");
       res.redirect("/login");
     } catch (error) {
       req.flash("error", error.message);
@@ -50,7 +50,7 @@ class AuthController {
       req.session.avatar = user.avatar;
 
 
-      req.flash("success", `Bienvenue ${user.pseudo} 👋`);
+      req.flash("success", `Bienvenue ${user.pseudo}`);
 
       return req.session.save((err) => {
         if (err) {

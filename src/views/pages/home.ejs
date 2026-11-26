@@ -1,49 +1,51 @@
-<main>
-  <section class="home-">
-    <div class="home-content">
-      <div class="home-branding">
-        <img
-          src="/images/cocon-logo.svg"
-          alt="Logo Cocon"
-          class="home-logo"
-          width="320"
-          height="320"
-          loading="lazy"
-        />
-
-        <h1 class="home-title">Cocon</h1>
-      </div>
-
-      <p class="home-subtitle">
-        Ton cocon de jeux, de films et de lectures. Garde une trace de ce que
-        tu découvres et partage tes avis facilement.
+<%# Accueil visiteur : présentation de Cocon %>
+<div class="flex flex-col gap-16 py-4 sm:py-10">
+  <section class="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
+    <div class="flex flex-col gap-6">
+      <p class="m-0 self-start rounded-full bg-peach px-4 py-1.5 text-sm font-extrabold text-accent-ink">Gratuit, sans pub</p>
+      <h1 class="m-0 text-5xl leading-[1.05] sm:text-6xl">Tout ce que tu aimes, au même endroit.</h1>
+      <p class="m-0 max-w-xl text-lg leading-relaxed text-muted">
+        Jeux, films, séries, livres, anime, manga et musique : Cocon garde une trace de ce que tu joues,
+        regardes, lis et écoutes, te propose chaque jour de quoi découvrir et te laisse voir ce que tes amis aiment.
       </p>
-
-      <div class="home-actions">
-        <a href="/register" class="home-button home-button--primary">
-          Créer un compte
-        </a>
-
-        <a href="/login" class="home-button home-button--secondary">
-          Se connecter
-        </a>
+      <div class="flex flex-wrap gap-3">
+        <a href="/register" class="btn-primary h-12 px-6 text-lg">Créer mon cocon</a>
+        <a href="/login" class="btn-ghost h-12 px-6 text-lg">J'ai déjà un compte</a>
       </div>
     </div>
 
-    <div class="home-description">
-      <p>
-        Cocon te permet de construire ta bibliothèque personnelle,
-        d’ajouter tes propres reviews et de suivre ta progression.
-      </p>
+    <%# Mosaïque des sections, aux couleurs de chaque catégorie %>
+    <ul class="m-0 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-4 lg:grid-cols-2" aria-label="Catégories suivies">
+      <% const sections = Object.values(itemTypes).filter((t) => t.enabled); %>
+      <% sections.forEach((t, i) => { const wide = sections.length % 2 === 1 && i === sections.length - 1; %>
+        <li class="flex h-24 items-end rounded-3xl p-4 sm:h-28 <%= t.tone.chip %> <%= wide ? 'col-span-2' : '' %>">
+          <span class="font-serif text-xl"><%= t.plural %></span>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
 
-      <p>
-        Note tes jeux, ajoute des tags, organise tes contenus et partage tes
-        avis simplement.
-      </p>
-
-      <p class="home-description__small">
-        Une expérience simple, rapide et centrée sur l’utilisateur.
-      </p>
+  <section aria-labelledby="pourquoi" class="flex flex-col gap-6">
+    <h2 id="pourquoi" class="m-0 text-3xl">Ce que tu y fais</h2>
+    <div class="grid gap-4 md:grid-cols-3">
+      <% [
+        ["Suivre", "Un statut, une note sur 5, un avis et des tags pour chaque œuvre. Tes listes perso et tes favoris, personnages et openings compris."],
+        ["Importer", "Récupère ta collection depuis Letterboxd, Trakt, Steam, MyAnimeList, Goodreads ou Last.fm. Tu valides chaque correspondance."],
+        ["Partager et jouer", "Suis tes amis, recommande-leur une œuvre avec un mot, et affronte-les en duels « Tu préfères » ou au blindtest."],
+      ].forEach(([title, text]) => { %>
+        <article class="card flex flex-col gap-2">
+          <h3 class="m-0 text-xl"><%= title %></h3>
+          <p class="m-0 leading-relaxed text-muted"><%= text %></p>
+        </article>
+      <% }) %>
     </div>
   </section>
-</main>
+
+  <section class="flex flex-col items-start gap-4 rounded-[32px] bg-peach p-8 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-col gap-1">
+      <h2 class="m-0 text-2xl text-accent-ink">Ton cocon t'attend</h2>
+      <p class="m-0 text-accent-ink">Une minute pour créer ton compte, et tes exports suffisent pour tout retrouver.</p>
+    </div>
+    <a href="/register" class="btn-primary shrink-0">Commencer</a>
+  </section>
+</div>

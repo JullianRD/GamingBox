@@ -9,7 +9,7 @@
     <a href="/recherche" class="btn-primary">Ajouter</a>
   </section>
 
-  <nav aria-label="Filtrer par statut" class="flex flex-wrap gap-2">
+  <nav aria-label="Filtrer par statut" class="chip-row">
     <a href="<%= itemType.path %>" class="rounded-full px-4 py-2 font-semibold no-underline <%= !status ? itemType.tone.chip : 'bg-surface text-muted hover:text-ink' %>" <%= !status ? 'aria-current=page' : '' %>>Tout</a>
     <% statuses.forEach((s) => { %>
       <a href="<%= itemType.path %>?status=<%= s %>"

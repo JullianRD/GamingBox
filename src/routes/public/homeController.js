@@ -30,12 +30,12 @@ router.get("/about", HomeController.about);
  * 📬 Contact
  * GET /contact
  */
-router.get("/contact", HomeController.contact);
+router.get("/contact", (req, res) => res.redirect(301, "/about"));
 
 /**
  * 📚 Documentation
  * GET /documentation
  */
-router.get("/documentation", HomeController.documentation);
+router.get("/documentation", (req, res) => res.redirect(301, "/about"));
 
 export default router;

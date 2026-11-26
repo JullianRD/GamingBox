@@ -2,32 +2,34 @@
 <div class="flex flex-col gap-8">
   <a href="<%= t.path %>" class="self-start font-bold no-underline">← <%= t.plural %></a>
 
-  <div class="flex flex-wrap items-start gap-12">
-    <div class="flex flex-[0_1_300px] flex-col gap-4">
-      <div class="relative aspect-[2/3] overflow-hidden rounded-[28px] shadow-cover <%= t.tone.cover %>">
-        <% if (entry.coverUrl) { %>
-          <img src="<%= entry.coverUrl %>" alt="Jaquette de <%= entry.title %>" class="h-full w-full object-cover">
-        <% } else { %>
-          <span class="absolute inset-x-6 bottom-6 font-serif text-3xl leading-tight <%= t.tone.ink %>"><%= entry.title %></span>
-        <% } %>
-      </div>
+  <%# Mobile : jaquette compacte à côté du titre. Ordinateur : jaquette en colonne à gauche %>
+  <div class="grid grid-cols-[7rem_1fr] gap-x-5 gap-y-6 [grid-template-areas:'cover_head'_'side_side'_'main_main'] sm:grid-cols-[10rem_1fr] lg:grid-cols-[300px_1fr] lg:grid-rows-[auto_auto_1fr] lg:gap-x-12 lg:[grid-template-areas:'cover_head'_'cover_main'_'side_main']">
+    <div class="relative aspect-[2/3] self-start overflow-hidden rounded-2xl shadow-cover [grid-area:cover] lg:rounded-[28px] <%= t.tone.cover %>">
+      <% if (entry.coverUrl) { %>
+        <img src="<%= entry.coverUrl %>" alt="Jaquette de <%= entry.title %>" class="h-full w-full object-cover">
+      <% } else { %>
+        <span class="absolute inset-x-3 bottom-3 font-serif text-base leading-tight lg:inset-x-6 lg:bottom-6 lg:text-3xl <%= t.tone.ink %>"><%= entry.title %></span>
+      <% } %>
+    </div>
+
+    <div class="flex flex-col gap-2 self-end [grid-area:head] lg:gap-2.5 lg:self-start">
+      <%- include('../../components/type-chip', { type: entry.type }) %>
+      <h1 class="m-0 text-2xl leading-tight sm:text-4xl lg:text-5xl"><%= entry.title %></h1>
+      <p class="m-0 text-sm text-muted sm:text-base"><%= itemMeta(entry) %></p>
+    </div>
+
+    <div class="flex flex-wrap items-start gap-4 [grid-area:side] lg:flex-col lg:flex-nowrap lg:items-stretch">
       <%- include('../../partials/entries/favorite', { entry }) %>
       <%- include('../../partials/entries/where', { item: entry }) %>
     </div>
 
-    <div class="flex min-w-0 flex-[999_1_480px] flex-col gap-7">
-      <div class="flex flex-col gap-2.5">
-        <%- include('../../components/type-chip', { type: entry.type }) %>
-        <h1 class="m-0 text-4xl leading-tight sm:text-5xl"><%= entry.title %></h1>
-        <p class="m-0 text-muted"><%= itemMeta(entry) %></p>
-      </div>
-
+    <div class="flex min-w-0 flex-col gap-7 [grid-area:main]">
       <% if (entry.itemMetadata.overview) { %><p class="m-0 max-w-2xl leading-relaxed text-muted"><%= entry.itemMetadata.overview %></p><% } %>
-
       <p id="entry-error" role="alert" class="m-0 empty:hidden rounded-2xl bg-[#fbebeb] px-5 py-3 font-semibold text-[#9b2c2c]"></p>
 
       <%- include('../../components/status-pills', { type: entry.type, current: entry.status, action: `${entry.href}/statut` }) %>
       <%- include('../../components/rating-stars', { value: entry.rating, action: `${entry.href}/note` }) %>
+      <% if (volumes) { %><%- include('../../partials/entries/volumes', { volumes }) %><% } %>
       <%- include('../../partials/entries/review', { entry }) %>
       <%- include('../../partials/entries/tags', { entry }) %>
       <%- include('../../partials/entries/lists', { entry, lists }) %>

@@ -7,8 +7,6 @@
 @source "../views";
 @source "../utils/itemTypes.js";
 
-/* Pages héritées de GamingBox, en attente de réécriture (étape 5) */
-@import "./legacy-theme.css";
 
 @theme {
   --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
@@ -71,6 +69,7 @@
 
   a {
     color: var(--color-accent);
+    text-decoration: none;
   }
 
   a:hover {
@@ -84,7 +83,7 @@
 }
 
 /* Thème léger par catégorie : un voile de la teinte de section en haut de page.
-   Hors @layer pour passer devant l'ancien main.css (background raccourci). */
+ */
 body[data-section] {
   background-image: linear-gradient(
     to bottom,
@@ -138,4 +137,10 @@ body[data-section] {
 
 @utility field {
   @apply w-full rounded-full border border-line bg-cream px-5 py-3 text-ink placeholder:text-muted;
+}
+
+/* Rangée de pastilles : défilement horizontal sur mobile, retour à la ligne à partir de sm */
+@utility chip-row {
+  @apply relative -mx-4 flex flex-nowrap gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0 [&>*]:shrink-0;
+  scrollbar-width: none;
 }

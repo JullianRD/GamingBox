@@ -1,44 +1,11 @@
+<%# En-tête des pages visiteur (les pages connectées utilisent la barre latérale et les onglets) %>
 <div class="border-b border-line-soft bg-surface/95 backdrop-blur">
-  <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-6">
-    <a href="/" class="flex items-center gap-2.5 text-ink no-underline hover:text-ink">
+  <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
+    <a href="/" class="mr-auto flex items-center gap-2.5 text-ink no-underline hover:text-ink">
       <img src="/images/cocon-logo.svg" alt="" width="32" height="32">
       <span class="font-serif text-2xl font-semibold">Cocon</span>
     </a>
-
-    <% if (currentUser) { %>
-      <nav aria-label="Navigation principale" class="hidden items-center gap-1 lg:flex">
-        <% navItems.forEach((s) => { %>
-          <a href="<%= s.href %>"
-             class="rounded-full px-4 py-2.5 font-semibold no-underline <%= s.active ? 'bg-peach font-bold text-accent-ink' : 'text-muted hover:bg-cream hover:text-ink' %>"
-             <%= s.active ? 'aria-current=page' : '' %>><%= s.label %></a>
-        <% }) %>
-        <% if (isAdmin) { %>
-          <a href="/admin" class="rounded-full px-4 py-2.5 font-semibold text-muted no-underline hover:bg-cream hover:text-ink">Admin</a>
-        <% } %>
-      </nav>
-
-      <div class="ml-auto flex flex-1 items-center justify-end gap-3">
-        <form action="/recherche" method="get" role="search" class="hidden max-w-xs flex-1 sm:block">
-          <label for="nav-search" class="sr-only">Rechercher</label>
-          <input id="nav-search" name="q" type="search" placeholder="Une œuvre, un ami…" class="field py-2.5"
-                 value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>">
-        </form>
-        <a href="/recherche" aria-label="Rechercher" class="flex h-11 w-11 items-center justify-center rounded-full bg-cream text-ink no-underline sm:hidden">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
-        </a>
-        <a href="/recommandations" aria-label="Recommandations reçues<%= unseenRecommendations ? ` (${unseenRecommendations} nouvelles)` : '' %>" class="relative flex h-11 w-11 items-center justify-center rounded-full bg-cream text-ink no-underline">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v11H4z"/><path d="m4 8 8 6 8-6"/></svg>
-          <% if (unseenRecommendations) { %><span class="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-terracotta px-1 text-xs font-bold text-[#ffffff]"><%= unseenRecommendations > 9 ? "9+" : unseenRecommendations %></span><% } %>
-        </a>
-        <a href="/u/<%= encodeURIComponent(currentUser.pseudo || '') %>" aria-label="Mon profil" class="no-underline">
-          <%- include('social/avatar', { user: currentUser, size: "h-11 w-11 text-base" }) %>
-        </a>
-      </div>
-    <% } else { %>
-      <div class="ml-auto flex items-center gap-3">
-        <a href="/login" class="btn-ghost">Se connecter</a>
-        <a href="/register" class="btn-primary">Créer un compte</a>
-      </div>
-    <% } %>
+    <a href="/login" class="btn-ghost <%= currentPath === '/login' ? 'hidden sm:inline-flex' : '' %>">Se connecter</a>
+    <a href="/register" class="btn-primary hidden sm:inline-flex">Créer un compte</a>
   </div>
 </div>
