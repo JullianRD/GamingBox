@@ -1,0 +1,19 @@
+<%#
+  Choix du statut, envoyé en htmx. Paramètres :
+  type (code), current (statut), action (URL POST), csrfToken
+%>
+<% const pillType = itemTypes[type]; %>
+<form hx-post="<%= action %>" hx-target="this" hx-swap="outerHTML" class="flex flex-col gap-3">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <fieldset class="m-0 border-0 p-0">
+    <legend class="mb-3 font-bold">Statut</legend>
+    <div class="flex flex-wrap gap-2.5">
+      <% statuses.forEach((status) => { const on = status === current; %>
+        <button type="submit" name="status" value="<%= status %>" aria-pressed="<%= on %>"
+                class="min-h-11 rounded-full border-[1.5px] px-5 font-bold transition <%= on ? 'border-transparent ' + pillType.tone.chip : 'border-line bg-surface text-ink hover:bg-cream' %>">
+          <%= pillType.statusLabels[status] %>
+        </button>
+      <% }) %>
+    </div>
+  </fieldset>
+</form>

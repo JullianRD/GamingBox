@@ -1,0 +1,15 @@
+<%#
+  Note en étoiles, stockée sur 10 (une étoile = 2 points). Paramètres :
+  value (0-10), action (URL POST), csrfToken
+%>
+<form hx-post="<%= action %>" hx-target="this" hx-swap="outerHTML" class="flex flex-col gap-2">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <span class="font-bold" id="rating-label">Ma note</span>
+  <div class="flex gap-1" role="group" aria-labelledby="rating-label">
+    <% for (let star = 1; star <= 5; star++) { const filled = (value || 0) >= star * 2; %>
+      <button type="submit" name="rating" value="<%= star * 2 %>" aria-label="<%= star %> sur 5"
+              aria-pressed="<%= filled %>"
+              class="h-11 w-11 bg-transparent p-0 text-3xl leading-none <%= filled ? 'text-terracotta' : 'text-line' %> hover:text-terracotta">★</button>
+    <% } %>
+  </div>
+</form>

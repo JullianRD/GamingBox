@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import expressLayouts from "express-ejs-layouts";
 import { logger } from "./src/config/logger.js";
+import { ITEM_TYPES, STATUSES } from "./src/utils/itemTypes.js";
 
 // Routes
 import routes from "./src/routes/index.js";
@@ -54,6 +55,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 app.use(express.static(path.join(__dirname, "public")));
+// htmx servi depuis node_modules (pas de CDN)
+app.get("/vendor/htmx.min.js", (req, res) =>
+  res.sendFile(path.join(__dirname, "node_modules/htmx.org/dist/htmx.min.js")),
+);
 
 // ═══════════════════════════════════════════════════════════════
 // SÉCURITÉ GLOBALE
@@ -77,6 +82,12 @@ app.use(sessionMiddleware);
 
 app.use(flashMiddleware);
 app.use(injectUserToLocals);
+app.use((req, res, next) => {
+  res.locals.currentPath = req.path; // onglet actif dans la navigation
+  res.locals.itemTypes = ITEM_TYPES;
+  res.locals.statuses = STATUSES;
+  next();
+});
 
 // ═══════════════════════════════════════════════════════════════
 // CONFIGURATION EJS

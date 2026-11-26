@@ -1,0 +1,24 @@
+<%#
+  Carte jaquette. Paramètre : item
+  { title, type, href, coverUrl?, progress? (0-100), meta? }
+%>
+<% const cardType = itemTypes[item.type]; %>
+<a href="<%= item.href %>" class="group flex flex-col gap-3 text-ink no-underline hover:text-ink">
+  <div class="relative aspect-[2/3] overflow-hidden rounded-3xl shadow-cover <%= cardType.tone.cover %>">
+    <% if (item.coverUrl) { %>
+      <img src="<%= item.coverUrl %>" alt="" loading="lazy" class="h-full w-full object-cover transition group-hover:scale-[1.03]">
+    <% } else { %>
+      <span class="absolute inset-x-4 bottom-4 font-serif text-lg leading-tight <%= cardType.tone.ink %>"><%= item.title %></span>
+    <% } %>
+  </div>
+  <div class="flex flex-col gap-1.5">
+    <%- include('type-chip', { type: item.type }) %>
+    <span class="font-bold leading-snug"><%= item.title %></span>
+    <% if (item.meta) { %><span class="text-sm text-muted"><%= item.meta %></span><% } %>
+    <% if (typeof item.progress === "number") { %>
+      <div class="h-1.5 rounded-full bg-line-soft" role="progressbar" aria-valuenow="<%= item.progress %>" aria-valuemin="0" aria-valuemax="100" aria-label="Progression">
+        <div class="h-1.5 rounded-full bg-terracotta" style="width: <%= item.progress %>%"></div>
+      </div>
+    <% } %>
+  </div>
+</a>

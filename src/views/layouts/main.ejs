@@ -1,16 +1,11 @@
-<!-- src/views/layouts/main.ejs -->
 <!DOCTYPE html>
 <html lang="fr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : 'Cocon' %></title>
 
-    <title>
-        <%= typeof title !== 'undefined' ? title : 'Cocon' %>
-    </title>
-
-    <!-- Favicon -->
     <link rel="icon" href="/images/cocon-logo.svg" type="image/svg+xml">
 
     <!-- Polices Cocon : Fraunces (titres) et Nunito (texte) -->
@@ -18,49 +13,34 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700&display=swap">
 
-    <!-- Tailwind CSS v4 (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style type="text/tailwindcss">
-        <%- include('../partials/tailwind-theme') %>
-    </style>
-
-    <!-- CSS global (si nécessaire) -->
+    <!-- CSS compilé par Tailwind (npm run build:css) -->
+    <link rel="stylesheet" href="/css/app.css">
     <link rel="stylesheet" href="/css/main.css">
 
-    <!-- Styles extraits des vues -->
+    <!-- htmx : interactions sans rechargement (statut, note, recherche) -->
+    <script src="/vendor/htmx.min.js" defer></script>
+
     <%- typeof style !== "undefined" ? style : "" %>
 </head>
 
-<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
-
-    <!-- Navbar -->
-    <header class="sticky top-0 z-50">
+<body class="flex min-h-screen flex-col bg-cream text-ink">
+    <header class="sticky top-0 z-40">
         <%- include('../partials/navbar') %>
     </header>
 
-    <!-- Contenu principal -->
-    <main class="
-        flex-1
-        w-full
-        max-w-7xl
-        mx-auto
-        px-4
-        sm:px-6
-        lg:px-8
-        py-6
-    ">
+    <main class="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 sm:px-6 md:pb-10">
         <%- body %>
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-auto border-t border-white/10">
+    <footer class="mt-auto hidden border-t border-line-soft md:block">
         <%- include('../partials/footer') %>
     </footer>
 
-    <!-- JS global -->
-    <script src="/js/app.js"></script>
+    <% if (typeof currentUser !== "undefined" && currentUser) { %>
+        <%- include('../partials/tabbar') %>
+    <% } %>
 
-    <!-- Scripts extraits des vues -->
+    <script src="/js/app.js"></script>
     <%- typeof script !== "undefined" ? script : "" %>
 </body>
 

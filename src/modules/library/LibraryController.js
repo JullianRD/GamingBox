@@ -1,0 +1,43 @@
+"use strict";
+
+import LibraryService from "./LibraryService.js";
+import { getItemTypeByPath, STATUSES } from "../../utils/itemTypes.js";
+
+class LibraryController {
+  // Accueil connecté ; un visiteur passe à la page d'accueil publique
+  async home(req, res, next) {
+    if (!req.session.userId) return next();
+    try {
+      const dashboard = await LibraryService.getDashboard(req.session.userId);
+      res.render("pages/library/home", { title: "Accueil - Cocon", ...dashboard });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Section par type : /jeux, /films
+  async section(req, res, next) {
+    const itemType = getItemTypeByPath(req.path);
+    if (!itemType || !itemType.enabled) return next();
+
+    const status = STATUSES.includes(req.query.status) ? req.query.status : null;
+    try {
+      const entries = await LibraryService.getEntries(req.session.userId, { type: itemType.code });
+      const counts = Object.fromEntries(
+        STATUSES.map((s) => [s, entries.filter((entry) => entry.status === s).length]),
+      );
+      res.render("pages/library/section", {
+        title: `${itemType.plural} - Cocon`,
+        itemType,
+        status,
+        counts,
+        total: entries.length,
+        entries: status ? entries.filter((entry) => entry.status === status) : entries,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default new LibraryController();

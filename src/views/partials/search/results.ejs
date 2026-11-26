@@ -1,0 +1,13 @@
+<% if (error) { %>
+  <p class="m-0 rounded-2xl bg-[#fbebeb] px-5 py-4 text-[#9b2c2c]"><%= error %></p>
+<% } else if (searchQuery.length < minLength) { %>
+  <p class="m-0 text-muted">Tape au moins <%= minLength %> caractères.</p>
+<% } else if (!results.length) { %>
+  <%- include('../../components/empty-state', { title: "Aucun résultat", text: `Rien trouvé pour « ${searchQuery} ».` }) %>
+<% } else { %>
+  <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+    <% results.forEach((item) => { %>
+      <%- include('../../components/cover-card', { item }) %>
+    <% }) %>
+  </div>
+<% } %>
