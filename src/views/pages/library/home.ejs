@@ -26,6 +26,15 @@
     <% } %>
   </section>
 
+  <section aria-labelledby="pour-toi" class="flex flex-col gap-5">
+    <%- include('../../components/section-header', { id: "pour-toi", title: "Pour toi aujourd'hui", linkHref: "/decouvrir", linkLabel: "Tout découvrir" }) %>
+    <div hx-get="/decouvrir/du-jour" hx-trigger="load" hx-swap="innerHTML" aria-busy="true">
+      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5" aria-hidden="true">
+        <% for (let i = 0; i < 5; i++) { %><div class="aspect-[2/3] animate-pulse rounded-3xl bg-line-soft"></div><% } %>
+      </div>
+    </div>
+  </section>
+
   <%- include('../../components/import-banner') %>
 
   <section aria-labelledby="termines" class="flex flex-col gap-5">

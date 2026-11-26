@@ -31,6 +31,8 @@ export const describeActivity = (activity) => {
       return { verb: "a ajouté", detail: list ? `à la liste « ${list.title} »` : "à une liste" };
     case "commented":
       return { verb: "a commenté", detail: target ? `l'entrée de ${target.pseudo}` : "" };
+    case "recommended":
+      return { verb: "a recommandé", detail: target ? `à ${target.pseudo}` : "" };
     case "followed":
       return { verb: "suit maintenant", detail: target ? target.pseudo : "" };
     default:

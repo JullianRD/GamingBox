@@ -15,6 +15,7 @@ import { navItemsFor } from "./src/utils/navigation.js";
 import { itemMeta } from "./src/utils/itemMeta.js";
 import { describeActivity } from "./src/modules/social/activityText.js";
 import ImportService from "./src/modules/imports/ImportService.js";
+import RecommendationService from "./src/modules/discover/RecommendationService.js";
 
 // Routes
 import routes from "./src/routes/index.js";
@@ -98,6 +99,18 @@ app.use((req, res, next) => {
   res.locals.describeActivity = describeActivity;
   res.locals.section = null; // thème léger de la section courante (data-section)
   res.locals.csrfToken = generateToken(req, res); // jeton commun aux formulaires et à htmx
+  res.locals.unseenRecommendations = 0;
+  next();
+});
+
+// Pastille des recommandations reçues non lues (pages complètes seulement)
+app.use(async (req, res, next) => {
+  if (!req.session?.userId || req.method !== "GET" || req.get("HX-Request")) return next();
+  try {
+    res.locals.unseenRecommendations = await RecommendationService.unseenCount(req.session.userId);
+  } catch (error) {
+    logger.warn({ err: error }, "Compteur de recommandations indisponible");
+  }
   next();
 });
 

@@ -20,6 +20,7 @@ export const navItemsFor = (path) =>
       short: "Biblio",
       match: (p) => libraryPrefixes.some((x) => p.startsWith(x)),
     },
+    { href: "/decouvrir", label: "Découvrir", tabbar: false, match: (p) => p.startsWith("/decouvrir") || p.startsWith("/recommandations") },
     { href: "/fil", label: "Fil", match: (p) => p.startsWith("/fil") || p.startsWith("/amis") },
     { href: "/listes", label: "Listes", match: (p) => p.startsWith("/listes") },
     { href: "/defis", label: "Défis", match: (p) => p.startsWith("/defis") },

@@ -1,0 +1,8 @@
+<%# Bloc « Pour toi aujourd'hui » de l'accueil. Paramètre : picks (une suggestion par catégorie) %>
+<% if (picks.length) { %>
+  <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+    <% picks.slice(0, 5).forEach((item) => { %><%- include('../../components/cover-card', { item }) %><% }) %>
+  </div>
+<% } else { %>
+  <p class="m-0 text-muted">Note ou mets en favori quelques œuvres : tes suggestions du jour apparaîtront ici.</p>
+<% } %>

@@ -26,6 +26,10 @@
         <a href="/recherche" aria-label="Rechercher" class="flex h-11 w-11 items-center justify-center rounded-full bg-cream text-ink no-underline sm:hidden">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
         </a>
+        <a href="/recommandations" aria-label="Recommandations reçues<%= unseenRecommendations ? ` (${unseenRecommendations} nouvelles)` : '' %>" class="relative flex h-11 w-11 items-center justify-center rounded-full bg-cream text-ink no-underline">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v11H4z"/><path d="m4 8 8 6 8-6"/></svg>
+          <% if (unseenRecommendations) { %><span class="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-terracotta px-1 text-xs font-bold text-[#ffffff]"><%= unseenRecommendations > 9 ? "9+" : unseenRecommendations %></span><% } %>
+        </a>
         <a href="/u/<%= encodeURIComponent(currentUser.pseudo || '') %>" aria-label="Mon profil" class="no-underline">
           <%- include('social/avatar', { user: currentUser, size: "h-11 w-11 text-base" }) %>
         </a>

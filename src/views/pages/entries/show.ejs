@@ -39,6 +39,10 @@
     </div>
   </div>
 
+  <div class="max-w-3xl">
+    <%- include('../../partials/discover/recommend', { entry, friends, alreadySent }) %>
+  </div>
+
   <section id="commentaires" aria-labelledby="commentaires-titre" class="flex max-w-3xl flex-col gap-5">
     <%- include('../../components/section-header', { id: "commentaires-titre", title: "Commentaires" }) %>
     <%- include('../../partials/social/comments', { entryId: entry.id, ownerId: currentUser.id, comments }) %>

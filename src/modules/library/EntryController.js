@@ -2,6 +2,7 @@
 
 import LibraryService from "./LibraryService.js";
 import ListService from "../lists/ListService.js";
+import RecommendationService from "../discover/RecommendationService.js";
 import SocialService from "../social/SocialService.js";
 import UserItemRepository from "./UserItemRepository.js";
 
@@ -59,9 +60,10 @@ class EntryController {
       });
     }
 
-    const [lists, friends] = await Promise.all([
+    const [lists, friends, alreadySent] = await Promise.all([
       ListService.getListsForItem(userId, own.itemId),
       SocialService.getFriends(userId),
+      RecommendationService.sentFor(userId, own.itemId),
     ]);
     res.render("pages/entries/show", {
       title: `${own.title} - Cocon`,
@@ -69,6 +71,7 @@ class EntryController {
       entry: own,
       lists,
       friends,
+      alreadySent,
       comments,
     });
   });
