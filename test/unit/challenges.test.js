@@ -59,3 +59,11 @@ test("buildQuiz ne pose pas deux fois la même réponse", () => {
   assert.equal(quiz.length, 10);
   assert.equal(new Set(quiz.map((q) => q.options[q.answer])).size, 10);
 });
+
+test("le fil ne répète pas le vainqueur d'un duel quand c'est une œuvre", async () => {
+  const { describeActivity } = await import("../../src/modules/social/activityText.js");
+  const payload = { game: "duel", title: "Jeux", champion: "Elden Ring", resultId: "r1" };
+  assert.equal(describeActivity({ kind: "challenged", payload, item: { title: "Elden Ring" } }).detail, "(duel Jeux)");
+  assert.equal(describeActivity({ kind: "challenged", payload, item: null }).detail, "Elden Ring (duel Jeux)");
+  assert.equal(describeActivity({ kind: "challenged", payload: { game: "blindtest", title: "Musique", score: 7, total: 10 } }).detail, "7/10 au blindtest Musique");
+});

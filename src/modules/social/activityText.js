@@ -36,7 +36,12 @@ export const describeActivity = (activity) => {
     case "challenged":
       return payload.game === "blindtest"
         ? { verb: "a fait", detail: `${payload.score}/${payload.total} au blindtest ${payload.title}`, link: payload.resultId ? `/defis/resultats/${payload.resultId}` : null }
-        : { verb: "a couronné", detail: `${payload.champion} (duel ${payload.title})`, link: payload.resultId ? `/defis/resultats/${payload.resultId}` : null };
+        : {
+            verb: "a couronné",
+            // Vainqueur œuvre : son titre est déjà affiché avec sa jaquette
+            detail: item ? `(duel ${payload.title})` : `${payload.champion} (duel ${payload.title})`,
+            link: payload.resultId ? `/defis/resultats/${payload.resultId}` : null,
+          };
     case "followed":
       return { verb: "suit maintenant", detail: target ? target.pseudo : "" };
     default:
