@@ -14,9 +14,8 @@ export function injectCsrfToken(generateToken) {
   };
 }
 
-
 // Ce fichier sert à protéger l'application contre les attaques CSRF et à rendre le token CSRF disponible dans les vues EJS.
-// -> Cross-Site Request Forgery / Exemple : 
+// -> Cross-Site Request Forgery / Exemple :
 // → quelqu’un peut forcer un utilisateur connecté à envoyer une requête au site.
 
 // Exemple :
@@ -25,9 +24,8 @@ export function injectCsrfToken(generateToken) {
 // 2️⃣ il visite un site malveillant
 // 3️⃣ ce site envoie un formulaire vers ton serveur :
 
-// Si le token est faux la requete est refusé 
+// Si le token est faux la requete est refusé
 // (librairie csrf-csrf)
-
 
 // Ce middleware sert à :
 
@@ -35,8 +33,6 @@ export function injectCsrfToken(generateToken) {
 // ✔ le rendre accessible dans req
 // ✔ l’utiliser dans les vues EJS
 // ✔ protéger les formulaires POST/PUT/DELETE
-
-
 
 // Les routes à protéger seront typiquement :
 

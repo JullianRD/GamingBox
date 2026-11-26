@@ -52,7 +52,7 @@ export const authLimiter = rateLimit({
   skipSuccessfulRequests: true,
   requestWasSuccessful: (_req, res) => res.locals.authOk === true,
   skip: () => env.isTest && !process.env.AUTH_RATE_LIMIT,
-  handler: (req, res, next) => {
+  handler: (req, res) => {
     req.flash?.("error", "Trop de tentatives. Réessayez dans quelques minutes.");
     const target = req.path.startsWith("/register") ? "/register" : "/login";
     res.redirect(target);
@@ -66,7 +66,8 @@ export const igdbLimiter = rateLimit({
   limit: 30,
   keyGenerator: (req) => req.session?.userId || ipKeyGenerator(req.ip),
   skip: () => env.isTest,
-  handler: (_req, res) => res.status(429).json({ error: "Trop de requêtes, réessaie dans une minute." }),
+  handler: (_req, res) =>
+    res.status(429).json({ error: "Trop de requêtes, réessaie dans une minute." }),
 });
 
 /**

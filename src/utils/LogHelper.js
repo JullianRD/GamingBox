@@ -43,7 +43,6 @@ export const logAppError = (error, contexMessage = "", data = {}) => {
   );
 };
 
-
 // Ce fichier sert à :
 
 // ✔ standardiser les logs

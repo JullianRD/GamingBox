@@ -1,0 +1,31 @@
+<section class="mx-auto max-w-3xl py-8">
+  <h1 class="text-3xl font-bold text-white">Importer ma bibliothèque</h1>
+  <p class="mt-2 text-sm text-slate-400">
+    Fichier CSV (200 lignes max.) avec une colonne <code>titre</code> et, en option, <code>statut</code>,
+    <code>note</code> (0-10), <code>plateforme</code> et <code>avis</code>. Les jeux sont retrouvés via IGDB.
+  </p>
+
+  <% if (flash && flash.success) { %><div role="status" class="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300"><%= flash.success %></div><% } %>
+  <% if (flash && flash.error) { %><div role="alert" class="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300"><%= flash.error %></div><% } %>
+
+  <form action="/import" method="POST" enctype="multipart/form-data" class="mt-6 space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label for="file" class="block text-sm text-slate-300">Fichier CSV</label>
+    <input id="file" type="file" name="file" accept=".csv,text/csv" required class="block w-full text-sm text-slate-300">
+    <button type="submit" class="rounded-lg bg-purple-600 px-5 py-2.5 font-medium text-white hover:bg-purple-500">Importer</button>
+  </form>
+
+  <% if (report) { %>
+    <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <h2 class="text-lg font-semibold text-white">Résultat</h2>
+      <p class="mt-1 text-sm text-slate-300"><%= report.created %> créé(s), <%= report.skipped.length %> ignoré(s), <%= report.failed.length %> en échec sur <%= report.total %>.</p>
+      <% if (report.skipped.length || report.failed.length) { %>
+        <ul class="mt-3 space-y-1 text-sm text-slate-400">
+          <% report.skipped.concat(report.failed).forEach((item) => { %>
+            <li>Ligne <%= item.line %> <%= item.title ? "(" + item.title + ")" : "" %> : <%= item.reason %></li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </div>
+  <% } %>
+</section>

@@ -3,12 +3,7 @@
 import multer from "multer";
 
 const fileFilter = (_req, file, cb) => {
-  const allowedMimeTypes = [
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/webp",
-  ];
+  const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
   if (!allowedMimeTypes.includes(file.mimetype)) {
     return cb(new Error("Format de fichier invalide. Utilise JPG, PNG ou WEBP."));

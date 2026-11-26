@@ -1,7 +1,6 @@
 "use strict";
 
 import ShareService from "../services/ShareService.js";
-import { AppError } from "../utils/AppError.js";
 
 /**
  * ShareController : gestion HTTP des partages (SSR).

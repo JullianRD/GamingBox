@@ -1,0 +1,22 @@
+<section class="mx-auto max-w-4xl py-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-white">Mes listes</h1>
+    <a href="/lists/new" class="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-500">Nouvelle liste</a>
+  </div>
+
+  <% if (flash && flash.success) { %><div role="status" class="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300"><%= flash.success %></div><% } %>
+  <% if (flash && flash.error) { %><div role="alert" class="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300"><%= flash.error %></div><% } %>
+
+  <% if (!lists.length) { %>
+    <p class="mt-8 text-slate-400">Aucune liste pour le moment : « Mes 10 meilleurs RPG », « À finir en 2026 »...</p>
+  <% } %>
+  <ul class="mt-6 grid gap-4 sm:grid-cols-2">
+    <% lists.forEach((list) => { %>
+      <li class="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <a href="/lists/<%= encodeURIComponent(list.slug) %>" class="text-lg font-semibold text-white hover:text-purple-300"><%= list.title %></a>
+        <p class="mt-1 text-sm text-slate-400"><%= list.itemCount %> jeu<%= list.itemCount > 1 ? "x" : "" %> · <%= list.isPublic ? "publique" : "privée" %></p>
+        <% if (list.description) { %><p class="mt-2 text-sm text-slate-300"><%= list.description %></p><% } %>
+      </li>
+    <% }) %>
+  </ul>
+</section>

@@ -23,7 +23,10 @@ const reviewBody = (gameId, over = {}) => ({
 
 async function createTag(client, tagName) {
   await client.post("/tags", { tagName }, "/tags");
-  const { rows } = await h.pool.query("SELECT id_tag FROM tags WHERE tag_name = $1 ORDER BY created_at DESC LIMIT 1", [tagName]);
+  const { rows } = await h.pool.query(
+    "SELECT id_tag FROM tags WHERE tag_name = $1 ORDER BY created_at DESC LIMIT 1",
+    [tagName],
+  );
   return rows[0].id_tag;
 }
 
@@ -35,12 +38,19 @@ test("création d'une review : slug sans accents, tags rattachés, review privé
 
   const res = await client.post(
     "/reviews",
-    reviewBody(gameId, { reviewTitle: "Pokémon : Édition Rouge !", tagIds: tagId, reviewLike: "on" }),
+    reviewBody(gameId, {
+      reviewTitle: "Pokémon : Édition Rouge !",
+      tagIds: tagId,
+      reviewLike: "on",
+    }),
     "/reviews/new",
   );
   assert.equal(res.headers.location, "/reviews");
 
-  const { rows } = await h.pool.query("SELECT slug, review_like, is_public FROM reviews WHERE user_id = $1", [user.id]);
+  const { rows } = await h.pool.query(
+    "SELECT slug, review_like, is_public FROM reviews WHERE user_id = $1",
+    [user.id],
+  );
   assert.equal(rows[0].slug, "pokemon-edition-rouge");
   assert.equal(rows[0].review_like, true);
   assert.equal(rows[0].is_public, false);
@@ -59,7 +69,11 @@ test("la review d'un autre utilisateur est introuvable (lecture, édition, suppr
   const owner = h.newClient();
   await h.registerAndLogin(owner);
   const gameId = await h.createGame();
-  await owner.post("/reviews", reviewBody(gameId, { reviewTitle: "Review privée de A" }), "/reviews/new");
+  await owner.post(
+    "/reviews",
+    reviewBody(gameId, { reviewTitle: "Review privée de A" }),
+    "/reviews/new",
+  );
 
   const intruder = h.newClient();
   await h.registerAndLogin(intruder);
@@ -68,7 +82,9 @@ test("la review d'un autre utilisateur est introuvable (lecture, édition, suppr
   const del = await intruder.post("/reviews/review-privee-de-a/delete", {}, "/reviews");
   assert.equal(del.status, 404);
 
-  const { rowCount } = await h.pool.query("SELECT 1 FROM reviews WHERE slug = 'review-privee-de-a'");
+  const { rowCount } = await h.pool.query(
+    "SELECT 1 FROM reviews WHERE slug = 'review-privee-de-a'",
+  );
   assert.equal(rowCount, 1);
 });
 
@@ -80,7 +96,11 @@ test("on ne peut pas rattacher le tag d'un autre utilisateur à sa review", asyn
   const b = h.newClient();
   const userB = await h.registerAndLogin(b);
   const gameId = await h.createGame();
-  await b.post("/reviews", reviewBody(gameId, { reviewTitle: "Review de B", tagIds: foreignTag }), "/reviews/new");
+  await b.post(
+    "/reviews",
+    reviewBody(gameId, { reviewTitle: "Review de B", tagIds: foreignTag }),
+    "/reviews/new",
+  );
 
   const { rowCount } = await h.pool.query(
     "SELECT 1 FROM review_tags rt JOIN reviews r USING (id_review) WHERE r.user_id = $1",
@@ -94,11 +114,21 @@ test("on peut retirer tous les tags d'une review en édition (tagIds vide)", asy
   const user = await h.registerAndLogin(client);
   const gameId = await h.createGame();
   const tagId = await createTag(client, "A retirer");
-  await client.post("/reviews", reviewBody(gameId, { reviewTitle: "Review avec tag", tagIds: tagId }), "/reviews/new");
+  await client.post(
+    "/reviews",
+    reviewBody(gameId, { reviewTitle: "Review avec tag", tagIds: tagId }),
+    "/reviews/new",
+  );
 
   const res = await client.post(
     "/reviews/review-avec-tag",
-    { reviewTitle: "Review avec tag", reviewRate: "7", progressionStatus: "En cour", gamePlatforme: "PC", tagIds: "" },
+    {
+      reviewTitle: "Review avec tag",
+      reviewRate: "7",
+      progressionStatus: "En cour",
+      gamePlatforme: "PC",
+      tagIds: "",
+    },
     "/reviews/review-avec-tag/edit",
   );
   assert.equal(res.headers.location, "/reviews");
@@ -114,14 +144,25 @@ test("décocher « J'aime » en édition met bien review_like à false", async (
   const client = h.newClient();
   const user = await h.registerAndLogin(client);
   const gameId = await h.createGame();
-  await client.post("/reviews", reviewBody(gameId, { reviewTitle: "Review likée", reviewLike: "on" }), "/reviews/new");
+  await client.post(
+    "/reviews",
+    reviewBody(gameId, { reviewTitle: "Review likée", reviewLike: "on" }),
+    "/reviews/new",
+  );
 
   await client.post(
     "/reviews/review-likee",
-    { reviewTitle: "Review likée", reviewRate: "7", progressionStatus: "En cour", gamePlatforme: "PC" },
+    {
+      reviewTitle: "Review likée",
+      reviewRate: "7",
+      progressionStatus: "En cour",
+      gamePlatforme: "PC",
+    },
     "/reviews/review-likee/edit",
   );
-  const { rows } = await h.pool.query("SELECT review_like FROM reviews WHERE user_id = $1", [user.id]);
+  const { rows } = await h.pool.query("SELECT review_like FROM reviews WHERE user_id = $1", [
+    user.id,
+  ]);
   assert.equal(rows[0].review_like, false);
 });
 
@@ -150,9 +191,17 @@ test("renommer un tag fonctionne ; le tag d'un autre est intouchable ; doublon r
 test("redirectTo externe est ignoré (pas de redirection ouverte)", async () => {
   const client = h.newClient();
   await h.registerAndLogin(client);
-  const res = await client.post("/tags", { tagName: "Safe", redirectTo: "https://evil.example/phish" }, "/tags");
+  const res = await client.post(
+    "/tags",
+    { tagName: "Safe", redirectTo: "https://evil.example/phish" },
+    "/tags",
+  );
   assert.equal(res.headers.location, "/reviews");
-  const res2 = await client.post("/tags", { tagName: "Safe2", redirectTo: "//evil.example" }, "/tags");
+  const res2 = await client.post(
+    "/tags",
+    { tagName: "Safe2", redirectTo: "//evil.example" },
+    "/tags",
+  );
   assert.equal(res2.headers.location, "/reviews");
 });
 

@@ -1,0 +1,14 @@
+<%# Carte d'une review publique. Variable : review (objet de SocialRepository) %>
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4">
+  <div class="flex gap-4">
+    <% if (review.thumbnailUrl) { %><img src="<%= review.thumbnailUrl %>" alt="" class="h-24 w-16 rounded object-cover" loading="lazy"><% } %>
+    <div class="min-w-0 flex-1">
+      <p class="text-xs text-slate-400"><a class="hover:text-white" href="/u/<%= encodeURIComponent(review.authorPseudo) %>"><%= review.authorPseudo %></a> · <%= new Date(review.createdAt).toLocaleDateString("fr-FR") %></p>
+      <h3 class="mt-1 truncate font-semibold text-white">
+        <a href="/u/<%= encodeURIComponent(review.authorPseudo) %>/reviews/<%= encodeURIComponent(review.slug) %>" class="hover:text-purple-300"><%= review.reviewTitle %></a>
+      </h3>
+      <p class="text-sm text-slate-400"><%= review.gameTitle %> · <%= review.reviewRate %>/10 · <%= review.likeCount %> like<%= review.likeCount > 1 ? "s" : "" %></p>
+      <% if (review.avisReview) { %><p class="mt-2 line-clamp-2 text-sm text-slate-300"><%= review.avisReview %></p><% } %>
+    </div>
+  </div>
+</article>

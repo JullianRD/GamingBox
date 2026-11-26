@@ -18,7 +18,10 @@ const cookieValue = (res, name) => {
 };
 
 test("un POST sans jeton CSRF est refusé (403)", async () => {
-  const res = await supertest(h.app).post("/login").type("form").send({ email: "a@b.co", password: "x" });
+  const res = await supertest(h.app)
+    .post("/login")
+    .type("form")
+    .send({ email: "a@b.co", password: "x" });
   assert.equal(res.status, 403);
 });
 
@@ -27,7 +30,10 @@ test("un POST avec un jeton CSRF d'une autre session est refusé", async () => {
   const tokenA = await a.csrf("/login");
   const b = h.newClient();
   await b.get("/login");
-  const res = await b.agent.post("/login").type("form").send({ email: "a@b.co", password: "x", _csrf: tokenA });
+  const res = await b.agent
+    .post("/login")
+    .type("form")
+    .send({ email: "a@b.co", password: "x", _csrf: tokenA });
   assert.equal(res.status, 403);
 });
 
@@ -78,7 +84,11 @@ test("un mot de passe n'est jamais conservé dans la session après une erreur d
 test("connexion : mauvais mot de passe refusé, bon mot de passe accepté, session régénérée", async () => {
   const client = h.newClient();
   const user = await h.registerAndLogin(h.newClient()); // crée le compte
-  const bad = await client.post("/login", { email: user.email, password: "mauvais-mot-de-passe" }, "/login");
+  const bad = await client.post(
+    "/login",
+    { email: user.email, password: "mauvais-mot-de-passe" },
+    "/login",
+  );
   assert.equal(bad.headers.location, "/login");
   assert.equal((await client.get("/reviews")).status, 302); // toujours déconnecté
 
@@ -110,11 +120,16 @@ test("vérification d'email : le lien confirme l'adresse, une seule fois", async
 
   const first = await client.get(`/verify-email/${token}`);
   assert.equal(first.status, 302);
-  const { rows } = await h.pool.query("SELECT email_verified_at FROM users WHERE email = $1", [user.email]);
+  const { rows } = await h.pool.query("SELECT email_verified_at FROM users WHERE email = $1", [
+    user.email,
+  ]);
   assert.ok(rows[0].email_verified_at);
 
   await client.get(`/verify-email/${token}`);
-  const { rows: tokens } = await h.pool.query("SELECT used_at FROM auth_tokens WHERE user_id = $1", [user.id]);
+  const { rows: tokens } = await h.pool.query(
+    "SELECT used_at FROM auth_tokens WHERE user_id = $1",
+    [user.id],
+  );
   assert.ok(tokens.every((t) => t.used_at));
 });
 
@@ -126,7 +141,11 @@ test("mot de passe oublié : réponse identique pour un email inconnu, reset à 
   const anon = h.newClient();
   h.MailService.outbox.length = 0;
 
-  const unknown = await anon.post("/forgot-password", { email: "inconnu@example.test" }, "/forgot-password");
+  const unknown = await anon.post(
+    "/forgot-password",
+    { email: "inconnu@example.test" },
+    "/forgot-password",
+  );
   const known = await anon.post("/forgot-password", { email: user.email }, "/forgot-password");
   assert.equal(unknown.headers.location, known.headers.location);
   assert.equal(h.MailService.outbox.length, 1);
@@ -134,19 +153,37 @@ test("mot de passe oublié : réponse identique pour un email inconnu, reset à 
   const token = /reset-password\/([\w-]+)/.exec(h.MailService.outbox[0].text)[1];
   const newPassword = "Nouveau-Mot-De-Passe-77";
 
-  const mismatch = await anon.post(`/reset-password/${token}`, { password: newPassword, passwordConfirm: "autre" }, `/reset-password/${token}`);
+  const mismatch = await anon.post(
+    `/reset-password/${token}`,
+    { password: newPassword, passwordConfirm: "autre" },
+    `/reset-password/${token}`,
+  );
   assert.equal(mismatch.status, 302);
 
-  const done = await anon.post(`/reset-password/${token}`, { password: newPassword, passwordConfirm: newPassword }, `/reset-password/${token}`);
+  const done = await anon.post(
+    `/reset-password/${token}`,
+    { password: newPassword, passwordConfirm: newPassword },
+    `/reset-password/${token}`,
+  );
   assert.equal(done.headers.location, "/login");
 
-  const again = await h.newClient().post(`/reset-password/${token}`, { password: "Encore-Un-Autre-88", passwordConfirm: "Encore-Un-Autre-88" }, "/login");
+  const again = await h
+    .newClient()
+    .post(
+      `/reset-password/${token}`,
+      { password: "Encore-Un-Autre-88", passwordConfirm: "Encore-Un-Autre-88" },
+      "/login",
+    );
   assert.equal(again.status, 302);
-  const login = await h.newClient().post("/login", { email: user.email, password: "Encore-Un-Autre-88" }, "/login");
+  const login = await h
+    .newClient()
+    .post("/login", { email: user.email, password: "Encore-Un-Autre-88" }, "/login");
   assert.equal(login.headers.location, "/login", "le jeton ne sert qu'une fois");
 
   assert.equal((await owner.get("/reviews")).status, 302, "l'ancienne session est révoquée");
-  const ok = await h.newClient().post("/login", { email: user.email, password: newPassword }, "/login");
+  const ok = await h
+    .newClient()
+    .post("/login", { email: user.email, password: newPassword }, "/login");
   assert.equal(ok.headers.location, "/reviews");
 });
 

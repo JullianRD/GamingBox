@@ -29,7 +29,9 @@ class UserRepository {
   }
 
   static async findByPseudo(pseudo) {
-    const { rows } = await db.query(`SELECT ${PUBLIC_COLUMNS} FROM users WHERE pseudo = $1`, [pseudo]);
+    const { rows } = await db.query(`SELECT ${PUBLIC_COLUMNS} FROM users WHERE pseudo = $1`, [
+      pseudo,
+    ]);
     return rows[0] ? new User(rows[0]) : null;
   }
 
@@ -40,12 +42,18 @@ class UserRepository {
 
   // email et pseudo sont CITEXT : la comparaison est déjà insensible à la casse (et indexée)
   static async existByEmail(email) {
-    const { rows } = await db.query("SELECT EXISTS (SELECT 1 FROM users WHERE email = $1) AS exists", [email]);
+    const { rows } = await db.query(
+      "SELECT EXISTS (SELECT 1 FROM users WHERE email = $1) AS exists",
+      [email],
+    );
     return rows[0].exists;
   }
 
   static async existByPseudo(pseudo) {
-    const { rows } = await db.query("SELECT EXISTS (SELECT 1 FROM users WHERE pseudo = $1) AS exists", [pseudo]);
+    const { rows } = await db.query(
+      "SELECT EXISTS (SELECT 1 FROM users WHERE pseudo = $1) AS exists",
+      [pseudo],
+    );
     return rows[0].exists;
   }
 

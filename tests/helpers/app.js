@@ -39,7 +39,10 @@ export function newClient() {
     /** POST de formulaire avec jeton CSRF valide (récupéré sur `fromPage`). */
     async post(url, body = {}, fromPage = "/login") {
       const token = await this.csrf(fromPage);
-      return agent.post(url).type("form").send({ ...body, _csrf: token });
+      return agent
+        .post(url)
+        .type("form")
+        .send({ ...body, _csrf: token });
     },
   };
 }
@@ -75,7 +78,13 @@ export async function createGame(overrides = {}) {
   const { rows } = await pool.query(
     `INSERT INTO games (igdb_id, game_title, game_genre, release_date, thumbnail_url)
      VALUES ($1, $2, $3, $4, $5) RETURNING id_game`,
-    [overrides.igdbId ?? n, overrides.title ?? `Jeu ${n}`, overrides.genre ?? "RPG", "2020-01-01", "https://images.igdb.com/x.jpg"],
+    [
+      overrides.igdbId ?? n,
+      overrides.title ?? `Jeu ${n}`,
+      overrides.genre ?? "RPG",
+      "2020-01-01",
+      "https://images.igdb.com/x.jpg",
+    ],
   );
   return rows[0].id_game;
 }

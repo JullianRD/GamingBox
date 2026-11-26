@@ -105,7 +105,7 @@
                                 <form action="/tags/<%= tag.id || tag.id_tag %>/delete" method="POST" class="inline">
 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="redirectTo" value="/reviews">
-                                    <button type="submit" class="text-red-300 hover:text-red-200 transition" onclick="return confirm('Supprimer ce tag ?');">
+                                    <button type="submit" class="text-red-300 hover:text-red-200 transition" data-confirm="Supprimer ce tag ?">
                                         ✕
                                     </button>
                                 </form>

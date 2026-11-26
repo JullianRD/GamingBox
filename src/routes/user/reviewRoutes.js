@@ -20,16 +20,8 @@ router.post(
 );
 
 router.get("/reviews/:slug/edit", ReviewController.edit);
-router.post(
-  "/reviews/:slug",
-  validate(reviewSchemas.update),
-  ReviewController.update,
-);
-router.post(
-  "/reviews/:slug/tags",
-  validate(reviewSchemas.updateTags),
-  ReviewController.updateTags,
-);
+router.post("/reviews/:slug", validate(reviewSchemas.update), ReviewController.update);
+router.post("/reviews/:slug/tags", validate(reviewSchemas.updateTags), ReviewController.updateTags);
 router.get("/reviews/:slug", ReviewController.show);
 router.post("/reviews/:slug/delete", ReviewController.destroy);
 

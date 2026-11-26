@@ -1,0 +1,14 @@
+<section class="mx-auto max-w-3xl py-6">
+  <h1 class="text-3xl font-bold text-white">Mon fil</h1>
+  <p class="mt-1 text-sm text-slate-400">Les reviews publiques des joueurs que tu suis.</p>
+  <% if (!reviews.length) { %><p class="mt-6 text-slate-400">Rien pour le moment. Suis des joueurs depuis leur profil public (<code>/u/pseudo</code>).</p><% } %>
+  <div class="mt-6 space-y-3">
+    <% reviews.forEach((review) => { %><%- include('../../partials/review-card', { review }) %><% }) %>
+  </div>
+  <% if (total > page * 12 || page > 1) { %>
+    <nav class="mt-6 flex justify-center gap-3 text-sm" aria-label="Pagination">
+      <% if (page > 1) { %><a class="rounded-lg border border-slate-700 px-3 py-2 text-slate-200" href="/feed?page=<%= page - 1 %>" rel="prev">Précédent</a><% } %>
+      <% if (total > page * 12) { %><a class="rounded-lg border border-slate-700 px-3 py-2 text-slate-200" href="/feed?page=<%= page + 1 %>" rel="next">Suivant</a><% } %>
+    </nav>
+  <% } %>
+</section>

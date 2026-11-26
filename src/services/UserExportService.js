@@ -20,7 +20,12 @@ class UserExportService {
       reviews,
       tags,
       // Les jetons d'accès ne sont jamais exportés
-      shares: (shares || []).map(({ shareToken, share_token, ...rest }) => rest),
+      shares: (shares || []).map((share) => {
+        const copy = { ...share };
+        delete copy.shareToken;
+        delete copy.share_token;
+        return copy;
+      }),
       exportDate: new Date().toISOString(),
     };
   }

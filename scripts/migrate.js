@@ -25,7 +25,10 @@ export async function migrate({ connectionString, log = console.log } = {}) {
 
   const client = new pg.Client({
     connectionString: url,
-    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false" } : false,
+    ssl:
+      process.env.NODE_ENV === "production"
+        ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false" }
+        : false,
   });
   await client.connect();
 
@@ -36,8 +39,13 @@ export async function migrate({ connectionString, log = console.log } = {}) {
         applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )`);
 
-    const applied = new Set((await client.query("SELECT name FROM schema_migrations")).rows.map((r) => r.name));
-    const files = fs.readdirSync(PATCH_DIR).filter((f) => f.endsWith(".sql")).sort();
+    const applied = new Set(
+      (await client.query("SELECT name FROM schema_migrations")).rows.map((r) => r.name),
+    );
+    const files = fs
+      .readdirSync(PATCH_DIR)
+      .filter((f) => f.endsWith(".sql"))
+      .sort();
     const executed = [];
 
     for (const file of files) {
@@ -52,7 +60,7 @@ export async function migrate({ connectionString, log = console.log } = {}) {
         executed.push(file);
       } catch (error) {
         await client.query("ROLLBACK");
-        throw new Error(`Patch ${file} en échec : ${error.message}`);
+        throw new Error(`Patch ${file} en échec : ${error.message}`, { cause: error });
       }
     }
 

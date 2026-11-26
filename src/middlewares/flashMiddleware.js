@@ -6,7 +6,7 @@
  * @module middlewares/flashMiddleware
  */
 
- /**
+/**
  * Injecte les messages flash (notifications) vers la vue (res.locals)
  *
  * @param {import('express').Request} req
@@ -36,7 +36,6 @@ export const flashMiddleware = (req, res, next) => {
 
   next();
 };
-
 
 // Ce middleware permet :
 

@@ -127,6 +127,13 @@ class IgdbService {
         ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover.image_id}.jpg`
         : null,
     }));
+
+    if (this.#searchCache.size >= SEARCH_CACHE_MAX) {
+      this.#searchCache.delete(this.#searchCache.keys().next().value);
+    }
+    this.#searchCache.set(cacheKey, { value: mapped, expiresAt: Date.now() + SEARCH_TTL_MS });
+
+    return mapped;
   }
 
   // Récupérer un jeu précis par son ID IGDB

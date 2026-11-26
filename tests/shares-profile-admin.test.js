@@ -25,7 +25,9 @@ const reviewBody = (gameId, title) => ({
 async function seedReviewShare(client, user, { maxViews = "", expiration = "" } = {}) {
   const gameId = await h.createGame();
   await client.post("/reviews", reviewBody(gameId, `Review ${user.pseudo}`), "/reviews/new");
-  const { rows } = await h.pool.query("SELECT id_review FROM reviews WHERE user_id = $1", [user.id]);
+  const { rows } = await h.pool.query("SELECT id_review FROM reviews WHERE user_id = $1", [
+    user.id,
+  ]);
   h.MailService.outbox.length = 0;
   await client.post(
     "/shares/review",
@@ -52,7 +54,9 @@ test("partage : seul le propriétaire peut révoquer ou partager sa review", asy
   const { reviewId, token } = await seedReviewShare(a, userA);
   assert.ok(token, "le lien d'accès est envoyé par email");
 
-  const { rows: shares } = await h.pool.query("SELECT id_share FROM shares WHERE user_id = $1", [userA.id]);
+  const { rows: shares } = await h.pool.query("SELECT id_share FROM shares WHERE user_id = $1", [
+    userA.id,
+  ]);
   assert.equal(shares.length, 1);
 
   const b = h.newClient();
@@ -61,7 +65,10 @@ test("partage : seul le propriétaire peut révoquer ou partager sa review", asy
   // B ne peut pas révoquer le partage de A
   const del = await b.post(`/shares/${shares[0].id_share}/delete`, {}, "/shares");
   assert.equal(del.status, 404);
-  assert.equal((await h.pool.query("SELECT 1 FROM shares WHERE id_share = $1", [shares[0].id_share])).rowCount, 1);
+  assert.equal(
+    (await h.pool.query("SELECT 1 FROM shares WHERE id_share = $1", [shares[0].id_share])).rowCount,
+    1,
+  );
 
   // B ne peut pas partager la review de A
   const steal = await b.post(
@@ -70,12 +77,19 @@ test("partage : seul le propriétaire peut révoquer ou partager sa review", asy
     "/shares",
   );
   assert.equal(steal.status, 403);
-  assert.equal((await h.pool.query("SELECT 1 FROM shares WHERE recipient_email = 'pirate@example.test'")).rowCount, 0);
+  assert.equal(
+    (await h.pool.query("SELECT 1 FROM shares WHERE recipient_email = 'pirate@example.test'"))
+      .rowCount,
+    0,
+  );
 
   // A peut révoquer
   const ok = await a.post(`/shares/${shares[0].id_share}/delete`, {}, "/shares");
   assert.equal(ok.headers.location, "/shares");
-  assert.equal((await h.pool.query("SELECT 1 FROM shares WHERE id_share = $1", [shares[0].id_share])).rowCount, 0);
+  assert.equal(
+    (await h.pool.query("SELECT 1 FROM shares WHERE id_share = $1", [shares[0].id_share])).rowCount,
+    0,
+  );
 });
 
 test("accès public : contenu servi sans authentification, en-têtes de confidentialité, compteur de vues", async () => {
@@ -92,7 +106,9 @@ test("accès public : contenu servi sans authentification, en-têtes de confiden
   assert.match(res.headers["x-robots-tag"], /noindex/);
   assert.match(res.text, /og:title/);
 
-  const { rows } = await h.pool.query("SELECT access_config FROM shares WHERE share_token = $1", [token]);
+  const { rows } = await h.pool.query("SELECT access_config FROM shares WHERE share_token = $1", [
+    token,
+  ]);
   assert.equal(rows[0].access_config.view_count, 1);
 });
 
@@ -110,7 +126,9 @@ test("accès public : limite de vues, expiration et jeton invalide", async () =>
   const b = h.newClient();
   const userB = await h.registerAndLogin(b);
   const { token: token2 } = await seedReviewShare(b, userB, { maxViews: "3" });
-  const results = await Promise.all(Array.from({ length: 10 }, () => h.newClient().get(`/shares/access/${token2}`)));
+  const results = await Promise.all(
+    Array.from({ length: 10 }, () => h.newClient().get(`/shares/access/${token2}`)),
+  );
   assert.equal(results.filter((r) => r.status === 200).length, 3);
 
   // Expiration
@@ -132,11 +150,16 @@ test("une expiration passée ou une limite invalide est refusée à la création
   const user = await h.registerAndLogin(client);
   const { token } = await seedReviewShare(client, user, { expiration: "2000-01-01" });
   assert.equal(token, undefined);
-  assert.equal((await h.pool.query("SELECT 1 FROM shares WHERE user_id = $1", [user.id])).rowCount, 0);
+  assert.equal(
+    (await h.pool.query("SELECT 1 FROM shares WHERE user_id = $1", [user.id])).rowCount,
+    0,
+  );
 });
 
 async function png() {
-  return sharp({ create: { width: 600, height: 300, channels: 3, background: "#7c3aed" } }).png().toBuffer();
+  return sharp({ create: { width: 600, height: 300, channels: 3, background: "#7c3aed" } })
+    .png()
+    .toBuffer();
 }
 
 test("profil : avatar ré-encodé en WebP, ancien avatar supprimé, faux fichier refusé", async () => {
@@ -154,7 +177,9 @@ test("profil : avatar ré-encodé en WebP, ancien avatar supprimé, faux fichier
 
   const res = await send(await png(), "a.png", "image/png");
   assert.equal(res.headers.location, "/profile");
-  let { rows } = await h.pool.query("SELECT avatar, biographie FROM users WHERE id_user = $1", [user.id]);
+  let { rows } = await h.pool.query("SELECT avatar, biographie FROM users WHERE id_user = $1", [
+    user.id,
+  ]);
   const first = rows[0].avatar;
   assert.match(first, /^\/uploads\/avatars\/\d+-\d+\.webp$/);
   assert.equal(rows[0].biographie, "Bio de test");
@@ -164,6 +189,13 @@ test("profil : avatar ré-encodé en WebP, ancien avatar supprimé, faux fichier
   // Fichier texte déguisé en image : refusé, avatar inchangé
   const fake = await send(Buffer.from("<script>alert(1)</script>"), "x.png", "image/png");
   assert.equal(fake.headers.location, "/profile/edit");
+  // SVG déguisé en PNG : format non autorisé
+  const svg = await send(
+    Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/>'),
+    "x.png",
+    "image/png",
+  );
+  assert.equal(svg.headers.location, "/profile/edit");
   ({ rows } = await h.pool.query("SELECT avatar FROM users WHERE id_user = $1", [user.id]));
   assert.equal(rows[0].avatar, first);
 
@@ -183,7 +215,10 @@ test("profil : avatar ré-encodé en WebP, ancien avatar supprimé, faux fichier
   const del = await client.post("/profile/delete", {}, "/profile");
   assert.equal(del.headers.location, "/register");
   assert.ok(!fs.existsSync(current), "avatar supprimé avec le compte");
-  assert.equal((await h.pool.query("SELECT 1 FROM users WHERE id_user = $1", [user.id])).rowCount, 0);
+  assert.equal(
+    (await h.pool.query("SELECT 1 FROM users WHERE id_user = $1", [user.id])).rowCount,
+    0,
+  );
   assert.equal((await client.get("/profile")).status, 302);
 });
 
@@ -225,18 +260,32 @@ test("espace admin : réservé aux admins, protégé par CSRF, garde-fous de sup
   }
 
   // Sans jeton CSRF : refusé
-  const noToken = await adminClient.agent.post(`/admin/users/${normal.id}/delete`).type("form").send({});
+  const noToken = await adminClient.agent
+    .post(`/admin/users/${normal.id}/delete`)
+    .type("form")
+    .send({});
   assert.equal(noToken.status, 403);
-  assert.equal((await h.pool.query("SELECT 1 FROM users WHERE id_user = $1", [normal.id])).rowCount, 1);
+  assert.equal(
+    (await h.pool.query("SELECT 1 FROM users WHERE id_user = $1", [normal.id])).rowCount,
+    1,
+  );
 
   // Ne peut pas se supprimer lui-même, ni le dernier admin
   await adminClient.post(`/admin/users/${admin.id}/delete`, {}, "/admin/users");
-  assert.equal((await h.pool.query("SELECT 1 FROM users WHERE id_user = $1", [admin.id])).rowCount, 1);
+  assert.equal(
+    (await h.pool.query("SELECT 1 FROM users WHERE id_user = $1", [admin.id])).rowCount,
+    1,
+  );
 
   // Suppression d'un utilisateur standard : OK + audit
   await adminClient.post(`/admin/users/${normal.id}/delete`, {}, "/admin/users");
-  assert.equal((await h.pool.query("SELECT 1 FROM users WHERE id_user = $1", [normal.id])).rowCount, 0);
-  const { rows } = await h.pool.query("SELECT 1 FROM app_events WHERE event_type = 'admin.users_deleted'");
+  assert.equal(
+    (await h.pool.query("SELECT 1 FROM users WHERE id_user = $1", [normal.id])).rowCount,
+    0,
+  );
+  const { rows } = await h.pool.query(
+    "SELECT 1 FROM app_events WHERE event_type = 'admin.users_deleted'",
+  );
   assert.equal(rows.length, 1);
 
   // API événements (JSON)

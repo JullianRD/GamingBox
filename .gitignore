@@ -143,3 +143,6 @@ vite.config.ts.timestamp-*
 # Données utilisateurs (avatars uploadés) : ne jamais versionner
 public/uploads/*
 !public/uploads/.gitkeep
+
+# Sauvegardes locales
+backups/

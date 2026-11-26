@@ -143,7 +143,12 @@ class AuthController {
       req.flash("success", "Mot de passe modifié. Tu peux te connecter.");
       return res.redirect("/login");
     } catch (error) {
-      return flashOrThrow(req, error, `/reset-password/${encodeURIComponent(req.params.token)}`, res);
+      return flashOrThrow(
+        req,
+        error,
+        `/reset-password/${encodeURIComponent(req.params.token)}`,
+        res,
+      );
     }
   }
 }

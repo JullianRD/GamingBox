@@ -26,12 +26,14 @@ const gamePlatformeEnum = z.enum(["PC", "Console de jeu", "Autre"], {
  *          "" / [""] (formulaire sans tag coché) => [] (retirer tous les tags)
  *          "uuid" / ["uuid", ...] => liste dédoublonnée
  */
-const tagIdsSchema = z
-  .preprocess((value) => {
+const tagIdsSchema = z.preprocess(
+  (value) => {
     if (value === undefined) return undefined;
     const list = Array.isArray(value) ? value : [value];
     return [...new Set(list.map((v) => String(v).trim()).filter(Boolean))];
-  }, z.array(z.uuid("Tag invalide")).max(50, "Trop de tags").optional());
+  },
+  z.array(z.uuid("Tag invalide")).max(50, "Trop de tags").optional(),
+);
 
 const baseReviewSchema = z.object({
   gameId: z.uuid("Identifiant de jeu invalide"),

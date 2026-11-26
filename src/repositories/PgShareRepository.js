@@ -333,10 +333,10 @@ class ShareRepository {
 
   // Révocation : seul le propriétaire du partage peut le supprimer
   static async deleteForUser(id, userId) {
-    const result = await db.query(
-      "DELETE FROM shares WHERE id_share = $1 AND user_id = $2",
-      [id, userId],
-    );
+    const result = await db.query("DELETE FROM shares WHERE id_share = $1 AND user_id = $2", [
+      id,
+      userId,
+    ]);
     return result.rowCount > 0;
   }
 

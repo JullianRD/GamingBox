@@ -24,20 +24,18 @@ class TagRepository {
 
   // Chercher tous les tags (admin)
   static async findAllAdmin() {
-    const { rows } = await db.query(
-      /*SQL*/ `
+    const { rows } = await db.query(/*SQL*/ `
         SELECT *
         FROM tags
         ORDER BY created_at DESC
-      `,
-    );
+      `);
 
     return rows.map((row) => new Tag(row));
   }
 
   // Trouver un tag par son id pour un utilisateur donné
-static async findByIdForUser(tagId, userId) {
-  const query = /* SQL */ `
+  static async findByIdForUser(tagId, userId) {
+    const query = /* SQL */ `
     SELECT
       id_tag,
       tag_name,
@@ -50,9 +48,9 @@ static async findByIdForUser(tagId, userId) {
     LIMIT 1;
   `;
 
-  const { rows } = await db.query(query, [tagId, userId]);
-  return rows[0] ? new Tag(rows[0]) : null;
-}
+    const { rows } = await db.query(query, [tagId, userId]);
+    return rows[0] ? new Tag(rows[0]) : null;
+  }
 
   /**
    * 📊 Tags avec nombre de reviews

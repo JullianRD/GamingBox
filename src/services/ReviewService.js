@@ -31,13 +31,11 @@ class ReviewService {
   // Création d'une review et de ses tags dans une seule transaction
   static async create(userId, gameId, payload) {
     const slug = generateSlug(payload.reviewTitle);
-    if (!slug) throw AppError.badRequest("Le titre doit contenir au moins une lettre ou un chiffre.");
+    if (!slug)
+      throw AppError.badRequest("Le titre doit contenir au moins une lettre ou un chiffre.");
 
     const review = await withTransaction(async (client) => {
-      const created = await ReviewRepository.create(
-        { ...payload, userId, gameId, slug },
-        client,
-      );
+      const created = await ReviewRepository.create({ ...payload, userId, gameId, slug }, client);
       await ReviewTagRepository.replaceForReview(created.id, payload.tagIds, userId, client);
       return created;
     });
@@ -53,7 +51,8 @@ class ReviewService {
     const data = { ...payload };
     if (payload.reviewTitle) {
       data.slug = generateSlug(payload.reviewTitle);
-      if (!data.slug) throw AppError.badRequest("Le titre doit contenir au moins une lettre ou un chiffre.");
+      if (!data.slug)
+        throw AppError.badRequest("Le titre doit contenir au moins une lettre ou un chiffre.");
     }
 
     return withTransaction(async (client) => {

@@ -13,6 +13,10 @@ import reviewRoutes from "./user/reviewRoutes.js";
 import tagRoutes from "./user/tagRoutes.js";
 import shareRoutes from "./user/shareRoutes.js";
 import gameRoutes from "./user/gameRoutes.js";
+import listRoutes from "./user/listRoutes.js";
+import statsRoutes from "./user/statsRoutes.js";
+import importRoutes from "./user/importRoutes.js";
+import socialRoutes from "./public/socialRoutes.js";
 
 // Admin
 import adminRoutes from "./admin/adminRoutes.js";
@@ -41,6 +45,10 @@ router.use(reviewRoutes);
 router.use(tagRoutes);
 router.use(shareRoutes);
 router.use(gameRoutes);
+router.use(listRoutes);
+router.use(statsRoutes);
+router.use(importRoutes);
+router.use(socialRoutes);
 
 // Administration
 router.use(appEventRoutes);

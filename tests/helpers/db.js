@@ -11,13 +11,22 @@ const BASE_FILES = [
   "database/migrations/config/03_add_extensions.sql",
   "database/migrations/config/04_add_types.sql",
   "database/triggers/01_add_trigger_set_timestamp.sql",
-  ...fs.readdirSync(path.join(ROOT, "database/migrations/tables")).sort().map((f) => `database/migrations/tables/${f}`),
-  ...fs.readdirSync(path.join(ROOT, "database/vues")).sort().map((f) => `database/vues/${f}`),
+  ...fs
+    .readdirSync(path.join(ROOT, "database/migrations/tables"))
+    .sort()
+    .map((f) => `database/migrations/tables/${f}`),
+  ...fs
+    .readdirSync(path.join(ROOT, "database/vues"))
+    .sort()
+    .map((f) => `database/vues/${f}`),
 ];
 
 export function adminUrl() {
   const url = process.env.TEST_DATABASE_URL;
-  if (!url) throw new Error("TEST_DATABASE_URL manquante (ex: postgresql://postgres@localhost:5433/gamingbox_test)");
+  if (!url)
+    throw new Error(
+      "TEST_DATABASE_URL manquante (ex: postgresql://postgres@localhost:5433/gamingbox_test)",
+    );
   return url;
 }
 
@@ -36,7 +45,9 @@ export async function resetDatabase() {
     // uuidv7() n'existe qu'à partir de PostgreSQL 18 : shim pour les versions antérieures
     const { rows } = await client.query("SELECT 1 FROM pg_proc WHERE proname = 'uuidv7'");
     if (!rows.length) {
-      await client.query("CREATE FUNCTION uuidv7() RETURNS uuid LANGUAGE sql AS 'SELECT gen_random_uuid()'");
+      await client.query(
+        "CREATE FUNCTION uuidv7() RETURNS uuid LANGUAGE sql AS 'SELECT gen_random_uuid()'",
+      );
     }
 
     for (const file of BASE_FILES) {

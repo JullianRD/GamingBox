@@ -26,10 +26,7 @@ const shareBaseSchema = z.object({
   expiration: z.string().trim().optional().or(z.literal("")),
 
   maxViews: z
-    .union([
-      z.string().trim(),
-      z.number(),
-    ])
+    .union([z.string().trim(), z.number()])
     .optional()
     .refine(
       (value) => {

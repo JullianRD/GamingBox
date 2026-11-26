@@ -12,7 +12,14 @@ import logger from "../config/logger.js";
  * est loggée puis ignorée.
  */
 class AppEventService {
-  static async log({ userId = null, category = "analytics", type, severity = "info", message, metadata = {} }) {
+  static async log({
+    userId = null,
+    category = "analytics",
+    type,
+    severity = "info",
+    message,
+    metadata = {},
+  }) {
     try {
       return await AppEventRepository.create({
         userId,
@@ -29,7 +36,13 @@ class AppEventService {
   }
 
   static authSuccess(userId, metadata = {}) {
-    return this.log({ userId, category: "audit", type: "user.login", message: "Connexion réussie", metadata });
+    return this.log({
+      userId,
+      category: "audit",
+      type: "user.login",
+      message: "Connexion réussie",
+      metadata,
+    });
   }
 
   static authFailure(metadata = {}) {
@@ -44,31 +57,70 @@ class AppEventService {
   }
 
   static userRegistered(userId) {
-    return this.log({ userId, category: "analytics", type: "user.registered", message: "Compte créé" });
+    return this.log({
+      userId,
+      category: "analytics",
+      type: "user.registered",
+      message: "Compte créé",
+    });
   }
 
   static reviewCreated(userId, reviewId) {
-    return this.log({ userId, category: "analytics", type: "review.created", message: "Review créée", metadata: { reviewId } });
+    return this.log({
+      userId,
+      category: "analytics",
+      type: "review.created",
+      message: "Review créée",
+      metadata: { reviewId },
+    });
   }
 
   static shareCreated(userId, shareId) {
-    return this.log({ userId, category: "audit", type: "share.created", message: "Ressource partagée", metadata: { shareId } });
+    return this.log({
+      userId,
+      category: "audit",
+      type: "share.created",
+      message: "Ressource partagée",
+      metadata: { shareId },
+    });
   }
 
   static shareAccessed(shareId, metadata = {}) {
-    return this.log({ category: "audit", type: "share.accessed", message: "Partage consulté", metadata: { shareId, ...metadata } });
+    return this.log({
+      category: "audit",
+      type: "share.accessed",
+      message: "Partage consulté",
+      metadata: { shareId, ...metadata },
+    });
   }
 
   static gdprExport(userId) {
-    return this.log({ userId, category: "gdpr", type: "gdpr.export", message: "Export des données personnelles" });
+    return this.log({
+      userId,
+      category: "gdpr",
+      type: "gdpr.export",
+      message: "Export des données personnelles",
+    });
   }
 
   static gdprDelete(userId) {
-    return this.log({ category: "gdpr", type: "gdpr.account_deleted", message: "Suppression de compte", metadata: { userId } });
+    return this.log({
+      category: "gdpr",
+      type: "gdpr.account_deleted",
+      message: "Suppression de compte",
+      metadata: { userId },
+    });
   }
 
   static adminAction(adminId, type, metadata = {}) {
-    return this.log({ userId: adminId, category: "audit", type: `admin.${type}`, severity: "warning", message: "Action d'administration", metadata });
+    return this.log({
+      userId: adminId,
+      category: "audit",
+      type: `admin.${type}`,
+      severity: "warning",
+      message: "Action d'administration",
+      metadata,
+    });
   }
 }
 

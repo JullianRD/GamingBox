@@ -23,15 +23,22 @@ export function normalizeAccessConfig({ allow_download, expiration, maxViews } =
   if (expiration) {
     const date = new Date(expiration);
     if (Number.isNaN(date.getTime())) throw AppError.badRequest("Date d'expiration invalide.");
-    if (date <= new Date()) throw AppError.badRequest("La date d'expiration doit être dans le futur.");
+    if (date <= new Date())
+      throw AppError.badRequest("La date d'expiration doit être dans le futur.");
     expirationIso = date.toISOString();
   }
 
   let maxViewsNumber = null;
   if (maxViews !== undefined && maxViews !== null && maxViews !== "") {
     maxViewsNumber = Number(maxViews);
-    if (!Number.isInteger(maxViewsNumber) || maxViewsNumber < 1 || maxViewsNumber > MAX_VIEWS_LIMIT) {
-      throw AppError.badRequest(`Le nombre de vues doit être un entier entre 1 et ${MAX_VIEWS_LIMIT}.`);
+    if (
+      !Number.isInteger(maxViewsNumber) ||
+      maxViewsNumber < 1 ||
+      maxViewsNumber > MAX_VIEWS_LIMIT
+    ) {
+      throw AppError.badRequest(
+        `Le nombre de vues doit être un entier entre 1 et ${MAX_VIEWS_LIMIT}.`,
+      );
     }
   }
 
@@ -80,7 +87,12 @@ class ShareService {
       accessConfig: normalizeAccessConfig(accessConfig),
     });
 
-    await MailService.sendShareInvitation({ to: recipientEmail, ownerPseudo: owner.pseudo, kind: "profile", token });
+    await MailService.sendShareInvitation({
+      to: recipientEmail,
+      ownerPseudo: owner.pseudo,
+      kind: "profile",
+      token,
+    });
     await AppEventService.shareCreated(userId, share.id);
     return { share, token };
   }
@@ -102,7 +114,12 @@ class ShareService {
       accessConfig: normalizeAccessConfig(accessConfig),
     });
 
-    await MailService.sendShareInvitation({ to: recipientEmail, ownerPseudo: owner.pseudo, kind: "review", token });
+    await MailService.sendShareInvitation({
+      to: recipientEmail,
+      ownerPseudo: owner.pseudo,
+      kind: "review",
+      token,
+    });
     await AppEventService.shareCreated(userId, share.id);
     return { share, token };
   }
@@ -134,12 +151,16 @@ class ShareService {
    */
   static async accessByToken(token) {
     if (typeof token !== "string" || token.length < 20 || token.length > 128) {
-      throw AppError.notFound("Ce lien de partage est invalide, expiré ou a atteint sa limite de vues.");
+      throw AppError.notFound(
+        "Ce lien de partage est invalide, expiré ou a atteint sa limite de vues.",
+      );
     }
 
     const share = await ShareRepository.registerAccess(token);
     if (!share) {
-      throw AppError.notFound("Ce lien de partage est invalide, expiré ou a atteint sa limite de vues.");
+      throw AppError.notFound(
+        "Ce lien de partage est invalide, expiré ou a atteint sa limite de vues.",
+      );
     }
 
     await AppEventService.shareAccessed(share.id);

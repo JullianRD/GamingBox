@@ -1,0 +1,56 @@
+<section class="mx-auto max-w-4xl py-6">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h1 class="text-3xl font-bold text-white"><%= list.title %></h1>
+      <p class="mt-1 text-sm text-slate-400"><%= list.isPublic ? "Liste publique" : "Liste privée" %></p>
+      <% if (list.description) { %><p class="mt-2 text-slate-300"><%= list.description %></p><% } %>
+    </div>
+    <div class="flex gap-2">
+      <a href="/lists/<%= encodeURIComponent(list.slug) %>/edit" class="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800">Modifier</a>
+      <form action="/lists/<%= encodeURIComponent(list.slug) %>/delete" method="POST" data-confirm="Supprimer cette liste ?">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit" class="rounded-lg border border-red-500/30 px-3 py-2 text-sm text-red-300 hover:bg-red-500/10">Supprimer</button>
+      </form>
+    </div>
+  </div>
+
+  <% if (flash && flash.success) { %><div role="status" class="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-300"><%= flash.success %></div><% } %>
+  <% if (flash && flash.error) { %><div role="alert" class="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-300"><%= flash.error %></div><% } %>
+
+  <ol class="mt-6 space-y-3">
+    <% if (!items.length) { %><li class="text-slate-400">Cette liste est vide.</li><% } %>
+    <% items.forEach((item, index) => { %>
+      <li class="flex items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-3">
+        <span class="w-6 text-center text-slate-500"><%= index + 1 %></span>
+        <% if (item.thumbnailUrl) { %><img src="<%= item.thumbnailUrl %>" alt="" class="h-14 w-10 rounded object-cover" loading="lazy"><% } %>
+        <div class="flex-1">
+          <p class="font-medium text-white"><%= item.gameTitle %></p>
+          <p class="text-xs text-slate-400"><%= item.gameGenre %><%= item.note ? " · " + item.note : "" %></p>
+        </div>
+        <form action="/lists/<%= encodeURIComponent(list.slug) %>/items/<%= item.gameId %>/delete" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="text-sm text-red-300 hover:text-red-200" aria-label="Retirer <%= item.gameTitle %>">Retirer</button>
+        </form>
+      </li>
+    <% }) %>
+  </ol>
+
+  <% if (candidates.length) { %>
+    <form action="/lists/<%= encodeURIComponent(list.slug) %>/items" method="POST" class="mt-8 flex flex-wrap items-end gap-3 rounded-2xl border border-white/10 bg-white/5 p-5">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="flex-1">
+        <label for="gameId" class="mb-1 block text-sm text-slate-300">Ajouter un jeu de ma bibliothèque</label>
+        <select id="gameId" name="gameId" required class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white">
+          <% candidates.forEach((g) => { %><option value="<%= g.gameId %>"><%= g.gameTitle %></option><% }) %>
+        </select>
+      </div>
+      <div class="flex-1">
+        <label for="note" class="mb-1 block text-sm text-slate-300">Note (optionnel)</label>
+        <input id="note" name="note" maxlength="300" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white">
+      </div>
+      <button type="submit" class="rounded-lg bg-purple-600 px-5 py-2 font-medium text-white hover:bg-purple-500">Ajouter</button>
+    </form>
+  <% } else { %>
+    <p class="mt-8 text-sm text-slate-500">Pour ajouter un jeu, écris d'abord une review dessus.</p>
+  <% } %>
+</section>

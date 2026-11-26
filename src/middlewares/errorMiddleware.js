@@ -33,7 +33,11 @@ export const notFoundHandler = (req, res) => {
  */
 export function normalizeError(err) {
   if (err?.code === "EBADCSRFTOKEN") {
-    return { status: 403, message: "Session expirée ou formulaire invalide. Rechargez la page.", expose: true };
+    return {
+      status: 403,
+      message: "Session expirée ou formulaire invalide. Rechargez la page.",
+      expose: true,
+    };
   }
   if (err?.name === "MulterError") {
     const tooBig = err.code === "LIMIT_FILE_SIZE";

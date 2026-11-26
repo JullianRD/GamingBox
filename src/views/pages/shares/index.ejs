@@ -157,7 +157,7 @@
                 <form
                   action="/shares/<%= share.id %>/delete"
                   method="POST"
-                  onsubmit="return confirm('Révoquer ce partage ?');"
+                  data-confirm="Révoquer ce partage ?"
                 >
 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <button

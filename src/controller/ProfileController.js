@@ -50,12 +50,19 @@ class ProfileController {
 
         const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
         try {
-          await sharp(req.file.buffer)
+          // Formats décodés limités à JPEG / PNG / WebP (et taille bornée), quel que soit le type MIME déclaré
+          const image = sharp(req.file.buffer, { limitInputPixels: 40_000_000, failOn: "error" });
+          const { format } = await image.metadata();
+          if (!["jpeg", "png", "webp"].includes(format)) throw new Error("format non autorisé");
+
+          await image
             .resize(400, 400, { fit: "cover", position: "center" })
             .webp({ quality: 82 })
             .toFile(path.join(AVATAR_DIR, filename));
         } catch {
-          throw AppError.badRequest("Le fichier envoyé n'est pas une image valide.");
+          throw AppError.badRequest(
+            "Le fichier envoyé n'est pas une image valide (JPEG, PNG ou WebP).",
+          );
         }
 
         avatarPath = `/uploads/avatars/${filename}`;

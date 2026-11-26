@@ -121,6 +121,13 @@ fi
 # Phase 6 — Views (APP USER)
 # ============================================
 echo -e "\n${GREEN}📊 Phase 6: Views${NC}"
-execute_directory "database/views" "$DB_NAME" "$DB_SUPERUSER"
+execute_directory "database/vues" "$DB_NAME" "$DB_SUPERUSER"
+
+# ============================================
+# Phase 7 — Patches de schéma (npm run migrate)
+# ============================================
+echo -e "\n${GREEN}🧩 Phase 7: Schema patches${NC}"
+MIGRATE_DATABASE_URL="${MIGRATE_DATABASE_URL:-postgresql://${DB_USER:-postgres}:${DB_PASSWORD}@${DB_HOST:-localhost}:${DB_PORT:-5432}/${DB_NAME}}" \
+    node scripts/migrate.js
 
 echo -e "\n${GREEN}✅ Gamingbox database is ready!${NC}"

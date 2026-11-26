@@ -25,15 +25,23 @@ class AppEventController {
 
   async destroy(req, res) {
     await AppEventAdminService.deleteEvent({ eventId: req.params.id });
-    await AppEventService.adminAction(req.session.userId, "event_deleted", { eventId: req.params.id });
+    await AppEventService.adminAction(req.session.userId, "event_deleted", {
+      eventId: req.params.id,
+    });
     res.json({ message: "Événement supprimé avec succès" });
   }
 
   async cleanup(req, res) {
     const days = Number(req.body?.days ?? 90);
     const result = await AppEventAdminService.cleanupOldEvents({ days });
-    await AppEventService.adminAction(req.session.userId, "events_cleanup", { days, deleted: result.deletedCount });
-    res.json({ message: `${result.deletedCount} événements supprimés.`, cutoffDate: result.cutoffDate });
+    await AppEventService.adminAction(req.session.userId, "events_cleanup", {
+      days,
+      deleted: result.deletedCount,
+    });
+    res.json({
+      message: `${result.deletedCount} événements supprimés.`,
+      cutoffDate: result.cutoffDate,
+    });
   }
 }
 

@@ -1,0 +1,26 @@
+<section class="mx-auto max-w-3xl py-6">
+  <p class="text-sm text-slate-400">Review de <a class="text-purple-300 hover:text-purple-200" href="/u/<%= encodeURIComponent(review.authorPseudo) %>"><%= review.authorPseudo %></a></p>
+  <h1 class="mt-1 text-3xl font-bold text-white"><%= review.reviewTitle %></h1>
+  <div class="mt-4 flex gap-5">
+    <% if (review.thumbnailUrl) { %><img src="<%= review.thumbnailUrl %>" alt="Jaquette de <%= review.gameTitle %>" class="h-48 w-32 rounded object-cover"><% } %>
+    <div>
+      <p class="text-lg text-white"><%= review.gameTitle %></p>
+      <p class="text-sm text-slate-400"><%= review.gameGenre %> · <%= review.gamePlatforme %> · <%= review.progressionStatus %></p>
+      <p class="mt-2 text-2xl font-bold text-purple-300"><%= review.reviewRate %>/10</p>
+    </div>
+  </div>
+  <p class="mt-6 whitespace-pre-line text-slate-200"><%= review.avisReview || "Aucun avis renseigné." %></p>
+
+  <div class="mt-6">
+    <% if (user) { %>
+      <form action="/u/<%= encodeURIComponent(review.authorPseudo) %>/reviews/<%= encodeURIComponent(review.slug) %>/like" method="POST" class="inline">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit" aria-pressed="<%= review.likedByViewer %>" class="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
+          <%= review.likedByViewer ? "Retirer mon like" : "J'aime" %> (<%= review.likeCount %>)
+        </button>
+      </form>
+    <% } else { %>
+      <p class="text-sm text-slate-400"><%= review.likeCount %> like<%= review.likeCount > 1 ? "s" : "" %> · <a class="text-purple-300" href="/login">Connecte-toi pour aimer</a></p>
+    <% } %>
+  </div>
+</section>

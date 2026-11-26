@@ -56,7 +56,9 @@ class AdminService {
   // Suppression utilisateur
   static async deleteUser(userId, actorId) {
     if (userId === actorId) {
-      throw AppError.badRequest("Tu ne peux pas supprimer ton propre compte depuis l'administration.");
+      throw AppError.badRequest(
+        "Tu ne peux pas supprimer ton propre compte depuis l'administration.",
+      );
     }
 
     const target = await UserRepository.findById(userId);

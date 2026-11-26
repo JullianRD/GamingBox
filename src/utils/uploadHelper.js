@@ -30,10 +30,7 @@ export const deleteFile = async (relativePath) => {
   } catch (error) {
     // On ignore l'erreur 'ENOENT' (Fichier non trouvé) car le résultat est le même (fichier absent)
     if (error.code !== "ENOENT") {
-      logger.error(
-        { err: error, file: relativePath },
-        "Erreur lors de la suppression du fichier",
-      );
+      logger.error({ err: error, file: relativePath }, "Erreur lors de la suppression du fichier");
     }
   }
 };

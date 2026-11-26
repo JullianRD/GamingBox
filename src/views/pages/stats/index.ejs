@@ -1,0 +1,71 @@
+<%
+  const bar = (rows, key = "total") => {
+    const max = Math.max(1, ...rows.map((r) => r[key]));
+    return rows.map((r) => ({ ...r, pct: Math.round((r[key] / max) * 100) }));
+  };
+  const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+%>
+<section class="mx-auto max-w-5xl py-6">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Mes statistiques</h1>
+      <p class="mt-1 text-sm text-slate-400"><%= year ? "Année " + year : "Toute la bibliothèque" %></p>
+    </div>
+    <form action="/stats" method="GET" class="flex items-center gap-2">
+      <label for="year" class="text-sm text-slate-400">Période</label>
+      <select id="year" name="year" data-autosubmit class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+        <option value="all" <%= year === null ? "selected" : "" %>>Tout</option>
+        <% years.forEach((y) => { %><option value="<%= y %>" <%= year === y ? "selected" : "" %>><%= y %></option><% }) %>
+      </select>
+      <noscript><button type="submit" class="rounded-lg bg-purple-600 px-3 py-2 text-sm text-white">OK</button></noscript>
+    </form>
+  </div>
+
+  <dl class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-5">
+    <% [["Reviews", stats.totals.total], ["Terminés", stats.totals.finished], ["Platines", stats.totals.platinum], ["Coups de cœur", stats.totals.liked], ["Note moyenne", stats.totals.average_rating ? stats.totals.average_rating + "/10" : "-"]].forEach(([label, value]) => { %>
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <dt class="text-xs uppercase tracking-wide text-slate-400"><%= label %></dt>
+        <dd class="mt-1 text-2xl font-bold text-white"><%= value %></dd>
+      </div>
+    <% }) %>
+  </dl>
+
+  <div class="mt-8 grid gap-6 md:grid-cols-2">
+    <% [["Par statut", stats.byStatus], ["Par genre", stats.byGenre], ["Par plateforme", stats.byPlatform]].forEach(([heading, rows]) => { %>
+      <section class="rounded-2xl border border-white/10 bg-white/5 p-5" aria-label="<%= heading %>">
+        <h2 class="font-semibold text-white"><%= heading %></h2>
+        <% if (!rows.length) { %><p class="mt-3 text-sm text-slate-500">Aucune donnée.</p><% } %>
+        <ul class="mt-3 space-y-2">
+          <% bar(rows).forEach((r) => { %>
+            <li>
+              <div class="flex justify-between text-sm text-slate-300"><span><%= r.label %></span><span><%= r.total %></span></div>
+              <div class="mt-1 h-2 rounded bg-slate-800"><div class="h-2 rounded bg-purple-500" style="width: <%= r.pct %>%"></div></div>
+            </li>
+          <% }) %>
+        </ul>
+      </section>
+    <% }) %>
+
+    <section class="rounded-2xl border border-white/10 bg-white/5 p-5" aria-label="Jeux terminés par mois">
+      <h2 class="font-semibold text-white">Jeux terminés par mois</h2>
+      <ol class="mt-3 grid grid-cols-12 items-end gap-1" style="height: 7rem">
+        <% bar(stats.finishedByMonth).forEach((m) => { %>
+          <li class="flex h-full flex-col justify-end text-center" title="<%= monthNames[m.month - 1] %> : <%= m.total %>">
+            <div class="rounded-t bg-indigo-500" style="height: <%= Math.max(m.pct, m.total ? 8 : 2) %>%"></div>
+            <span class="mt-1 text-[10px] text-slate-500"><%= monthNames[m.month - 1].charAt(0) %></span>
+          </li>
+        <% }) %>
+      </ol>
+    </section>
+  </div>
+
+  <section class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
+    <h2 class="font-semibold text-white">Mieux notés</h2>
+    <% if (!stats.top.length) { %><p class="mt-3 text-sm text-slate-500">Aucune review.</p><% } %>
+    <ol class="mt-3 space-y-1 text-sm text-slate-300">
+      <% stats.top.forEach((t) => { %>
+        <li><a class="hover:text-white" href="/reviews/<%= t.slug %>"><%= t.game_title %></a> <span class="text-slate-500">- <%= t.review_rate %>/10</span></li>
+      <% }) %>
+    </ol>
+  </section>
+</section>

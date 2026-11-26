@@ -27,7 +27,9 @@ const list = (key) => async (req, res) => {
 const destroy = (key, serviceMethod, successMessage) => async (req, res) => {
   const ok = await AdminService[serviceMethod](req.params.id, req.session.userId);
 
-  await AppEventService.adminAction(req.session.userId, `${key}_deleted`, { targetId: req.params.id });
+  await AppEventService.adminAction(req.session.userId, `${key}_deleted`, {
+    targetId: req.params.id,
+  });
 
   req.flash(ok ? "success" : "error", ok ? successMessage : "Ressource introuvable.");
   return res.redirect(`/admin/${key}`);
