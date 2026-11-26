@@ -195,6 +195,19 @@ class SocialRepository {
     return rows.map(toActivity);
   }
 
+  // Activité récente des comptes suivis (sans la sienne), pour l'accueil
+  static async getFriendsActivity(userId, limit = 4) {
+    const { rows } = await db.query(
+      `${SELECT_ACTIVITY}
+        WHERE u.is_public AND a.user_id IN (SELECT followed_id FROM follows WHERE follower_id = $1)
+          AND a.kind <> 'recommended'
+        ORDER BY a.created_at DESC
+        LIMIT $2`,
+      [userId, limit],
+    );
+    return rows.map(toActivity);
+  }
+
   static async getUserActivity(userId, limit = 12) {
     const { rows } = await db.query(
       `${SELECT_ACTIVITY} WHERE a.user_id = $1 AND a.kind <> 'recommended' ORDER BY a.created_at DESC LIMIT $2`,

@@ -26,20 +26,32 @@
 <body class="flex min-h-screen flex-col bg-cream text-ink"
       <% if (typeof section !== "undefined" && section) { %>data-section="<%= section %>"<% } %>
       hx-headers='{"X-CSRF-Token": "<%= typeof csrfToken !== "undefined" ? csrfToken : "" %>"}'>
-    <header class="sticky top-0 z-40">
-        <%- include('../partials/navbar') %>
-    </header>
-
-    <main class="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 sm:px-6 lg:pb-10">
-        <%- body %>
-    </main>
-
-    <footer class="mt-auto hidden border-t border-line-soft md:block">
-        <%- include('../partials/footer') %>
-    </footer>
-
     <% if (typeof currentUser !== "undefined" && currentUser) { %>
+        <%# Connecté : structure d'app, barre latérale sur ordinateur, onglets sur mobile %>
+        <div class="flex min-h-screen">
+            <%- include('../partials/sidebar') %>
+            <div class="flex min-w-0 flex-1 flex-col">
+                <% if (currentPath !== "/") { %>
+                    <header class="sticky top-0 z-40 lg:hidden"><%- include('../partials/topbar') %></header>
+                <% } %>
+                <main class="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8">
+                    <%- body %>
+                </main>
+            </div>
+        </div>
         <%- include('../partials/tabbar') %>
+    <% } else { %>
+        <header class="sticky top-0 z-40">
+            <%- include('../partials/navbar') %>
+        </header>
+
+        <main class="mx-auto w-full max-w-6xl flex-1 px-4 pb-12 pt-6 sm:px-6">
+            <%- body %>
+        </main>
+
+        <footer class="mt-auto border-t border-line-soft">
+            <%- include('../partials/footer') %>
+        </footer>
     <% } %>
 
     <script src="/js/app.js"></script>

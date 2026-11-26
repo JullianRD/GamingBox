@@ -86,3 +86,17 @@ test("le blindtest des jaquettes se joue sans réseau et entre au classement", {
   assert.equal(board.covers[0].pseudo, "duelliste");
   assert.equal((await ChallengeService.recentResults(userId)).length, 2);
 });
+
+test("l'accueil propose un duel du jour dans la catégorie la plus fournie", { skip }, async () => {
+  const { default: LibraryService } = await import("../../src/modules/library/LibraryService.js");
+  const dashboard = await LibraryService.getDashboard(userId);
+  assert.equal(dashboard.total, 10);
+  assert.equal(dashboard.week.added, 10);
+  assert.deepEqual(dashboard.week.byType.map((s) => [s.type, s.added]), [["game", 10]]);
+  assert.deepEqual({ mode: dashboard.challenge.mode, type: dashboard.challenge.type, size: dashboard.challenge.size }, { mode: "library", type: "game", size: 8 });
+  assert.equal(dashboard.challenge.options.length, 2);
+  assert.notEqual(dashboard.challenge.options[0].title, dashboard.challenge.options[1].title);
+  const again = await LibraryService.getDashboard(userId);
+  assert.deepEqual(again.challenge.options, dashboard.challenge.options, "même duo toute la journée");
+  assert.deepEqual(dashboard.friends, []);
+});

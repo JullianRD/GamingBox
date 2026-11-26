@@ -9,7 +9,16 @@ class LibraryController {
     if (!req.session.userId) return next();
     try {
       const dashboard = await LibraryService.getDashboard(req.session.userId);
-      res.render("pages/library/home", { title: "Accueil - Cocon", ...dashboard });
+      // Date et salutation à l'heure française
+      const now = new Date();
+      const hour = Number(new Intl.DateTimeFormat("fr-FR", { hour: "numeric", hour12: false, timeZone: "Europe/Paris" }).format(now));
+      const date = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Paris" }).format(now);
+      res.render("pages/library/home", {
+        title: "Accueil - Cocon",
+        greeting: hour >= 5 && hour < 18 ? "Bonjour" : "Bonsoir",
+        today: date.charAt(0).toUpperCase() + date.slice(1),
+        ...dashboard,
+      });
     } catch (error) {
       next(error);
     }

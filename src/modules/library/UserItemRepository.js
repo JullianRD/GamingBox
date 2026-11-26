@@ -81,6 +81,49 @@ class UserItemRepository {
     );
   }
 
+  // Bilan des 7 derniers jours pour l'accueil
+  static async weekStats(userId) {
+    const { rows } = await db.query(
+      `
+        SELECT i.item_type,
+          COUNT(*) FILTER (WHERE ui.status = 'completed' AND COALESCE(ui.finished_at::timestamptz, ui.updated_at) > NOW() - INTERVAL '7 days')::int AS completed,
+          COUNT(*) FILTER (WHERE ui.created_at > NOW() - INTERVAL '7 days')::int AS added,
+          COUNT(*) FILTER (WHERE ui.rating IS NOT NULL AND COALESCE(ui.updated_at, ui.created_at) > NOW() - INTERVAL '7 days')::int AS rated
+        FROM user_items ui JOIN items i ON i.id_item = ui.item_id
+        WHERE ui.user_id = $1
+        GROUP BY i.item_type
+      `,
+      [userId],
+    );
+    // Total de la semaine, puis une ligne par catégorie active (la plus active d'abord)
+    const sum = (key) => rows.reduce((total, row) => total + row[key], 0);
+    const byType = rows
+      .filter((row) => row.completed + row.added + row.rated > 0)
+      .sort((a, b) => b.completed + b.added + b.rated - (a.completed + a.added + a.rated))
+      .map((row) => ({ type: row.item_type, completed: row.completed, added: row.added, rated: row.rated }));
+    return { completed: sum("completed"), added: sum("added"), rated: sum("rated"), byType };
+  }
+
+  // Deux œuvres jouées, vues ou lues de la catégorie la plus fournie, tirées au jour (teaser du défi)
+  static async challengeTeaser(userId, seed) {
+    const { rows } = await db.query(
+      `
+        WITH best AS (
+          SELECT i.item_type FROM user_items ui JOIN items i ON i.id_item = ui.item_id
+          WHERE ui.user_id = $1 AND ui.status <> 'planned'
+          GROUP BY i.item_type HAVING COUNT(*) >= 4 ORDER BY COUNT(*) DESC LIMIT 1
+        )
+        SELECT i.item_type, i.title, i.cover_url, (SELECT COUNT(*)::int FROM user_items u2 JOIN items i2 ON i2.id_item = u2.item_id
+                 WHERE u2.user_id = $1 AND u2.status <> 'planned' AND i2.item_type = best.item_type) AS pool
+        FROM user_items ui JOIN items i ON i.id_item = ui.item_id JOIN best ON best.item_type = i.item_type
+        WHERE ui.user_id = $1 AND ui.status <> 'planned'
+        ORDER BY md5(i.id_item::text || $2) LIMIT 2
+      `,
+      [userId, seed],
+    );
+    return rows;
+  }
+
   // Nombre d'entrées par statut pour un type
   static async countByStatus(userId, type = null) {
     const { rows } = await db.query(
