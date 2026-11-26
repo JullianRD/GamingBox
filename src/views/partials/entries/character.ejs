@@ -1,0 +1,17 @@
+<%# Un personnage avec son bouton favori. Paramètres : entry, entity %>
+<li class="flex flex-col items-center gap-2 text-center" id="character-<%= entity.id %>">
+  <div class="relative">
+    <% if (entity.imageUrl) { %>
+      <img src="<%= entity.imageUrl %>" alt="" loading="lazy" class="h-20 w-20 rounded-full object-cover shadow-soft">
+    <% } else { %>
+      <span class="flex h-20 w-20 items-center justify-center rounded-full bg-section font-serif text-2xl text-section-ink"><%= entity.name.slice(0, 1) %></span>
+    <% } %>
+    <button type="button" hx-post="<%= entry.href %>/personnages/<%= entity.id %>/favori"
+            hx-target="#character-<%= entity.id %>" hx-swap="outerHTML"
+            aria-pressed="<%= entity.isFavorite %>" aria-label="<%= entity.isFavorite ? 'Retirer' : 'Ajouter' %> <%= entity.name %> des personnages préférés"
+            class="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface <%= entity.isFavorite ? 'text-accent' : 'text-muted' %>">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="<%= entity.isFavorite ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+    </button>
+  </div>
+  <span class="text-sm font-semibold leading-tight"><%= entity.name %></span>
+</li>

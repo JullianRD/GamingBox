@@ -13,3 +13,7 @@ test("supprime la ponctuation", () => {
 test("retire les tirets en début et en fin", () => {
   assert.equal(generateSlug("  - Hades II -  "), "hades-ii");
 });
+
+test("retire les accents", () => {
+  assert.equal(generateSlug("Mes jeux préférés"), "mes-jeux-preferes");
+});

@@ -1,0 +1,32 @@
+<div class="flex flex-col gap-8">
+  <a href="/listes" class="self-start font-bold no-underline">← Mes listes</a>
+
+  <section class="flex flex-wrap items-end justify-between gap-6">
+    <div class="flex flex-col gap-2">
+      <% if (list.type) { %><%- include('../../components/type-chip', { type: list.type }) %><% } %>
+      <h1 class="m-0 text-4xl"><%= list.title %></h1>
+      <p class="m-0 text-muted"><%= items.length %> élément<%= items.length > 1 ? "s" : "" %></p>
+    </div>
+    <form action="<%= list.href %>/supprimer" method="post">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn border-[1.5px] border-line bg-surface text-muted hover:text-ink">Supprimer la liste</button>
+    </form>
+  </section>
+
+  <% if (items.length) { %>
+    <ol class="m-0 grid list-none grid-cols-2 gap-6 p-0 sm:grid-cols-3 lg:grid-cols-5">
+      <% items.forEach((item, index) => { %>
+        <li class="flex flex-col gap-2">
+          <span class="text-sm font-bold text-muted">#<%= index + 1 %></span>
+          <%- include('../../components/cover-card', { item }) %>
+          <form action="<%= list.href %>/elements/<%= item.itemId %>/retirer" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="bg-transparent p-0 text-sm font-semibold text-muted underline hover:text-ink">Retirer de la liste</button>
+          </form>
+        </li>
+      <% }) %>
+    </ol>
+  <% } else { %>
+    <%- include('../../components/empty-state', { title: "Liste vide", text: "Ouvre la fiche d'une œuvre et ajoute-la à cette liste.", ctaHref: "/jeux", ctaLabel: "Voir mes jeux" }) %>
+  <% } %>
+</div>

@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js",
-    "test": "node --test",
+    "test": "node --test --test-concurrency=1",
     "db:migrate": "node scripts/migrate.js up",
     "db:migrate:down": "node scripts/migrate.js down",
     "db:migrate:create": "node-pg-migrate create --migration-file-language sql",

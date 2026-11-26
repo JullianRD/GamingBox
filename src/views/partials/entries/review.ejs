@@ -1,0 +1,10 @@
+<%# Avis de l'utilisateur. Paramètres : entry, saved? %>
+<form hx-post="<%= entry.href %>/avis" hx-swap="outerHTML" class="flex flex-col gap-2.5">
+  <label for="review" class="font-bold">Mon avis</label>
+  <textarea id="review" name="review" rows="5" maxlength="5000" placeholder="Qu'en as-tu pensé ?"
+            class="w-full resize-y rounded-[20px] border border-line bg-[#ffffff] px-4 py-4 leading-relaxed text-ink"><%= entry.review || "" %></textarea>
+  <div class="flex flex-wrap items-center gap-3">
+    <button type="submit" class="btn-primary">Enregistrer l'avis</button>
+    <% if (typeof saved !== "undefined" && saved) { %><span class="text-sm font-semibold text-games-ink" role="status">Avis enregistré</span><% } %>
+  </div>
+</form>

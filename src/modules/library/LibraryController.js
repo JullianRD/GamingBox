@@ -22,17 +22,13 @@ class LibraryController {
 
     const status = STATUSES.includes(req.query.status) ? req.query.status : null;
     try {
-      const entries = await LibraryService.getEntries(req.session.userId, { type: itemType.code });
-      const counts = Object.fromEntries(
-        STATUSES.map((s) => [s, entries.filter((entry) => entry.status === s).length]),
-      );
+      const section = await LibraryService.getSection(req.session.userId, itemType.code, status);
       res.render("pages/library/section", {
         title: `${itemType.plural} - Cocon`,
+        section: itemType.code,
         itemType,
         status,
-        counts,
-        total: entries.length,
-        entries: status ? entries.filter((entry) => entry.status === status) : entries,
+        ...section,
       });
     } catch (error) {
       next(error);

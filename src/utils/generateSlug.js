@@ -2,6 +2,8 @@
 "use strict";
 export const generateSlug = (title) => {
   const slugifyTitle = title
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // retire les accents : « préférés » -> « preferes »
     .toLowerCase()
     .trim()
     .replace(/[^\w\s-]/g, "")

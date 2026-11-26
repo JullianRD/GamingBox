@@ -65,7 +65,8 @@ if (!isTestEnv) {
     },
 
     // IMPORTANT pour les formulaires SSR
-    getCsrfTokenFromRequest: (req) => req.body?._csrf,
+    // Formulaires classiques (champ _csrf) ou requêtes htmx (en-tête posé par le layout)
+    getCsrfTokenFromRequest: (req) => req.body?._csrf || req.get("X-CSRF-Token"),
 
     errorConfig: {
       statusCode: 403,

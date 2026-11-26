@@ -18,6 +18,7 @@ import routes from "./src/routes/index.js";
 import {
   securityHeaders,
   corsConfig,
+  generateToken,
   globalLimiter,
   cookieParserMiddleware,
 } from "./src/config/security.js";
@@ -86,6 +87,8 @@ app.use((req, res, next) => {
   res.locals.currentPath = req.path; // onglet actif dans la navigation
   res.locals.itemTypes = ITEM_TYPES;
   res.locals.statuses = STATUSES;
+  res.locals.section = null; // thème léger de la section courante (data-section)
+  res.locals.csrfToken = generateToken(req, res); // jeton commun aux formulaires et à htmx
   next();
 });
 

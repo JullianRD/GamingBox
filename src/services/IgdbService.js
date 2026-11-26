@@ -98,6 +98,30 @@ class IgdbService {
     };
   }
 
+  // Convertit un personnage IGDB en entité Cocon
+  static mapCharacter(character) {
+    return {
+      kind: "character",
+      externalId: String(character.id),
+      name: character.name,
+      imageUrl: character.mug_shot?.image_id
+        ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${character.mug_shot.image_id}.jpg`
+        : null,
+    };
+  }
+
+  // Personnages d'un jeu (pour les favoris)
+  static async findCharactersByGame(igdbId, limit = 24) {
+    const body = `
+      fields id,name,mug_shot.image_id;
+      where games = (${Number(igdbId)});
+      limit ${Number(limit)};
+    `;
+
+    const results = await this.request("characters", body);
+    return results.map((character) => this.mapCharacter(character));
+  }
+
   // Recherche des jeux sur IGDB
   static async searchGames(query) {
     const safeQuery = String(query || "").trim().replace(/"/g, '\\"');

@@ -20,7 +20,7 @@ const searchAll = async (query) => {
         title: game.gameTitle,
         coverUrl: game.thumbnailUrl,
         meta: [game.releaseDate?.slice(0, 4), game.gameGenre].filter(Boolean).join(" · "),
-        href: `/reviews/new?igdbId=${game.igdbId}`,
+        href: `/ajouter/igdb/${game.igdbId}`,
       })),
       error: null,
     };

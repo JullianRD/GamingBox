@@ -1,0 +1,9 @@
+<%# Messages flash des pages Cocon %>
+<% if (typeof flash !== "undefined" && flash) { %>
+  <% if (flash.error) { %>
+    <p role="alert" class="m-0 rounded-2xl bg-[#fbebeb] px-5 py-3 font-semibold text-[#9b2c2c]"><%= flash.error %></p>
+  <% } %>
+  <% if (flash.success) { %>
+    <p role="status" class="m-0 rounded-2xl bg-games px-5 py-3 font-semibold text-games-ink"><%= flash.success %></p>
+  <% } %>
+<% } %>

@@ -1,0 +1,19 @@
+<%# Tags de l'entrée. Paramètre : entry %>
+<div id="entry-tags" class="flex flex-col gap-2.5">
+  <span class="font-bold">Tags</span>
+  <div class="flex flex-wrap items-center gap-2">
+    <% entry.tags.forEach((tag) => { %>
+      <span class="inline-flex items-center gap-1 rounded-full bg-peach py-1.5 pl-3.5 pr-1.5 text-sm font-semibold text-accent-ink">
+        <%= tag.name %>
+        <button type="button" hx-post="<%= entry.href %>/tags/<%= tag.id %>/retirer" hx-target="#entry-tags" hx-swap="outerHTML"
+                aria-label="Retirer le tag <%= tag.name %>"
+                class="flex h-6 w-6 items-center justify-center rounded-full bg-transparent text-accent-ink hover:bg-[#ffffff]">×</button>
+      </span>
+    <% }) %>
+    <form hx-post="<%= entry.href %>/tags" hx-target="#entry-tags" hx-swap="outerHTML" class="flex items-center gap-2">
+      <label for="tag-name" class="sr-only">Nouveau tag</label>
+      <input id="tag-name" name="tagName" required minlength="2" maxlength="30" placeholder="+ Ajouter un tag"
+             class="min-h-9 w-40 rounded-full border-[1.5px] border-dashed border-[#c9b8a8] bg-transparent px-3.5 text-sm text-ink placeholder:text-muted">
+    </form>
+  </div>
+</div>

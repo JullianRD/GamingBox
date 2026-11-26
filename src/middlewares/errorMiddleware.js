@@ -30,6 +30,20 @@ export const notFoundHandler = (req, res) => {
  */
 
 export const globalErrorHandler = (err, req, res, next) => {
+  // Erreurs prévues (AppError 4xx, jeton CSRF invalide) : pas une panne serveur
+  const status = err.statusCode || err.status;
+  if (Number.isInteger(status) && status >= 400 && status < 500) {
+    logger.warn({ url: req.originalUrl, status, message: err.message }, "Erreur client");
+    if (status === 404) {
+      return res.status(404).render("pages/errors/404", {
+        title: "Page non trouvée - Cocon",
+        message: err.message,
+        requestedUrl: req.originalUrl,
+      });
+    }
+    return res.status(status).send(err.message);
+  }
+
   // On logue l'erreur technique complète pour les devs
   logger.error(
     {
