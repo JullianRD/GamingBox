@@ -1,0 +1,10 @@
+<%# Bouton cœur de la fiche. Paramètre : entry %>
+<button type="button" hx-post="<%= entry.href %>/favori" hx-swap="outerHTML"
+        aria-pressed="<%= entry.isFavorite %>"
+        class="btn border-[1.5px] <%= entry.isFavorite ? 'border-transparent bg-peach text-accent-ink' : 'border-line bg-surface text-ink hover:bg-cream' %>">
+  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"
+       fill="<%= entry.isFavorite ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+    <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>
+  </svg>
+  <%= entry.isFavorite ? "Dans mes favoris" : "Ajouter aux favoris" %>
+</button>

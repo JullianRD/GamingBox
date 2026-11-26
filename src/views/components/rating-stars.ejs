@@ -1,6 +1,7 @@
 <%#
   Note en étoiles, stockée sur 10 (une étoile = 2 points). Paramètres :
-  value (0-10), action (URL POST), csrfToken
+  value (1-10 ou null), action (URL POST).
+  Un clic sur la note déjà donnée l'efface.
 %>
 <form hx-post="<%= action %>" hx-target="this" hx-swap="outerHTML" class="flex flex-col gap-2">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">

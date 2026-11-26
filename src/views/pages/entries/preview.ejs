@@ -1,0 +1,39 @@
+<% const t = itemTypes[item.type]; const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : null; %>
+<div class="flex flex-col gap-8">
+  <a href="/recherche" class="self-start font-bold no-underline">← Recherche</a>
+
+  <div class="flex flex-wrap items-start gap-12">
+    <div class="relative aspect-[2/3] flex-[0_1_300px] overflow-hidden rounded-[28px] shadow-cover <%= t.tone.cover %>">
+      <% if (item.coverUrl) { %>
+        <img src="<%= item.coverUrl %>" alt="Jaquette de <%= item.title %>" class="h-full w-full object-cover">
+      <% } else { %>
+        <span class="absolute inset-x-6 bottom-6 font-serif text-3xl leading-tight <%= t.tone.ink %>"><%= item.title %></span>
+      <% } %>
+    </div>
+
+    <div class="flex min-w-0 flex-[999_1_480px] flex-col gap-7">
+      <div class="flex flex-col gap-2.5">
+        <%- include('../../components/type-chip', { type: item.type }) %>
+        <h1 class="m-0 text-4xl leading-tight sm:text-5xl"><%= item.title %></h1>
+        <p class="m-0 text-muted"><%= [year, ...item.genres].filter(Boolean).join(" · ") %></p>
+      </div>
+
+      <form action="/entrees" method="post" class="card flex flex-col gap-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="source" value="<%= item.source %>">
+        <input type="hidden" name="externalId" value="<%= item.externalId %>">
+        <fieldset class="m-0 border-0 p-0">
+          <legend class="mb-3 font-bold">Ajouter à ma bibliothèque comme…</legend>
+          <div class="flex flex-wrap gap-2.5">
+            <% ["planned", "in_progress", "completed"].forEach((status) => { %>
+              <button type="submit" name="status" value="<%= status %>"
+                      class="min-h-11 rounded-full border-[1.5px] px-5 font-bold <%= status === 'planned' ? 'border-transparent bg-accent text-[#ffffff] hover:bg-accent-ink' : 'border-line bg-surface text-ink hover:bg-cream' %>">
+                <%= t.statusLabels[status] %>
+              </button>
+            <% }) %>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+</div>

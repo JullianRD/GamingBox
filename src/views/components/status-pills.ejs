@@ -1,6 +1,6 @@
 <%#
   Choix du statut, envoyé en htmx. Paramètres :
-  type (code), current (statut), action (URL POST), csrfToken
+  type (code), current (statut), action (URL POST)
 %>
 <% const pillType = itemTypes[type]; %>
 <form hx-post="<%= action %>" hx-target="this" hx-swap="outerHTML" class="flex flex-col gap-3">

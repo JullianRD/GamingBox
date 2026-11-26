@@ -1,0 +1,84 @@
+<div class="flex flex-col gap-12">
+  <section class="flex flex-col gap-2">
+    <h1 class="m-0 text-4xl">Mes listes</h1>
+    <p class="m-0 text-muted">Tes favoris, tes personnages préférés et tes listes perso.</p>
+  </section>
+
+  <%- include('../../partials/flash') %>
+
+  <section aria-labelledby="favoris" class="flex flex-col gap-5">
+    <%- include('../../components/section-header', { id: "favoris", title: "Favoris" }) %>
+    <% if (favorites.entries.length) { %>
+      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+        <% favorites.entries.forEach((item) => { %>
+          <%- include('../../components/cover-card', { item }) %>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <p class="m-0 text-muted">Ajoute une œuvre à tes favoris depuis sa fiche avec le cœur.</p>
+    <% } %>
+  </section>
+
+  <section aria-labelledby="personnages-preferes" class="flex flex-col gap-5">
+    <%- include('../../components/section-header', { id: "personnages-preferes", title: "Personnages préférés" }) %>
+    <% if (favorites.characters.length) { %>
+      <ul class="m-0 grid list-none grid-cols-3 gap-5 p-0 sm:grid-cols-4 lg:grid-cols-6">
+        <% favorites.characters.forEach((c) => { %>
+          <li class="flex flex-col items-center gap-2 text-center">
+            <% if (c.imageUrl) { %>
+              <img src="<%= c.imageUrl %>" alt="" loading="lazy" class="h-20 w-20 rounded-full object-cover shadow-soft">
+            <% } else { %>
+              <span class="flex h-20 w-20 items-center justify-center rounded-full bg-peach font-serif text-2xl text-accent-ink"><%= c.name.slice(0, 1) %></span>
+            <% } %>
+            <span class="text-sm font-semibold leading-tight"><%= c.name %></span>
+            <% if (c.itemTitle) { %><span class="text-xs text-muted"><%= c.itemTitle %></span><% } %>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <p class="m-0 text-muted">Les personnages que tu mets en favori depuis une fiche apparaîtront ici.</p>
+    <% } %>
+  </section>
+
+  <section aria-labelledby="listes-perso" class="flex flex-col gap-5">
+    <%- include('../../components/section-header', { id: "listes-perso", title: "Listes perso" }) %>
+
+    <form action="/listes" method="post" class="card flex flex-wrap items-end gap-3">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="flex min-w-[220px] flex-[2_1_260px] flex-col gap-1.5">
+        <label for="list-title" class="text-sm font-bold">Nouvelle liste</label>
+        <input id="list-title" name="title" required minlength="2" maxlength="100" placeholder="Mes jeux préférés" class="field">
+      </div>
+      <div class="flex min-w-[160px] flex-[1_1_180px] flex-col gap-1.5">
+        <label for="list-type" class="text-sm font-bold">Catégorie</label>
+        <select id="list-type" name="type" class="field">
+          <option value="">Toutes</option>
+          <% Object.values(itemTypes).filter((t) => t.enabled).forEach((t) => { %>
+            <option value="<%= t.code %>"><%= t.plural %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary">Créer</button>
+    </form>
+
+    <% if (lists.length) { %>
+      <ul class="m-0 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
+        <% lists.forEach((list) => { %>
+          <li>
+            <a href="<%= list.href %>" class="flex items-center gap-4 rounded-3xl bg-surface p-4 text-ink no-underline shadow-soft hover:text-ink">
+              <span class="grid h-20 w-20 shrink-0 grid-cols-2 gap-1 overflow-hidden rounded-2xl bg-line-soft">
+                <% for (let i = 0; i < 4; i++) { const c = list.covers[i]; %>
+                  <% if (c && c.coverUrl) { %><img src="<%= c.coverUrl %>" alt="" class="h-full w-full object-cover"><% } else { %><span class="<%= c ? itemTypes[c.type].tone.cover : 'bg-cream' %>"></span><% } %>
+                <% } %>
+              </span>
+              <span class="flex min-w-0 flex-col gap-1">
+                <span class="font-bold"><%= list.title %></span>
+                <span class="text-sm text-muted"><%= list.count %> élément<%= list.count > 1 ? "s" : "" %><%= list.type ? " · " + itemTypes[list.type].plural : "" %></span>
+              </span>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </section>
+</div>

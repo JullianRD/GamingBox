@@ -1,10 +1,14 @@
 <%
   const path = typeof currentPath !== "undefined" ? currentPath : "/";
-  const isActive = (prefix) => (prefix === "/" ? path === "/" : path.startsWith(prefix));
+  const sectionPath = typeof section !== "undefined" && section && itemTypes[section] ? itemTypes[section].path : null;
+  const byPath = (prefix) => (prefix === "/" ? path === "/" : path.startsWith(prefix));
+  // Une fiche (/entrees/...) allume l'onglet de sa catégorie
+  const isActive = (prefix) => byPath(prefix) || (!sections.some((s) => byPath(s.href)) && prefix === sectionPath);
   const sections = [
     { href: "/", label: "Accueil", tone: "bg-peach text-accent-ink" },
     { href: "/jeux", label: "Jeux", tone: "bg-games text-games-ink" },
     { href: "/films", label: "Films", tone: "bg-movies text-movies-ink" },
+    { href: "/listes", label: "Listes", tone: "bg-peach text-accent-ink" },
   ];
 %>
 <div class="border-b border-line-soft bg-surface/95 backdrop-blur">

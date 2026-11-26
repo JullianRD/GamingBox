@@ -5,6 +5,7 @@
 @import "tailwindcss";
 
 @source "../views";
+@source "../utils/itemTypes.js";
 
 /* Pages héritées de GamingBox, en attente de réécriture (étape 5) */
 @import "./legacy-theme.css";
@@ -35,6 +36,20 @@
   --color-books: #f3e3c3;
   --color-books-cover: #e8dcc6;
   --color-books-ink: #5c4518;
+  /* Sections à venir (séries, anime et manga, musique) */
+  --color-series: #e6dff0;
+  --color-series-cover: #d6cbe6;
+  --color-series-ink: #4e3f6b;
+  --color-anime: #f6dce2;
+  --color-anime-cover: #edc6d0;
+  --color-anime-ink: #7a3448;
+  --color-music: #d5ece6;
+  --color-music-cover: #bfe0d7;
+  --color-music-ink: #2f5b50;
+
+  /* Teinte de la section courante, voir [data-section] plus bas */
+  --color-section: var(--color-peach);
+  --color-section-ink: var(--color-accent-ink);
 
   --shadow-soft: 0 6px 24px rgb(120 90 60 / 0.08);
   --shadow-cover: 0 8px 28px rgb(120 90 60 / 0.12);
@@ -66,6 +81,43 @@
     outline: 3px solid var(--color-terracotta);
     outline-offset: 2px;
   }
+}
+
+/* Thème léger par catégorie : un voile de la teinte de section en haut de page.
+   Hors @layer pour passer devant l'ancien main.css (background raccourci). */
+body[data-section] {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-section) 70%, transparent),
+    transparent 480px
+  );
+  background-repeat: no-repeat;
+}
+
+[data-section="game"] {
+  --color-section: var(--color-games);
+  --color-section-ink: var(--color-games-ink);
+}
+[data-section="movie"] {
+  --color-section: var(--color-movies);
+  --color-section-ink: var(--color-movies-ink);
+}
+[data-section="book"] {
+  --color-section: var(--color-books);
+  --color-section-ink: var(--color-books-ink);
+}
+[data-section="series"] {
+  --color-section: var(--color-series);
+  --color-section-ink: var(--color-series-ink);
+}
+[data-section="anime"],
+[data-section="manga"] {
+  --color-section: var(--color-anime);
+  --color-section-ink: var(--color-anime-ink);
+}
+[data-section="music"] {
+  --color-section: var(--color-music);
+  --color-section-ink: var(--color-music-ink);
 }
 
 @utility btn {

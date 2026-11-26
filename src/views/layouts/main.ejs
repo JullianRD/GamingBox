@@ -23,7 +23,9 @@
     <%- typeof style !== "undefined" ? style : "" %>
 </head>
 
-<body class="flex min-h-screen flex-col bg-cream text-ink">
+<body class="flex min-h-screen flex-col bg-cream text-ink"
+      <% if (typeof section !== "undefined" && section) { %>data-section="<%= section %>"<% } %>
+      hx-headers='{"X-CSRF-Token": "<%= typeof csrfToken !== "undefined" ? csrfToken : "" %>"}'>
     <header class="sticky top-0 z-40">
         <%- include('../partials/navbar') %>
     </header>

@@ -1,0 +1,12 @@
+<%# Personnages de l'œuvre, chargés à la demande. Paramètres : entry, entities, unavailable %>
+<% if (entities.length) { %>
+  <ul class="m-0 grid list-none grid-cols-3 gap-5 p-0 sm:grid-cols-4 lg:grid-cols-6">
+    <% entities.forEach((entity) => { %>
+      <%- include('character', { entry, entity }) %>
+    <% }) %>
+  </ul>
+<% } else if (unavailable) { %>
+  <p class="m-0 text-muted">Les personnages sont indisponibles pour le moment.</p>
+<% } else { %>
+  <p class="m-0 text-muted">Aucun personnage connu pour cette œuvre.</p>
+<% } %>

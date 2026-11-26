@@ -8,13 +8,13 @@ import homesRoutes from "./public/homeController.js";
 import libraryRoutes from "../modules/library/routes.js";
 import searchRoutes from "../modules/search/routes.js";
 import importRoutes from "../modules/imports/routes.js";
+import listRoutes from "../modules/lists/routes.js";
 
 // 🔐 Auth & compte
 import authRoutes from "./public/authRoutes.js";
 import profileRoutes from "./user/profileRoutes.js";
 
 // 📦 Métier
-import reviewRoutes from "./user/reviewRoutes.js";
 import tagRoutes from "./user/tagRoutes.js";
 import shareRoutes from "./user/shareRoutes.js";
 import gameRoutes from "./user/gameRoutes.js";
@@ -39,6 +39,7 @@ const router = Router();
 router.use(libraryRoutes);
 router.use(searchRoutes);
 router.use(importRoutes);
+router.use(listRoutes);
 
 router.use(homesRoutes);
 
@@ -47,7 +48,6 @@ router.use(authRoutes);
 router.use(profileRoutes);
 
 // Métier
-router.use(reviewRoutes);
 router.use(tagRoutes);
 router.use(shareRoutes);
 router.use(gameRoutes);

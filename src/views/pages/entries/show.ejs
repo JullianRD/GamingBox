@@ -1,0 +1,45 @@
+<% const t = itemTypes[entry.type]; const year = entry.releaseDate ? new Date(entry.releaseDate).getFullYear() : null; %>
+<div class="flex flex-col gap-8">
+  <a href="<%= t.path %>" class="self-start font-bold no-underline">← <%= t.plural %></a>
+
+  <div class="flex flex-wrap items-start gap-12">
+    <div class="flex flex-[0_1_300px] flex-col gap-4">
+      <div class="relative aspect-[2/3] overflow-hidden rounded-[28px] shadow-cover <%= t.tone.cover %>">
+        <% if (entry.coverUrl) { %>
+          <img src="<%= entry.coverUrl %>" alt="Jaquette de <%= entry.title %>" class="h-full w-full object-cover">
+        <% } else { %>
+          <span class="absolute inset-x-6 bottom-6 font-serif text-3xl leading-tight <%= t.tone.ink %>"><%= entry.title %></span>
+        <% } %>
+      </div>
+      <%- include('../../partials/entries/favorite', { entry }) %>
+    </div>
+
+    <div class="flex min-w-0 flex-[999_1_480px] flex-col gap-7">
+      <div class="flex flex-col gap-2.5">
+        <%- include('../../components/type-chip', { type: entry.type }) %>
+        <h1 class="m-0 text-4xl leading-tight sm:text-5xl"><%= entry.title %></h1>
+        <p class="m-0 text-muted"><%= [year, ...entry.genres].filter(Boolean).join(" · ") %></p>
+      </div>
+
+      <p id="entry-error" role="alert" class="m-0 empty:hidden rounded-2xl bg-[#fbebeb] px-5 py-3 font-semibold text-[#9b2c2c]"></p>
+
+      <%- include('../../components/status-pills', { type: entry.type, current: entry.status, action: `${entry.href}/statut` }) %>
+      <%- include('../../components/rating-stars', { value: entry.rating, action: `${entry.href}/note` }) %>
+      <%- include('../../partials/entries/review', { entry }) %>
+      <%- include('../../partials/entries/tags', { entry }) %>
+      <%- include('../../partials/entries/lists', { entry, lists }) %>
+
+      <form action="<%= entry.href %>/supprimer" method="post" class="border-t border-line-soft pt-6">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit" class="btn border-[1.5px] border-line bg-surface text-muted hover:text-ink">Retirer de ma bibliothèque</button>
+      </form>
+    </div>
+  </div>
+
+  <section aria-labelledby="personnages" class="flex flex-col gap-5">
+    <%- include('../../components/section-header', { id: "personnages", title: "Personnages" }) %>
+    <div hx-get="<%= entry.href %>/personnages" hx-trigger="load" hx-swap="innerHTML">
+      <p class="m-0 text-muted">Chargement des personnages…</p>
+    </div>
+  </section>
+</div>
