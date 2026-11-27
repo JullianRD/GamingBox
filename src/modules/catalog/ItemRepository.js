@@ -46,26 +46,42 @@ class ItemRepository {
     return toItem(rows[0]);
   }
 
+  // Par identifiant chez la source ; suit l'alias d'une œuvre fusionnée dans une autre
   static async findBySource(source, externalId) {
-    const { rows } = await db.query(`SELECT * FROM items WHERE source = $1 AND external_id = $2`, [
-      source,
-      String(externalId),
-    ]);
+    const { rows } = await db.query(
+      `
+        SELECT * FROM items WHERE source = $1 AND external_id = $2
+        UNION ALL
+        SELECT i.* FROM item_aliases a JOIN items i ON i.id_item = a.item_id WHERE a.source = $1 AND a.external_id = $2
+        LIMIT 1
+      `,
+      [source, String(externalId)],
+    );
     return toItem(rows[0]);
   }
 
   // Crée l'œuvre ou rafraîchit ses infos si elle existe déjà
   // fresh : la description vient d'être lue chez la source (sinon fetched_at ne bouge pas)
   static async upsert(item, { fresh = true } = {}) {
+    // Doublon déjà fusionné par un admin : on renvoie l'œuvre cible sans recréer l'ancienne
+    const { rows: alias } = await db.query(`SELECT item_id FROM item_aliases WHERE source = $1 AND external_id = $2`, [
+      item.source,
+      String(item.externalId),
+    ]);
+    if (alias[0]) return ItemRepository.findById(alias[0].item_id);
+
     const { rows } = await db.query(
       `
         INSERT INTO items (item_type, source, external_id, title, release_date, cover_url, genres, metadata)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
         ON CONFLICT (source, external_id) DO UPDATE SET
-          title = EXCLUDED.title,
-          release_date = COALESCE(EXCLUDED.release_date, items.release_date),
-          cover_url = COALESCE(EXCLUDED.cover_url, items.cover_url),
-          genres = CASE WHEN cardinality(EXCLUDED.genres) > 0 THEN EXCLUDED.genres ELSE items.genres END,
+          -- Une fiche corrigée par un admin garde son titre, sa date et sa jaquette
+          title = CASE WHEN items.metadata ? 'adminEdited' THEN items.title ELSE EXCLUDED.title END,
+          release_date = CASE WHEN items.metadata ? 'adminEdited' THEN items.release_date
+                              ELSE COALESCE(EXCLUDED.release_date, items.release_date) END,
+          cover_url = CASE WHEN items.metadata ? 'adminEdited' THEN items.cover_url
+                           ELSE COALESCE(EXCLUDED.cover_url, items.cover_url) END,
+          genres = CASE WHEN cardinality(EXCLUDED.genres) > 0 AND NOT items.metadata ? 'adminEdited' THEN EXCLUDED.genres ELSE items.genres END,
           metadata = items.metadata || EXCLUDED.metadata,
           fetched_at = CASE WHEN $9::boolean THEN NOW() ELSE items.fetched_at END
         RETURNING *

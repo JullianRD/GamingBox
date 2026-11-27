@@ -2,6 +2,7 @@
 
 import { AppError } from "../../utils/AppError.js";
 import { acquire, pause, retryAfterMs, RateLimitError } from "./rateLimit.js";
+import { recordCall, recordError, recordRefused, recordThrottled } from "./stats.js";
 
 /**
  * Appel JSON vers une API externe, avec délai maximal.
@@ -19,10 +20,12 @@ export const fetchJson = async (source, url, { method = "GET", headers = {}, bod
   try {
     await acquire(source, { maxWait });
   } catch (error) {
+    if (error instanceof RateLimitError) recordRefused(source);
     if (error instanceof RateLimitError) throw Object.assign(new ProviderError(source, "quota atteint pour le moment"), { rateLimited: true });
     throw error;
   }
   let response;
+  recordCall(source);
   try {
     response = await fetch(url, {
       method,
@@ -31,14 +34,17 @@ export const fetchJson = async (source, url, { method = "GET", headers = {}, bod
       signal: AbortSignal.timeout(timeout),
     });
   } catch (error) {
+    recordError(source, `service injoignable (${error.name})`);
     throw new ProviderError(source, `service injoignable (${error.name})`);
   }
   if (response.status === 429) {
+    recordThrottled(source);
     pause(source, retryAfterMs(response.headers.get("retry-after")));
     throw Object.assign(new ProviderError(source, "quota atteint pour le moment"), { rateLimited: true });
   }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
+    recordError(source, `HTTP ${response.status}`);
     throw new ProviderError(source, `HTTP ${response.status} ${text.slice(0, 200)}`);
   }
   return response.json();

@@ -142,3 +142,6 @@ vite.config.ts.timestamp-*
 
 # CSS compilé par Tailwind (npm run build:css)
 public/css/app.css
+
+# Avatars envoyés par les utilisateurs (créés à l'exécution)
+public/uploads/

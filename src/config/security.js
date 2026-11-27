@@ -17,7 +17,7 @@ export const securityHeaders = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
@@ -38,10 +38,12 @@ export const globalLimiter = rateLimit({
   skip: (req) => req.ip === "127.0.0.1",
 });
 
+// Connexion et inscription : 10 échecs par heure et par IP (les réussites ne comptent pas)
 export const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 10,
-  message: "Trop de tentatives de connexion. Réessayez plus tard.",
+  skipSuccessfulRequests: true,
+  message: "Trop de tentatives de connexion. Réessaie plus tard.",
 });
 
 let generateCsrfToken;

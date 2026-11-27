@@ -2,6 +2,7 @@
 
 import ItemRepository from "./ItemRepository.js";
 import CatalogCacheRepository from "./CatalogCacheRepository.js";
+import { count } from "./stats.js";
 import { normalizeTitle, scoreCandidate } from "../imports/matching.js";
 import { getProvider, providerForType, allProviders } from "./providers/index.js";
 import { fetchAnimeThemes } from "./providers/jikan.js";
@@ -44,6 +45,7 @@ class CatalogService {
   static async resolveItem(source, externalId) {
     const existing = await ItemRepository.findBySource(source, externalId);
     if (existing?.metadata?.detailed) {
+      count("resolveLocal");
       if (isStale(existing)) CatalogService.refreshInBackground(existing);
       return existing;
     }
@@ -63,6 +65,7 @@ class CatalogService {
       if (existing) return existing;
       throw new AppError("Œuvre introuvable.", 404);
     }
+    count("resolveApi");
     return ItemRepository.upsert({ ...fetched, metadata: { ...fetched.metadata, detailed: true } });
   }
 
@@ -72,16 +75,12 @@ class CatalogService {
     const provider = getProvider(item.source);
     if (refreshing.has(key) || !provider?.fetchItem || provider.configured?.() === false) return null;
     refreshing.add(key);
+    count("refreshes");
     return provider
       .fetchItem(item.externalId)
       .then((fetched) => fetched && ItemRepository.upsert({ ...fetched, metadata: { ...fetched.metadata, detailed: true } }))
       .catch((error) => logger.debug({ err: error, itemId: item.id }, "Rafraîchissement reporté"))
       .finally(() => refreshing.delete(key));
-  }
-
-  // Enregistre une œuvre déjà décrite (résultat de recherche, import, recommandation)
-  static saveItem(item) {
-    return ItemRepository.upsert(item);
   }
 
   /**
@@ -105,11 +104,16 @@ class CatalogService {
     const settled = await Promise.allSettled(
       configured.map(async (provider) => {
         const cached = await CatalogCacheRepository.getSearch(provider.source, typeKey, queryNorm, SEARCH_CACHE_DAYS);
-        if (cached) return ItemRepository.findByIds(cached);
+        if (cached) {
+          count("searchCacheHit");
+          return ItemRepository.findByIds(cached);
+        }
         if (!deep && enoughLocally(provider)) {
           skipped = true;
+          count("searchLocalOnly");
           return [];
         }
+        count("searchApi");
         const found = await withTimeout(provider.search(query, { type }), SEARCH_TIMEOUT);
         const saved = await ItemRepository.upsertMany(found, { fresh: false });
         await CatalogCacheRepository.setSearch(provider.source, typeKey, queryNorm, saved.map((item) => item.id));
@@ -149,9 +153,13 @@ class CatalogService {
    */
   static async getSimilar(item) {
     const cached = await CatalogCacheRepository.getSimilar(item.id, SIMILAR_CACHE_DAYS);
-    if (cached) return ItemRepository.findByIds(cached);
+    if (cached) {
+      count("similarCacheHit");
+      return ItemRepository.findByIds(cached);
+    }
     const provider = getProvider(item.source);
     if (!provider?.similar || !provider.configured()) return [];
+    count("similarApi");
     const found = await withTimeout(provider.similar(item), SEARCH_TIMEOUT);
     const saved = await ItemRepository.upsertMany(found, { fresh: false });
     await CatalogCacheRepository.setSimilar(item.id, saved.map((s) => s.id));

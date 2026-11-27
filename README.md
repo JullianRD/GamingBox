@@ -45,6 +45,8 @@ Le schéma est géré par des migrations versionnées ([node-pg-migrate](https:/
 | `npm run db:migrate` | Applique les migrations en attente (`DATABASE_URL`) |
 | `npm run db:migrate:down` | Annule la dernière migration (`-- 0` pour tout annuler) |
 | `npm run db:migrate:create -- nom-de-la-migration` | Crée un fichier SQL avec ses sections `-- Up Migration` et `-- Down Migration` |
+| `bash scripts/reset_db.sh` | Annule toutes les migrations (base vidée), puis propose de réinitialiser |
+| `bash scripts/nuke_db.sh` | Supprime la base et le rôle applicatif, puis propose de tout reconstruire |
 
 Une migration déjà appliquée ne se modifie plus : toute évolution du schéma passe par une nouvelle migration.
 

@@ -1,0 +1,34 @@
+<div class="mx-auto flex max-w-xl flex-col gap-6">
+  <a href="<%= target.backHref %>" class="self-start font-bold no-underline">← Retour</a>
+  <div class="flex flex-col gap-2">
+    <h1 class="m-0 text-4xl">Signaler <%= targetLabel %></h1>
+    <p class="m-0 text-muted">Ton signalement reste anonyme pour la personne concernée. Un administrateur le lira et décidera de la suite.</p>
+  </div>
+
+  <%- include('../../partials/flash') %>
+
+  <blockquote class="m-0 rounded-2xl border-l-4 border-line bg-surface px-5 py-4 shadow-soft">
+    <p class="m-0 text-sm font-bold"><%= target.label %></p>
+    <% if (target.excerpt) { %><p class="m-0 mt-1 whitespace-pre-line text-muted"><%= target.excerpt %></p><% } %>
+  </blockquote>
+
+  <form action="/signaler" method="post" class="card flex flex-col gap-5">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="type" value="<%= target.type %>">
+    <input type="hidden" name="id" value="<%= target.id %>">
+    <fieldset class="m-0 flex flex-col gap-2 border-0 p-0">
+      <legend class="mb-2 text-sm font-bold">Motif</legend>
+      <% Object.entries(reasons).forEach(([value, label], i) => { %>
+        <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-line-soft px-4 py-3 has-[:checked]:border-accent has-[:checked]:bg-peach">
+          <input type="radio" name="reason" value="<%= value %>" required class="accent-[#a9573a]">
+          <span class="font-semibold"><%= label %></span>
+        </label>
+      <% }) %>
+    </fieldset>
+    <div class="flex flex-col gap-1.5">
+      <label for="details" class="text-sm font-bold">Précisions <span class="font-normal text-muted">(facultatif)</span></label>
+      <textarea id="details" name="details" rows="3" maxlength="500" class="w-full resize-y rounded-[20px] border border-line bg-cream px-5 py-3 text-ink"></textarea>
+    </div>
+    <button type="submit" class="btn-primary self-start">Envoyer le signalement</button>
+  </form>
+</div>

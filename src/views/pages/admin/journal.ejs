@@ -1,0 +1,28 @@
+<% const filters = [["", "Tout"], ["user", "Utilisateurs"], ["item", "Catalogue"], ["comment", "Commentaires"], ["report", "Signalements"]]; %>
+<div class="flex flex-col gap-6">
+  <%- include('../../partials/admin/header', { heading: "Journal", intro: "Les actions des administrateurs, les plus récentes d'abord." }) %>
+  <nav aria-label="Filtrer le journal" class="chip-row">
+    <% filters.forEach(([key, label]) => { const on = (action || "") === key; %>
+      <a href="/admin/journal<%= key ? `?action=${key}` : '' %>" class="rounded-full px-4 py-2 text-sm font-bold no-underline <%= on ? 'bg-ink text-[#ffffff]' : 'bg-surface text-muted' %>"><%= label %></a>
+    <% }) %>
+  </nav>
+  <ul class="m-0 flex list-none flex-col gap-2 p-0">
+    <% journal.actions.forEach((a) => { %>
+      <li class="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-2xl bg-surface px-4 py-3 text-sm shadow-soft">
+        <strong><%= a.admin %></strong>
+        <span class="text-muted"><%= a.verb %></span>
+        <% if (a.details.targetType === "user" && a.details.targetId && a.action !== "user.delete") { %>
+          <a href="/admin/users/<%= a.details.targetId %>" class="font-bold no-underline"><%= a.label %></a>
+        <% } else if (a.details.targetType === "item" && a.details.targetId && a.action !== "item.delete") { %>
+          <a href="/admin/items/<%= a.details.targetId %>" class="font-bold no-underline"><%= a.label %></a>
+        <% } else { %><strong><%= a.label %></strong><% } %>
+        <% if (a.details.to) { %><span class="text-muted">(<%= a.details.from %> → <%= a.details.to %>)</span><% } %>
+        <% if (a.details.reason && a.action === "user.suspend") { %><span class="text-muted">: <%= a.details.reason %></span><% } %>
+        <% if (a.details.excerpt) { %><span class="text-muted">« <%= a.details.excerpt %> »</span><% } %>
+        <span class="ml-auto text-xs text-muted"><%= timeAgo(a.createdAt) %></span>
+      </li>
+    <% }) %>
+  </ul>
+  <% if (!journal.actions.length) { %><p class="m-0 text-muted">Aucune action enregistrée.</p><% } %>
+  <%- include('../../partials/admin/pagination', { total: journal.total, page, perPage: 40, baseQuery: { action: action || "" } }) %>
+</div>

@@ -1,6 +1,7 @@
 <% const t = itemTypes[entry.type]; const stars = entry.rating ? entry.rating / 2 : 0; %>
 <div class="flex flex-col gap-8">
   <a href="<%= owner.href %>" class="self-start font-bold no-underline">← Profil de <%= owner.pseudo %></a>
+  <%- include('../../partials/flash') %>
 
   <div class="grid grid-cols-[7rem_1fr] gap-x-5 gap-y-6 [grid-template-areas:'cover_head'_'main_main'] sm:grid-cols-[10rem_1fr] lg:grid-cols-[300px_1fr] lg:grid-rows-[auto_1fr] lg:gap-x-12 lg:[grid-template-areas:'cover_head'_'cover_main']">
     <div class="relative aspect-[2/3] self-start overflow-hidden rounded-2xl shadow-cover [grid-area:cover] lg:rounded-[28px] <%= t.tone.cover %>">

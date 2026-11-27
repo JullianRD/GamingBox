@@ -1,0 +1,69 @@
+<% const t = itemTypes[item.type]; %>
+<div class="flex flex-col gap-6">
+  <%- include('../../partials/admin/header', { heading: item.title }) %>
+  <a href="/admin/items" class="self-start text-sm font-bold no-underline">← Tout le catalogue</a>
+
+  <div class="grid gap-5 lg:grid-cols-[220px_1fr]">
+    <div class="flex flex-row gap-4 lg:flex-col">
+      <div class="relative aspect-[2/3] w-28 shrink-0 overflow-hidden rounded-2xl shadow-cover lg:w-full <%= t.tone.cover %>">
+        <% if (item.coverUrl) { %><img src="<%= item.coverUrl %>" alt="" class="h-full w-full object-cover"><% } %>
+      </div>
+      <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+        <dt class="text-muted">Source</dt><dd class="m-0 break-all"><%= item.source %> #<%= item.externalId %></dd>
+        <dt class="text-muted">Entrées</dt><dd class="m-0"><%= usage.entries %></dd>
+        <dt class="text-muted">Listes</dt><dd class="m-0"><%= usage.lists %></dd>
+        <dt class="text-muted">Personnages</dt><dd class="m-0"><%= usage.entities %></dd>
+        <dt class="text-muted">Fiche</dt><dd class="m-0"><%= item.metadata.detailed ? "complète" : "légère" %><%= item.metadata.adminEdited ? ", corrigée" : "" %></dd>
+        <dt class="text-muted">Lue le</dt><dd class="m-0"><%= item.fetchedAt ? new Date(item.fetchedAt).toLocaleDateString("fr-FR") : "?" %><%= stale ? " (à relire)" : "" %></dd>
+      </dl>
+    </div>
+
+    <div class="flex min-w-0 flex-col gap-5">
+      <form action="/admin/items/<%= item.id %>/edit" method="post" class="card flex flex-col gap-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <h2 class="m-0 text-xl">Corriger la fiche</h2>
+        <label class="flex flex-col gap-1.5 text-sm font-bold">Titre
+          <input name="title" required maxlength="300" value="<%= item.title %>" class="field py-2.5">
+        </label>
+        <label class="flex flex-col gap-1.5 text-sm font-bold">Jaquette (adresse https)
+          <input name="coverUrl" type="url" maxlength="500" value="<%= item.coverUrl || '' %>" class="field py-2.5">
+        </label>
+        <div class="flex flex-wrap gap-4">
+          <label class="flex flex-col gap-1.5 text-sm font-bold">Date de sortie
+            <input name="releaseDate" type="date" value="<%= item.releaseDate || '' %>" class="field py-2.5">
+          </label>
+          <label class="flex min-w-0 flex-[1_1_220px] flex-col gap-1.5 text-sm font-bold">Genres (séparés par des virgules)
+            <input name="genres" maxlength="300" value="<%= item.genres.join(', ') %>" class="field py-2.5">
+          </label>
+        </div>
+        <p class="m-0 text-xs text-muted">Une fiche corrigée garde ces champs : les relectures automatiques ne les écrasent plus.</p>
+        <button type="submit" class="btn-primary self-start">Enregistrer</button>
+      </form>
+
+      <section class="card flex flex-col gap-3">
+        <h2 class="m-0 text-xl">Doublons possibles</h2>
+        <% if (duplicates.length) { %>
+          <p class="m-0 text-sm text-muted">Fusionner déplace les entrées, listes et personnages du doublon vers la fiche gardée, puis supprime le doublon. Si quelqu'un suivait les deux, son entrée est complétée sans perte.</p>
+          <ul class="m-0 flex list-none flex-col gap-2 p-0">
+            <% duplicates.forEach((d) => { %>
+              <li class="flex flex-wrap items-center gap-3 rounded-2xl border border-line-soft p-3">
+                <a href="/admin/items/<%= d.id %>" class="flex min-w-0 flex-1 flex-col no-underline">
+                  <span class="truncate font-bold text-ink"><%= d.title %></span>
+                  <span class="text-xs text-muted"><%= d.source %> #<%= d.externalId %><%= d.releaseDate ? ` · ${d.releaseDate.slice(0, 4)}` : "" %> · <%= d.entries %> entrées</span>
+                </a>
+                <%- include('../../partials/admin/action', { action: `/admin/items/${d.id}/merge/${item.id}`, label: "Fusionner ici", confirm: `Fusionner « ${d.title} » dans cette fiche ?` }) %>
+                <%- include('../../partials/admin/action', { action: `/admin/items/${item.id}/merge/${d.id}`, label: "Garder celle-là", confirm: `Fusionner cette fiche dans « ${d.title} » ?` }) %>
+              </li>
+            <% }) %>
+          </ul>
+        <% } else { %><p class="m-0 text-sm text-muted">Aucun titre proche dans la même catégorie.</p><% } %>
+      </section>
+
+      <section class="card flex flex-wrap items-center gap-3">
+        <h2 class="m-0 w-full text-xl">Actions</h2>
+        <%- include('../../partials/admin/action', { action: `/admin/items/${item.id}/refresh`, label: "Relire depuis la source" }) %>
+        <%- include('../../partials/admin/action', { action: `/admin/items/${item.id}/delete`, label: "Retirer du catalogue", tone: "danger", confirm: `Retirer « ${item.title} » ? Les ${usage.entries} entrées liées seront supprimées.` }) %>
+      </section>
+    </div>
+  </div>
+</div>

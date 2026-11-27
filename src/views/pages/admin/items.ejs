@@ -1,21 +1,56 @@
-<div class="flex flex-col gap-8">
-  <h1 class="m-0 text-4xl">Catalogue</h1>
-  <%- include('../../partials/admin/nav') %>
-  <%- include('../../partials/flash') %>
-  <div class="overflow-x-auto rounded-3xl bg-surface shadow-soft">
-    <table class="w-full text-left text-sm">
-      <thead class="text-muted"><tr><th class="p-4">Titre</th><th class="p-4">Catégorie</th><th class="p-4">Source</th><th class="p-4">Entrées</th><th class="p-4"></th></tr></thead>
-      <tbody>
-        <% items.forEach((i) => { %>
-          <tr class="border-t border-line-soft">
-            <td class="p-4 font-bold"><%= i.title %></td>
-            <td class="p-4"><%- include('../../components/type-chip', { type: i.item_type }) %></td>
-            <td class="p-4 text-muted"><%= i.source %> #<%= i.external_id %></td>
-            <td class="p-4"><%= i.entries %></td>
-            <td class="p-4"><%- include('../../partials/admin/delete', { action: `/admin/items/${i.id_item}/delete` }) %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
+<% const f = list.filters; %>
+<div class="flex flex-col gap-6">
+  <%- include('../../partials/admin/header', { heading: "Catalogue" }) %>
+
+  <form method="get" class="flex flex-wrap items-end gap-3" role="search">
+    <label class="flex min-w-0 flex-[1_1_220px] flex-col gap-1 text-xs font-bold">Titre ou identifiant source
+      <input type="search" name="q" value="<%= f.q %>" class="field py-2.5">
+    </label>
+    <label class="flex flex-col gap-1 text-xs font-bold">Catégorie
+      <select name="type" class="field py-2.5 pr-8">
+        <option value="">Toutes</option>
+        <% Object.values(itemTypes).forEach((t) => { %><option value="<%= t.code %>" <%= f.type === t.code ? "selected" : "" %>><%= t.plural %></option><% }) %>
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-xs font-bold">Source
+      <select name="source" class="field py-2.5 pr-8">
+        <option value="">Toutes</option>
+        <% list.sources.forEach((s) => { %><option value="<%= s %>" <%= f.source === s ? "selected" : "" %>><%= s %></option><% }) %>
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-xs font-bold">Fiche
+      <select name="quality" class="field py-2.5 pr-8">
+        <option value="">Toutes</option>
+        <option value="detailed" <%= f.quality === "detailed" ? "selected" : "" %>>Complètes</option>
+        <option value="light" <%= f.quality === "light" ? "selected" : "" %>>Légères</option>
+        <option value="edited" <%= f.quality === "edited" ? "selected" : "" %>>Corrigées</option>
+      </select>
+    </label>
+    <button type="submit" class="btn-primary">Filtrer</button>
+  </form>
+
+  <ul class="m-0 flex list-none flex-col gap-2 p-0">
+    <% list.rows.forEach((item) => { const t = itemTypes[item.type]; %>
+      <li>
+        <a href="/admin/items/<%= item.id %>" class="flex items-center gap-3 rounded-2xl bg-surface p-3 text-ink no-underline shadow-soft hover:text-ink">
+          <span class="relative h-16 w-11 shrink-0 overflow-hidden rounded-lg <%= t.tone.cover %>">
+            <% if (item.coverUrl) { %><img src="<%= item.coverUrl %>" alt="" loading="lazy" class="h-full w-full object-cover"><% } %>
+          </span>
+          <span class="flex min-w-0 flex-1 flex-col gap-1">
+            <span class="truncate font-bold"><%= item.title %></span>
+            <span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+              <%- include('../../components/type-chip', { type: item.type }) %>
+              <span><%= item.source %> #<%= item.externalId %></span>
+              <% if (item.releaseDate) { %><span><%= item.releaseDate.slice(0, 4) %></span><% } %>
+              <% if (!item.metadata.detailed) { %><span class="rounded-full bg-cream px-2 py-0.5 font-bold">légère</span><% } %>
+              <% if (item.metadata.adminEdited) { %><span class="rounded-full bg-peach px-2 py-0.5 font-bold text-accent-ink">corrigée</span><% } %>
+            </span>
+          </span>
+          <span class="shrink-0 text-right text-sm"><strong><%= item.entries %></strong><br><span class="text-xs text-muted">entrées</span></span>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+  <% if (!list.rows.length) { %><p class="m-0 text-muted">Aucune œuvre ne correspond.</p><% } %>
+  <%- include('../../partials/admin/pagination', { total: list.total, page: list.page, perPage: 30, baseQuery: f }) %>
 </div>

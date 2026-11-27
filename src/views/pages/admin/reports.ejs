@@ -1,0 +1,48 @@
+<% const open = list.status === "open"; const resolutions = { deleted: "commentaire supprimé", suspended: "compte suspendu", dismissed: "classé sans suite" }; %>
+<div class="flex flex-col gap-6">
+  <%- include('../../partials/admin/header', { heading: "Signalements", intro: "Un traitement s'applique à tous les signalements ouverts sur le même contenu." }) %>
+
+  <div class="flex gap-2">
+    <a href="/admin/reports" class="rounded-full px-4 py-2 text-sm font-bold no-underline <%= open ? 'bg-ink text-[#ffffff]' : 'bg-surface text-muted' %>">À traiter</a>
+    <a href="/admin/reports?status=handled" class="rounded-full px-4 py-2 text-sm font-bold no-underline <%= open ? 'bg-surface text-muted' : 'bg-ink text-[#ffffff]' %>">Traités</a>
+  </div>
+
+  <ul class="m-0 flex list-none flex-col gap-3 p-0">
+    <% list.rows.forEach((r) => { const snap = r.snapshot || {}; const ownerId = snap.authorId || snap.userId; %>
+      <li class="card flex flex-col gap-3">
+        <div class="flex flex-wrap items-center gap-2 text-sm">
+          <span class="rounded-full bg-anime px-2.5 py-1 text-xs font-bold text-anime-ink"><%= reasons[r.reason] %></span>
+          <span class="font-bold"><%= r.target_type === "comment" ? `Commentaire de ${snap.author}` : `Profil de ${snap.pseudo}` %></span>
+          <span class="text-muted">signalé par <%= r.reporter || "compte supprimé" %> · <%= timeAgo(r.created_at) %></span>
+          <% if (open && r.same_target > 1) { %><span class="rounded-full bg-cream px-2.5 py-1 text-xs font-bold"><%= r.same_target %> signalements</span><% } %>
+          <% if (r.owner_suspended) { %><span class="rounded-full bg-[#fbebeb] px-2.5 py-1 text-xs font-bold text-[#9b2c2c]">déjà suspendu</span><% } %>
+        </div>
+        <blockquote class="m-0 rounded-2xl border-l-4 border-line bg-cream px-4 py-3 text-sm">
+          <% if (r.target_type === "comment") { %>
+            <p class="m-0 whitespace-pre-line"><%= snap.body %></p>
+            <% if (!r.comment_exists) { %><p class="m-0 mt-1 text-xs text-muted">(ce commentaire n'existe plus)</p><% } %>
+          <% } else { %>
+            <p class="m-0 whitespace-pre-line"><%= snap.bio || "Pas de bio." %></p>
+          <% } %>
+        </blockquote>
+        <% if (r.details) { %><p class="m-0 text-sm"><strong>Précisions :</strong> <%= r.details %></p><% } %>
+        <% if (open) { %>
+          <div class="flex flex-wrap gap-2">
+            <% if (r.target_type === "comment" && r.comment_exists) { %>
+              <%- include('../../partials/admin/action', { action: `/admin/reports/${r.id_report}/delete`, label: "Supprimer le commentaire", tone: "danger", confirm: "Supprimer ce commentaire ?" }) %>
+            <% } %>
+            <% if (ownerId && !r.owner_suspended) { %>
+              <%- include('../../partials/admin/action', { action: `/admin/reports/${r.id_report}/suspend`, label: "Suspendre l'auteur", tone: "danger", confirm: "Suspendre ce compte ? Ses sessions seront fermées." }) %>
+            <% } %>
+            <%- include('../../partials/admin/action', { action: `/admin/reports/${r.id_report}/dismiss`, label: "Classer sans suite" }) %>
+            <% if (ownerId) { %><a href="/admin/users/<%= ownerId %>" class="btn min-h-9 px-4 text-sm">Voir le compte</a><% } %>
+          </div>
+        <% } else { %>
+          <p class="m-0 text-sm text-muted">Traité par <%= r.resolver || "?" %> <%= r.resolved_at ? timeAgo(r.resolved_at) : "" %> : <%= resolutions[r.resolution] || r.resolution %>.</p>
+        <% } %>
+      </li>
+    <% }) %>
+  </ul>
+  <% if (!list.rows.length) { %><%- include('../../components/empty-state', { title: open ? "Rien à traiter" : "Aucun signalement traité", text: open ? "La file de modération est vide." : "Les signalements traités apparaîtront ici." }) %><% } %>
+  <%- include('../../partials/admin/pagination', { total: list.total, page: list.page, perPage: 30, baseQuery: { status: open ? "" : "handled" } }) %>
+</div>

@@ -1,0 +1,69 @@
+<% const c = api.catalog; const fmt = (d) => d ? timeAgo(d) : "jamais"; const states = { matching: "correspondances", review: "à vérifier", applying: "application", done: "terminés", failed: "en échec" }; %>
+<div class="flex flex-col gap-6">
+  <%- include('../../partials/admin/header', { heading: "Santé des API", intro: `Compteurs depuis le dernier démarrage de l'app (${timeAgo(api.startedAt)}).` }) %>
+
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <%- include('../../components/stat-tile', { value: savedRatio === null ? "–" : `${savedRatio} %`, label: "recherches sans appel d'API" }) %>
+    <%- include('../../components/stat-tile', { value: db.items, label: `œuvres au catalogue (+${db.items_week} cette semaine)` }) %>
+    <%- include('../../components/stat-tile', { value: db.detailed, label: "fiches complètes" }) %>
+    <%- include('../../components/stat-tile', { value: db.import_matches, label: "correspondances d'import mémorisées" }) %>
+  </div>
+
+  <section class="card flex flex-col gap-3">
+    <h2 class="m-0 text-xl">Fournisseurs</h2>
+    <% if (api.sources.length) { %>
+      <ul class="m-0 flex list-none flex-col gap-2 p-0">
+        <li class="hidden grid-cols-[1.2fr_repeat(4,0.7fr)_1.2fr] gap-3 px-3 text-xs font-bold uppercase tracking-wider text-muted md:grid">
+          <span>Source</span><span>Appels</span><span>Erreurs</span><span>Refus quota</span><span>429</span><span>Dernier appel</span>
+        </li>
+        <% api.sources.forEach((s) => { const bad = s.errors || s.throttled; %>
+          <li class="grid grid-cols-2 gap-x-3 gap-y-1 rounded-2xl border border-line-soft px-3 py-2.5 text-sm md:grid-cols-[1.2fr_repeat(4,0.7fr)_1.2fr] md:items-center">
+            <span class="col-span-2 flex items-center gap-2 font-bold md:col-span-1">
+              <span class="h-2.5 w-2.5 rounded-full <%= s.waitMs > 0 ? 'bg-[#d9a13b]' : bad ? 'bg-[#c0504d]' : 'bg-[#5d8a55]' %>" aria-hidden="true"></span><%= s.source %>
+              <% if (s.waitMs > 0) { %><span class="text-xs font-semibold text-muted">attente <%= Math.ceil(s.waitMs / 1000) %> s</span><% } %>
+            </span>
+            <span><span class="text-muted md:hidden">Appels </span><%= s.calls %></span>
+            <span><span class="text-muted md:hidden">Erreurs </span><%= s.errors %></span>
+            <span><span class="text-muted md:hidden">Refus quota </span><%= s.refused %></span>
+            <span><span class="text-muted md:hidden">429 </span><%= s.throttled %></span>
+            <span class="text-muted"><%= fmt(s.lastCallAt) %></span>
+            <% if (s.lastError) { %><span class="col-span-2 text-xs text-[#9b2c2c] md:col-span-6">Dernière erreur <%= timeAgo(s.lastError.at) %> : <%= s.lastError.message %></span><% } %>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %><p class="m-0 text-sm text-muted">Aucun appel d'API depuis le démarrage.</p><% } %>
+  </section>
+
+  <section class="card flex flex-col gap-3">
+    <h2 class="m-0 text-xl">Catalogue local</h2>
+    <dl class="m-0 grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
+      <% [
+        ["Recherches servies par la base", c.searchLocalOnly], ["Recherches servies par le cache", c.searchCacheHit], ["Recherches envoyées aux API", c.searchApi],
+        ["Fiches déjà complètes", c.resolveLocal], ["Fiches complétées chez la source", c.resolveApi], ["Relectures en arrière-plan", c.refreshes],
+        ["Similaires depuis le cache", c.similarCacheHit], ["Similaires demandés aux API", c.similarApi], ["Requêtes en cache (7 j)", db.search_cache],
+        ["Œuvres avec similaires en cache", db.similar_cache], ["Fiches corrigées à la main", db.edited], ["Doublons fusionnés", db.aliases],
+      ].forEach(([label, value]) => { %>
+        <div class="flex flex-col-reverse"><dt class="text-muted"><%= label %></dt><dd class="m-0 font-serif text-2xl"><%= value %></dd></div>
+      <% }) %>
+    </dl>
+  </section>
+
+  <section class="card flex flex-col gap-3">
+    <h2 class="m-0 text-xl">Imports (30 jours)</h2>
+    <p class="m-0 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      <% Object.entries(states).forEach(([key, label]) => { %><span><strong><%= imports[key] ?? 0 %></strong> <%= label %></span><% }) %>
+    </p>
+    <% if (running.length) { %>
+      <h3 class="m-0 mt-2 text-base">En cours</h3>
+      <ul class="m-0 flex list-none flex-col gap-1 p-0 text-sm">
+        <% running.forEach((im) => { %><li><%= im.pseudo %> · <%= im.source %> · <%= im.processed %>/<%= im.total %> · démarré <%= timeAgo(im.created_at) %></li><% }) %>
+      </ul>
+    <% } %>
+    <% if (failed.length) { %>
+      <h3 class="m-0 mt-2 text-base">Derniers échecs</h3>
+      <ul class="m-0 flex list-none flex-col gap-1 p-0 text-sm">
+        <% failed.forEach((im) => { %><li><%= im.pseudo %> · <%= im.source %> · <%= timeAgo(im.created_at) %> : <span class="text-[#9b2c2c]"><%= (im.error || "erreur inconnue").slice(0, 160) %></span></li><% }) %>
+      </ul>
+    <% } %>
+  </section>
+</div>

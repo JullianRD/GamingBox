@@ -17,8 +17,9 @@ import challengeRoutes from "../modules/challenges/routes.js";
 import authRoutes from "./public/authRoutes.js";
 import profileRoutes from "./user/profileRoutes.js";
 
-// Admin
-import adminRoutes from "./admin/adminRoutes.js";
+// Admin et signalements
+import adminRoutes from "../modules/admin/routes.js";
+import reportRoutes from "../modules/reports/routes.js";
 
 // Router principal de l'application Cocon
 const router = Router();
@@ -38,6 +39,7 @@ router.use(searchRoutes);
 router.use(importRoutes);
 router.use(listRoutes);
 router.use(socialRoutes);
+router.use(reportRoutes);
 router.use(discoverRoutes);
 router.use(challengeRoutes);
 

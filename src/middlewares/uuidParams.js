@@ -12,4 +12,3 @@ export const requireUuidParams =
     return invalid ? next(new AppError("Page introuvable.", 404)) : next();
   };
 
-export const isUuid = (value) => UUID.test(String(value ?? ""));

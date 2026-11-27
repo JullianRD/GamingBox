@@ -1,0 +1,93 @@
+<% const isSelf = user.id_user === currentUser.id; %>
+<% const kinds = { added: "Ajout", status: "Statut", rated: "Note", reviewed: "Avis", favorited: "Favori", listed: "Liste", commented: "Commentaire", recommended: "Recommandation", followed: "Abonnement", challenged: "Défi" }; %>
+<% const importStates = { matching: "Correspondances", review: "À vérifier", applying: "Application", done: "Terminé", failed: "Échec" }; %>
+<div class="flex flex-col gap-6">
+  <%- include('../../partials/admin/header', { heading: user.pseudo }) %>
+  <a href="/admin/users" class="self-start text-sm font-bold no-underline">← Tous les utilisateurs</a>
+
+  <% if (user.suspended_at) { %>
+    <p class="m-0 rounded-2xl bg-[#fbebeb] px-5 py-3 font-semibold text-[#9b2c2c]">Compte suspendu <%= timeAgo(user.suspended_at) %><%= user.suspended_reason ? ` : ${user.suspended_reason}` : "" %>.</p>
+  <% } %>
+
+  <div class="grid gap-5 lg:grid-cols-[1fr_340px]">
+    <div class="flex min-w-0 flex-col gap-5">
+      <section class="card flex flex-wrap items-center gap-4">
+        <%- include('../../partials/social/avatar', { user: { pseudo: user.pseudo, avatar: user.avatar }, size: "h-16 w-16 text-xl" }) %>
+        <div class="flex min-w-0 flex-1 flex-col gap-1">
+          <p class="m-0 truncate font-bold"><%= user.email %></p>
+          <p class="m-0 text-sm text-muted">Inscrit le <%= new Date(user.created_at).toLocaleDateString("fr-FR") %> · dernière connexion <%= user.last_login_at ? timeAgo(user.last_login_at) : "inconnue" %> · dernière activité <%= stats.last_activity ? timeAgo(stats.last_activity) : "aucune" %></p>
+          <p class="m-0 text-sm text-muted">Profil <%= user.is_public ? "public" : "privé" %> · <a href="/u/<%= encodeURIComponent(user.pseudo) %>">voir le profil</a></p>
+        </div>
+      </section>
+
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <%- include('../../components/stat-tile', { value: byType.reduce((n, r) => n + r.count, 0), label: "entrées" }) %>
+        <%- include('../../components/stat-tile', { value: stats.lists, label: "listes" }) %>
+        <%- include('../../components/stat-tile', { value: stats.comments, label: "commentaires" }) %>
+        <%- include('../../components/stat-tile', { value: stats.open_reports, label: "signalements ouverts" }) %>
+      </div>
+
+      <% if (byType.length) { %>
+        <ul class="m-0 flex list-none flex-wrap gap-3 p-0">
+          <% byType.forEach((row) => { %><li class="flex items-center gap-2"><%- include('../../components/type-chip', { type: row.item_type }) %><span class="text-sm text-muted"><%= row.count %></span></li><% }) %>
+        </ul>
+      <% } %>
+
+      <section class="card flex flex-col gap-3">
+        <h2 class="m-0 text-xl">Activité récente</h2>
+        <% if (activity.length) { %>
+          <ul class="m-0 flex list-none flex-col gap-2 p-0 text-sm">
+            <% activity.forEach((a) => { %><li class="flex justify-between gap-3"><span><%= kinds[a.kind] ?? a.kind %><%= a.title ? ` · ${a.title}` : "" %></span><span class="shrink-0 text-muted"><%= timeAgo(a.created_at) %></span></li><% }) %>
+          </ul>
+        <% } else { %><p class="m-0 text-sm text-muted">Aucune activité.</p><% } %>
+      </section>
+
+      <section class="card flex flex-col gap-3">
+        <h2 class="m-0 text-xl">Imports</h2>
+        <% if (imports.length) { %>
+          <ul class="m-0 flex list-none flex-col gap-2 p-0 text-sm">
+            <% imports.forEach((im) => { %><li class="flex justify-between gap-3"><span><%= im.source %> · <%= im.label || "sans nom" %> · <%= im.total %> lignes</span><span class="shrink-0 font-bold <%= im.status === 'failed' ? 'text-[#9b2c2c]' : 'text-muted' %>"><%= importStates[im.status] ?? im.status %></span></li><% }) %>
+          </ul>
+        <% } else { %><p class="m-0 text-sm text-muted">Aucun import.</p><% } %>
+      </section>
+    </div>
+
+    <aside class="flex flex-col gap-5">
+      <section class="card flex flex-col gap-3">
+        <h2 class="m-0 text-xl">Rôle</h2>
+        <% if (isSelf) { %>
+          <p class="m-0 text-sm text-muted">C'est ton compte : son rôle se change depuis un autre compte admin.</p>
+        <% } else { %>
+          <form action="/admin/users/<%= user.id_user %>/role" method="post" class="m-0 flex flex-wrap items-end gap-2">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <select name="role" aria-label="Rôle" class="field flex-1 py-2.5 pr-8">
+              <% roles.forEach((r) => { %><option value="<%= r %>" <%= user.role_name === r ? "selected" : "" %>><%= r === "admin" ? "Administrateur" : "Utilisateur" %></option><% }) %>
+            </select>
+            <button type="submit" class="btn border-[1.5px] border-line bg-surface text-sm text-ink hover:bg-cream">Changer</button>
+          </form>
+        <% } %>
+      </section>
+
+      <% if (!isSelf) { %>
+        <section class="card flex flex-col gap-3">
+          <h2 class="m-0 text-xl">Suspension</h2>
+          <% if (user.suspended_at) { %>
+            <%- include('../../partials/admin/action', { action: `/admin/users/${user.id_user}/unsuspend`, label: "Réactiver le compte", tone: "primary" }) %>
+          <% } else { %>
+            <form action="/admin/users/<%= user.id_user %>/suspend" method="post" class="m-0 flex flex-col gap-2" data-confirm="Suspendre ce compte ? Ses sessions seront fermées.">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <label for="reason" class="text-sm font-bold">Motif (visible des admins)</label>
+              <input id="reason" name="reason" maxlength="300" class="field py-2.5">
+              <button type="submit" class="btn self-start border-[1.5px] border-[#e8c4c4] bg-surface text-sm text-[#9b2c2c] hover:bg-[#fbebeb]">Suspendre</button>
+            </form>
+          <% } %>
+        </section>
+        <section class="card flex flex-col gap-3">
+          <h2 class="m-0 text-xl">Supprimer</h2>
+          <p class="m-0 text-sm text-muted">Supprime le compte et toute sa bibliothèque. Irréversible.</p>
+          <%- include('../../partials/admin/action', { action: `/admin/users/${user.id_user}/delete`, label: "Supprimer le compte", tone: "danger", confirm: `Supprimer définitivement le compte de ${user.pseudo} ?` }) %>
+        </section>
+      <% } %>
+    </aside>
+  </div>
+</div>

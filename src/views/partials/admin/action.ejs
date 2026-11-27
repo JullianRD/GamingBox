@@ -1,0 +1,9 @@
+<%# Bouton d'action admin (POST). Paramètres : action, label, tone (danger|ghost|primary), confirm (facultatif), fields (facultatif) %>
+<% const toneClass = { danger: "border-[1.5px] border-[#e8c4c4] bg-surface text-[#9b2c2c] hover:bg-[#fbebeb]", primary: "bg-accent text-[#ffffff] hover:bg-accent-ink", ghost: "border-[1.5px] border-line bg-surface text-ink hover:bg-cream" }[typeof tone !== "undefined" ? tone : "ghost"]; %>
+<form action="<%= action %>" method="post" class="m-0" <% if (typeof confirm !== "undefined" && confirm) { %>data-confirm="<%= confirm %>"<% } %>>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <% Object.entries(typeof fields !== "undefined" ? fields : {}).forEach(([name, value]) => { %>
+    <input type="hidden" name="<%= name %>" value="<%= value %>">
+  <% }) %>
+  <button type="submit" class="btn min-h-9 cursor-pointer px-4 text-sm <%= toneClass %>"><%= label %></button>
+</form>
