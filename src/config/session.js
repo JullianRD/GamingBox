@@ -33,10 +33,6 @@ export const sessionMiddleware = session({
   }),
 });
 
-export const sessionTableConfig = {
-  tableName: "user_sessions",
-};
-
 // Comment ça fonctionne concrètement
 
 // Lorsqu’un utilisateur se connecte → Express crée une session et génère un cookie signé.

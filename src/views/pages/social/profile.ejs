@@ -17,9 +17,13 @@
         <a href="/profile/edit" class="btn border-[1.5px] border-line bg-surface text-ink hover:bg-cream">Mon compte</a>
       </div>
     <% } else { %>
-      <%- include('../../partials/social/follow-button', { profile, relation }) %>
+      <div class="flex flex-wrap items-center gap-3">
+        <%- include('../../partials/social/follow-button', { profile, relation }) %>
+        <a href="/signaler?type=user&id=<%= profile.id %>" class="text-sm font-semibold text-muted underline hover:text-ink">Signaler</a>
+      </div>
     <% } %>
   </section>
+  <%- include('../../partials/flash') %>
 
   <% if (isSelf && !profile.isPublic) { %>
     <p class="m-0 rounded-2xl bg-books px-5 py-3 font-semibold text-books-ink">Ton profil est privé : toi seul le vois. Tu peux le rendre public dans <a href="/profile/edit">Mon compte</a>.</p>

@@ -1,15 +1,22 @@
-<div class="flex flex-col gap-8">
-  <h1 class="m-0 text-4xl">Commentaires</h1>
-  <%- include('../../partials/admin/nav') %>
-  <%- include('../../partials/flash') %>
-  <% if (!comments.length) { %><p class="m-0 text-muted">Aucun commentaire.</p><% } %>
+<div class="flex flex-col gap-6">
+  <%- include('../../partials/admin/header', { heading: "Commentaires" }) %>
   <ul class="m-0 flex list-none flex-col gap-3 p-0">
-    <% comments.forEach((c) => { %>
-      <li class="flex flex-col gap-1 rounded-3xl bg-surface p-4 shadow-soft">
-        <p class="m-0 text-sm text-muted"><strong class="text-ink"><%= c.author %></strong> sur <a href="/entrees/<%= c.user_item_id %>"><%= c.title %></a> (fiche de <%= c.owner %>) · <%= timeAgo(c.created_at) %></p>
+    <% list.rows.forEach((c) => { %>
+      <li class="card flex flex-col gap-2">
+        <p class="m-0 flex flex-wrap items-center gap-x-2 text-sm">
+          <a href="/admin/users/<%= c.author_id %>" class="font-bold no-underline"><%= c.author %></a>
+          <span class="text-muted">sur</span>
+          <a href="/entrees/<%= c.user_item_id %>" class="font-bold no-underline"><%= c.title %></a>
+          <span class="text-muted">(fiche de <%= c.owner %>) · <%= timeAgo(c.created_at) %></span>
+          <% if (c.reports) { %><a href="/admin/reports" class="rounded-full bg-anime px-2.5 py-0.5 text-xs font-bold text-anime-ink no-underline"><%= c.reports %> signalement<%= c.reports > 1 ? "s" : "" %></a><% } %>
+        </p>
         <p class="m-0 whitespace-pre-line"><%= c.body %></p>
-        <div class="self-end"><%- include('../../partials/admin/delete', { action: `/admin/comments/${c.id_comment}/delete` }) %></div>
+        <div class="self-end">
+          <%- include('../../partials/admin/action', { action: `/admin/comments/${c.id_comment}/delete`, label: "Supprimer", tone: "danger", confirm: "Supprimer ce commentaire ?" }) %>
+        </div>
       </li>
     <% }) %>
   </ul>
+  <% if (!list.rows.length) { %><p class="m-0 text-muted">Aucun commentaire.</p><% } %>
+  <%- include('../../partials/admin/pagination', { total: list.total, page: list.page, perPage: 30, baseQuery: {} }) %>
 </div>

@@ -54,37 +54,14 @@ class UserRepository {
         gdpr_consent,
         gdpr_consent_date,
         created_at,
-        updated_at
+        updated_at,
+        suspended_at
       FROM users
       WHERE LOWER(email) = LOWER($1);
     `;
 
     const { rows } = await db.query(query, [email]);
     return rows[0] ? new User(rows[0]) : null;
-  }
-
-  // Liste des utilisateurs de l'application (reservé aux admins)
-  static async findAllAdmin() {
-    const query = /*SQL*/ `
-      SELECT
-        id_user,
-        email,
-        pseudo,
-        biographie,
-        avatar,
-        role_name,
-        auth_provider,
-        settings_user,
-        gdpr_consent,
-        gdpr_consent_date,
-        created_at,
-        updated_at
-      FROM users
-      ORDER BY created_at DESC;
-    `;
-
-    const { rows } = await db.query(query);
-    return rows.map((row) => new User(row));
   }
 
   // Vérifie si un email existe (pour l'authentification)
@@ -204,32 +181,6 @@ class UserRepository {
     ];
 
     const { rows } = await db.query(query, values);
-    return rows[0] ? new User(rows[0]) : null;
-  }
-
-  // Met à jour les préférences de l'utilisateur
-  static async updateSettings(id, settings) {
-    const query = /*sql*/ `
-      UPDATE users
-      SET
-        settings_user = settings_user || $1::jsonb,
-        updated_at = NOW()
-      WHERE id_user = $2
-      RETURNING
-        id_user,
-        email,
-        pseudo,
-        biographie,
-        avatar,
-        role_name,
-        auth_provider,
-        settings_user,
-        gdpr_consent,
-        created_at,
-        updated_at;
-    `;
-
-    const { rows } = await db.query(query, [JSON.stringify(settings), id]);
     return rows[0] ? new User(rows[0]) : null;
   }
 

@@ -45,10 +45,6 @@ export const parseTagName = (value) => {
 };
 
 class LibraryService {
-  static getEntries(userId, filters) {
-    return UserItemRepository.findAllByUser(userId, filters);
-  }
-
   static async getSection(userId, type, status) {
     const [entries, counts] = await Promise.all([
       UserItemRepository.findAllByUser(userId, { type, status }),

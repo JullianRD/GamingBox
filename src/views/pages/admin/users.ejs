@@ -1,23 +1,50 @@
-<div class="flex flex-col gap-8">
-  <h1 class="m-0 text-4xl">Utilisateurs</h1>
-  <%- include('../../partials/admin/nav') %>
-  <%- include('../../partials/flash') %>
-  <div class="overflow-x-auto rounded-3xl bg-surface shadow-soft">
-    <table class="w-full text-left text-sm">
-      <thead class="text-muted"><tr><th class="p-4">Pseudo</th><th class="p-4">Email</th><th class="p-4">Rôle</th><th class="p-4">Profil</th><th class="p-4">Entrées</th><th class="p-4">Inscrit</th><th class="p-4"></th></tr></thead>
-      <tbody>
-        <% users.forEach((u) => { %>
-          <tr class="border-t border-line-soft">
-            <td class="p-4 font-bold"><a href="/u/<%= encodeURIComponent(u.pseudo) %>" class="no-underline"><%= u.pseudo %></a></td>
-            <td class="p-4"><%= u.email %></td>
-            <td class="p-4"><%= u.role_name %></td>
-            <td class="p-4"><%= u.is_public ? "public" : "privé" %></td>
-            <td class="p-4"><%= u.entries %></td>
-            <td class="p-4 text-muted"><%= new Date(u.created_at).toLocaleDateString("fr-FR") %></td>
-            <td class="p-4"><% if (u.id_user !== currentUser.id) { %><%- include('../../partials/admin/delete', { action: `/admin/users/${u.id_user}/delete` }) %><% } %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
+<% const f = list.filters; %>
+<div class="flex flex-col gap-6">
+  <%- include('../../partials/admin/header', { heading: "Utilisateurs" }) %>
+
+  <form method="get" class="flex flex-wrap items-end gap-3" role="search">
+    <label class="flex min-w-0 flex-[1_1_220px] flex-col gap-1 text-xs font-bold">Pseudo ou email
+      <input type="search" name="q" value="<%= f.q %>" class="field py-2.5">
+    </label>
+    <label class="flex flex-col gap-1 text-xs font-bold">Rôle
+      <select name="role" class="field py-2.5 pr-8">
+        <option value="">Tous</option>
+        <% roles.forEach((r) => { %><option value="<%= r %>" <%= f.role === r ? "selected" : "" %>><%= r === "admin" ? "Administrateur" : "Utilisateur" %></option><% }) %>
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-xs font-bold">État
+      <select name="status" class="field py-2.5 pr-8">
+        <option value="">Tous</option>
+        <option value="active" <%= f.status === "active" ? "selected" : "" %>>Actifs</option>
+        <option value="suspended" <%= f.status === "suspended" ? "selected" : "" %>>Suspendus</option>
+      </select>
+    </label>
+    <button type="submit" class="btn-primary">Filtrer</button>
+  </form>
+
+  <ul class="m-0 flex list-none flex-col gap-2 p-0">
+    <li class="hidden grid-cols-[1.4fr_1.6fr_0.8fr_0.6fr_0.9fr_0.9fr] gap-3 px-4 text-xs font-bold uppercase tracking-wider text-muted md:grid">
+      <span>Pseudo</span><span>Email</span><span>Rôle</span><span>Entrées</span><span>Inscrit</span><span>Connexion</span>
+    </li>
+    <% list.rows.forEach((u) => { %>
+      <li>
+        <a href="/admin/users/<%= u.id_user %>" class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1 rounded-2xl bg-surface px-4 py-3 text-ink no-underline shadow-soft hover:text-ink md:grid-cols-[1.4fr_1.6fr_0.8fr_0.6fr_0.9fr_0.9fr]">
+          <span class="flex min-w-0 items-center gap-2.5 font-bold">
+            <%- include('../../partials/social/avatar', { user: { pseudo: u.pseudo, avatar: u.avatar }, size: "h-8 w-8 text-[10px]" }) %>
+            <span class="truncate"><%= u.pseudo %></span>
+          </span>
+          <span class="min-w-0 truncate text-sm text-muted md:text-ink"><%= u.email %></span>
+          <span class="col-span-2 flex flex-wrap gap-1.5 text-xs md:col-span-1">
+            <% if (u.role_name === "admin") { %><span class="rounded-full bg-peach px-2.5 py-1 font-bold text-accent-ink">Admin</span><% } else { %><span class="rounded-full bg-cream px-2.5 py-1 font-bold text-muted">Utilisateur</span><% } %>
+            <% if (u.suspended_at) { %><span class="rounded-full bg-[#fbebeb] px-2.5 py-1 font-bold text-[#9b2c2c]">Suspendu</span><% } %>
+          </span>
+          <span class="text-sm"><span class="text-muted md:hidden">Entrées : </span><%= u.entries %></span>
+          <span class="text-sm text-muted"><span class="md:hidden">Inscrit le </span><%= new Date(u.created_at).toLocaleDateString("fr-FR") %></span>
+          <span class="text-sm text-muted"><span class="md:hidden">Connexion : </span><%= u.last_login_at ? timeAgo(u.last_login_at) : "jamais" %></span>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+  <% if (!list.rows.length) { %><p class="m-0 text-muted">Aucun utilisateur ne correspond.</p><% } %>
+  <%- include('../../partials/admin/pagination', { total: list.total, page: list.page, perPage: 30, baseQuery: f }) %>
 </div>

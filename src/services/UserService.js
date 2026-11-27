@@ -22,14 +22,6 @@ class UserService {
 
   // Récupérer un profil par son Id
 
-  static async getById(userId) {
-    return UserRepository.findById(userId);
-  }
-
-  static async getAllUserById(userId) {
-    return UserRepository.findAllAdmin(userId);
-  }
-
   // Mettre à jour une info ou plusieurs du profil utilisateur
   static async updateProfile(userId, data, avatarPath = null) {
     const currentUser = await UserRepository.findById(userId);
@@ -61,11 +53,6 @@ class UserService {
       avatar,
       biographie,
     });
-  }
-
-  // Mettre à jour les préférences utilisateurs
-  static async updateSettings(userId, settings) {
-    return UserRepository.updateSettings(userId, settings);
   }
 
   // Suppression définitive du compte (RGPD)

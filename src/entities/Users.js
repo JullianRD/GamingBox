@@ -20,30 +20,12 @@ class User {
     this.gdprConsent = data.gdpr_consent;
     this.gdprConsentDate = data.gdpr_consent_date;
     this.isPublic = data.is_public;
+    this.suspendedAt = data.suspended_at ?? null;
     this.createdAt = data.created_at;
     this.updatedAt = data.updated_at;
-
-    // Statistiques (si agrégation effectuée)
-    if (data.reviews_count !== undefined) {
-      this.reviewsCount = parseInt(data.reviews_count, 10);
-    }
     if (data.tags_count !== undefined) {
       this.tagsCount = parseInt(data.tags_count, 10);
     }
-  }
-
-  /**
-   * Crée une entité depuis une ligne PostgreSQL
-   */
-  static fromDatabase(row) {
-    return row ? new User(row) : null;
-  }
-
-  /**
-   * Crée une liste d'entités depuis des lignes PostgreSQL
-   */
-  static fromDatabaseList(rows) {
-    return rows.map((row) => new User(row));
   }
 
   /**
@@ -65,9 +47,6 @@ class User {
       updatedAt: this.updatedAt,
       // ❌ passwordHash exclu
       // ❌ gdprConsentDate exclu (donnée interne)
-      ...(this.reviewsCount !== undefined && {
-        reviewsCount: this.reviewsCount,
-      }),
       ...(this.tagsCount !== undefined && { tagsCount: this.tagsCount }),
     };
   }

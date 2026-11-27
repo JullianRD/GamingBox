@@ -53,12 +53,8 @@ const SELECT_ACTIVITY = `
 class SocialRepository {
   // ── Utilisateurs ────────────────────────────────────────────
   static async findUserByPseudo(pseudo) {
-    const { rows } = await db.query(`SELECT * FROM users WHERE pseudo = $1`, [pseudo]);
-    return toUser(rows[0]);
-  }
-
-  static async findUserById(userId) {
-    const { rows } = await db.query(`SELECT * FROM users WHERE id_user = $1`, [userId]);
+    // Un compte suspendu n'a plus de profil visible
+    const { rows } = await db.query(`SELECT * FROM users WHERE pseudo = $1 AND suspended_at IS NULL`, [pseudo]);
     return toUser(rows[0]);
   }
 
@@ -66,7 +62,7 @@ class SocialRepository {
     const { rows } = await db.query(
       `
         SELECT * FROM users
-        WHERE is_public AND id_user <> $2 AND pseudo ILIKE '%' || $1 || '%'
+        WHERE is_public AND suspended_at IS NULL AND id_user <> $2 AND pseudo ILIKE '%' || $1 || '%'
         ORDER BY similarity(pseudo::text, $1) DESC, pseudo
         LIMIT $3
       `,

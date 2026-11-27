@@ -1,7 +1,8 @@
 "use strict";
 
 import { logger } from "../config/logger.js";
-import { acquire, pause, retryAfterMs } from "../modules/catalog/rateLimit.js";
+import { acquire, pause, retryAfterMs, RateLimitError } from "../modules/catalog/rateLimit.js";
+import { recordCall, recordError, recordRefused, recordThrottled } from "../modules/catalog/stats.js";
 
 /**
  * Service IGDB
@@ -59,10 +60,16 @@ class IgdbService {
 
   // Appel générique à l'API IGDB
   static async request(endpoint, body) {
-    await acquire("IGDB");
+    try {
+      await acquire("IGDB");
+    } catch (error) {
+      if (error instanceof RateLimitError) recordRefused("IGDB");
+      throw error;
+    }
     const token = await this.getAccessToken();
     const clientId = process.env.IGDB_CLIENT_ID;
 
+    recordCall("IGDB");
     const response = await fetch(`https://api.igdb.com/v4/${endpoint}`, {
       method: "POST",
       headers: {
@@ -75,6 +82,7 @@ class IgdbService {
     });
 
     if (response.status === 429) {
+      recordThrottled("IGDB");
       pause("IGDB", retryAfterMs(response.headers.get("retry-after")));
       throw new Error("Erreur IGDB : quota atteint pour le moment");
     }
@@ -84,6 +92,7 @@ class IgdbService {
     logger.debug({ endpoint, status: response.status }, "IGDB : requête terminée");
 
     if (!response.ok) {
+      recordError("IGDB", `HTTP ${response.status}`);
       throw new Error(`Erreur IGDB : ${rawText}`);
     }
 

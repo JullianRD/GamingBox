@@ -42,3 +42,9 @@ const initCarousel = (root) => {
 const initCarousels = (scope = document) => scope.querySelectorAll("[data-carousel]").forEach(initCarousel);
 document.addEventListener("DOMContentLoaded", () => initCarousels());
 document.addEventListener("htmx:afterSettle", (event) => initCarousels(event.target));
+
+// Actions irréversibles de l'admin : confirmation avant envoi
+document.addEventListener("submit", (event) => {
+  const form = event.target.closest("form[data-confirm]");
+  if (form && !window.confirm(form.dataset.confirm)) event.preventDefault();
+});

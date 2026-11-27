@@ -1,20 +1,35 @@
 <div class="flex flex-col gap-8">
-  <h1 class="m-0 text-4xl">Administration</h1>
-  <%- include('../../partials/admin/nav') %>
-  <%- include('../../partials/flash') %>
-  <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-    <%- include('../../components/stat-tile', { value: counts.users, label: "utilisateurs" }) %>
+  <%- include('../../partials/admin/header', { heading: "Administration" }) %>
+
+  <% const alerts = [
+    counts.open_reports && { href: "/admin/reports", text: `${counts.open_reports} signalement${counts.open_reports > 1 ? "s" : ""} à traiter`, tone: "bg-anime text-anime-ink" },
+    counts.failed_imports && { href: "/admin/health", text: `${counts.failed_imports} import${counts.failed_imports > 1 ? "s" : ""} en échec cette semaine`, tone: "bg-books text-books-ink" },
+    counts.running_imports && { href: "/admin/health", text: `${counts.running_imports} import${counts.running_imports > 1 ? "s" : ""} en cours`, tone: "bg-movies text-movies-ink" },
+  ].filter(Boolean); %>
+  <% if (alerts.length) { %>
+    <ul class="m-0 flex list-none flex-col gap-2 p-0 sm:flex-row sm:flex-wrap">
+      <% alerts.forEach((a) => { %>
+        <li><a href="<%= a.href %>" class="flex rounded-2xl px-5 py-3 font-bold no-underline <%= a.tone %>"><%= a.text %> →</a></li>
+      <% }) %>
+    </ul>
+  <% } %>
+
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    <%- include('../../components/stat-tile', { value: counts.users, label: `utilisateurs (+${counts.new_users} cette semaine)` }) %>
+    <%- include('../../components/stat-tile', { value: counts.suspended, label: "comptes suspendus" }) %>
     <%- include('../../components/stat-tile', { value: counts.items, label: "œuvres au catalogue" }) %>
+    <%- include('../../components/stat-tile', { value: counts.light_items, label: "fiches légères (vues en recherche)" }) %>
     <%- include('../../components/stat-tile', { value: counts.entries, label: "entrées de liste" }) %>
     <%- include('../../components/stat-tile', { value: counts.lists, label: "listes perso" }) %>
     <%- include('../../components/stat-tile', { value: counts.comments, label: "commentaires" }) %>
     <%- include('../../components/stat-tile', { value: counts.activity_week, label: "activités sur 7 jours" }) %>
   </div>
+
   <section class="card flex flex-col gap-3">
     <h2 class="m-0 text-2xl">Catalogue par catégorie</h2>
-    <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
+    <ul class="m-0 flex list-none flex-wrap gap-3 p-0">
       <% byType.forEach((row) => { %>
-        <li><%- include('../../components/type-chip', { type: row.item_type }) %> <span class="text-sm text-muted"><%= row.count %></span></li>
+        <li><a href="/admin/items?type=<%= row.item_type %>" class="flex items-center gap-2 no-underline"><%- include('../../components/type-chip', { type: row.item_type }) %> <span class="text-sm text-muted"><%= row.count %></span></a></li>
       <% }) %>
     </ul>
   </section>

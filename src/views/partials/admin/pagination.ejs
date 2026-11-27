@@ -1,0 +1,12 @@
+<%# Pagination. Paramètres : total, page, perPage, baseQuery (objet des filtres) %>
+<% const pages = Math.max(1, Math.ceil(total / perPage)); %>
+<% if (pages > 1) { %>
+  <% const href = (p) => "?" + new URLSearchParams({ ...Object.fromEntries(Object.entries(baseQuery).filter(([, v]) => v)), page: p }).toString(); %>
+  <nav aria-label="Pagination" class="flex items-center justify-between gap-3 text-sm">
+    <% if (page > 1) { %><a href="<%= href(page - 1) %>" class="btn-ghost min-h-9 px-4 text-sm">← Précédent</a><% } else { %><span></span><% } %>
+    <span class="text-muted">Page <%= page %> sur <%= pages %> · <%= total %> résultats</span>
+    <% if (page < pages) { %><a href="<%= href(page + 1) %>" class="btn-ghost min-h-9 px-4 text-sm">Suivant →</a><% } else { %><span></span><% } %>
+  </nav>
+<% } else { %>
+  <p class="m-0 text-sm text-muted"><%= total %> résultat<%= total > 1 ? "s" : "" %></p>
+<% } %>

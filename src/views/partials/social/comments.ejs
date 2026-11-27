@@ -13,6 +13,9 @@
                 <button type="button" hx-post="/commentaires/<%= c.id %>/supprimer" hx-target="#comments" hx-swap="outerHTML"
                         class="ml-auto bg-transparent p-0 text-xs font-semibold text-muted underline hover:text-ink">Supprimer</button>
               <% } %>
+              <% if (currentUser && c.author.id !== currentUser.id) { %>
+                <a href="/signaler?type=comment&id=<%= c.id %>" class="<%= (typeof ownerId !== "undefined" && ownerId === currentUser.id) ? '' : 'ml-auto' %> text-xs font-semibold text-muted underline hover:text-ink">Signaler</a>
+              <% } %>
             </div>
             <p class="m-0 whitespace-pre-line leading-relaxed"><%= c.body %></p>
           </div>
